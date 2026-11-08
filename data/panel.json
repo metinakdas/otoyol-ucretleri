@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "ornek": false,
-  "last_run": "2026-11-09T01:19:22+03:00",
+  "last_run": "2026-11-09T01:36:20+03:00",
   "run_interval_minutes": 30,
   "panel_url": "https://metinakdas.github.io/otoyol-ucretleri/",
   "names": {
@@ -403,17 +403,6 @@
       "error": null
     },
     {
-      "key": "stratejik-plan",
-      "title": "2024-2028 Stratejik Plan",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/StratejikPlan/strateji(2024-2028).pdf",
-      "changed_at": "2026-11-09T01:19:22+03:00",
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": null
-    },
-    {
       "key": "yavuz-sultan-selim-koprusu-gecis-ucretleri-tarifesi",
       "title": "3- Yavuz Sultan Selim Köprüsü Geçiş Ücretleri Tarifesi",
       "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/3-YSSKoprusu.pdf",
@@ -493,105 +482,6 @@
       "crossings": [],
       "removed": false,
       "error": null
-    },
-    {
-      "key": "enerji-politikasi",
-      "title": "Enerji Politikası",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/EnerjiPolitikasi.pdf",
-      "changed_at": "2026-11-09T01:19:22+03:00",
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": null
-    },
-    {
-      "key": "erisme-kontrollu-karayollarinda-trafik-isaretleme-standartlari",
-      "title": "Erişme Kontrollü Karayollarında Trafik İşaretleme Standartları",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/erismekontrollukarayollarindatrafikisaretlemestandartlari.pdf",
-      "changed_at": null,
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": "Yanıt çok büyük (35990855 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/erismekontrollukarayollarindatrafikisaretlemestandartlari.pdf"
-    },
-    {
-      "key": "kvkk-aydinlatma-metni",
-      "title": "KVKK Aydınlatma Metni",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/KVKKAydinlatmaMetni.pdf",
-      "changed_at": "2026-11-09T01:19:22+03:00",
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": null
-    },
-    {
-      "key": "karayollari-uzerindeki-yolcu-ve-yuk-tasimalari",
-      "title": "Karayolları Üzerindeki Yolcu ve Yük Taşımaları",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Istatistikler/SeyirveTasimalar/SeyirVeTasimalar.pdf",
-      "changed_at": "2026-11-09T01:19:22+03:00",
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": null
-    },
-    {
-      "key": "karayolu-trafik-isaretleme-standartlari-1",
-      "title": "Karayolu Trafik İşaretleme Standartları 1",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari1.pdf",
-      "changed_at": null,
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": "Yanıt çok büyük (20965923 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari1.pdf"
-    },
-    {
-      "key": "karayolu-trafik-isaretleme-standartlari-2",
-      "title": "Karayolu Trafik İşaretleme Standartları 2",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari2.pdf",
-      "changed_at": null,
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": "Yanıt çok büyük (26857316 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari2.pdf"
-    },
-    {
-      "key": "karayolu-iyilestirme-ve-trafik-guvenligi-projesi-uzman-raporlari",
-      "title": "Karayolu İyileştirme ve Trafik Güvenliği Projesi Uzman Raporları",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/UzmanRaporlari/KITGIUzmanRaporlari.pdf",
-      "changed_at": null,
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": "Yanıt çok büyük (15901564 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/UzmanRaporlari/KITGIUzmanRaporlari.pdf"
-    },
-    {
-      "key": "kurumsal-mali-durum-ve-beklentiler-raporu",
-      "title": "Kurumsal Mali Durum ve Beklentiler Raporu",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/MaliDurum/malidurum.pdf",
-      "changed_at": "2026-11-09T01:19:22+03:00",
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": null
-    },
-    {
-      "key": "yol-yapim-bakim-ve-onarimlarinda-trafik-isaretleme-standartlari",
-      "title": "Yol Yapım Bakım ve Onarımlarında Trafik İşaretleme Standartları",
-      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/2023YolyapimBakimveOnarimlardaTrfIsrStandratlari.pdf",
-      "changed_at": null,
-      "checked_at": "2026-11-09T01:19:22+03:00",
-      "effective_from": null,
-      "crossings": [],
-      "removed": false,
-      "error": "Yanıt çok büyük (84636280 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/2023YolyapimBakimveOnarimlardaTrfIsrStandratlari.pdf"
     }
   ],
   "sources": [
@@ -603,10 +493,10 @@
       "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T01:19:22+03:00",
+      "last_success": "2026-11-09T01:36:20+03:00",
       "failing_since": null,
       "error": null,
-      "info": "30 tarife belgesi (başlangıç kaydı)"
+      "info": "20 tarife belgesi, 0 değişiklik"
     },
     {
       "id": "kgm-duyurular",
@@ -616,10 +506,10 @@
       "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T01:19:22+03:00",
+      "last_success": "2026-11-09T01:36:20+03:00",
       "failing_since": null,
       "error": null,
-      "info": "52 başlık (başlangıç kaydı)"
+      "info": "52 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "uab-haberler",
@@ -629,10 +519,10 @@
       "url": "https://www.uab.gov.tr/haberler/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T01:19:22+03:00",
+      "last_success": "2026-11-09T01:36:20+03:00",
       "failing_since": null,
       "error": null,
-      "info": "20 başlık (başlangıç kaydı)"
+      "info": "20 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "uab-duyurular",
@@ -642,10 +532,10 @@
       "url": "https://www.uab.gov.tr/duyurular/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T01:19:22+03:00",
+      "last_success": "2026-11-09T01:36:20+03:00",
       "failing_since": null,
       "error": null,
-      "info": "20 başlık (başlangıç kaydı)"
+      "info": "20 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "uab-basin",
@@ -655,10 +545,10 @@
       "url": "https://www.uab.gov.tr/basin-aciklamalari/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T01:19:22+03:00",
+      "last_success": "2026-11-09T01:36:20+03:00",
       "failing_since": null,
       "error": null,
-      "info": "20 başlık (başlangıç kaydı)"
+      "info": "20 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "avrasya-haberler",
@@ -668,10 +558,10 @@
       "url": "https://www.avrasyatuneli.com/haberler-ve-duyurular/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T01:19:22+03:00",
+      "last_success": "2026-11-09T01:36:20+03:00",
       "failing_since": null,
       "error": null,
-      "info": "14 başlık (başlangıç kaydı)"
+      "info": "14 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "avrasya-ucretler",
@@ -868,7 +758,7 @@
     }
   ],
   "harita": {
-    "hata": "overpass-api.de: HTTP 406; overpass.kumi.systems: HTTP 504",
-    "son_basari": null
+    "hata": null,
+    "son_basari": "2026-11-09T01:33:03+03:00"
   }
 }
