@@ -129,6 +129,7 @@ def test_gise_noktalari_gruplanir_ve_bolgelere_ayrilir():
 def _setup(cfg, web, elements=ELEMENTS):
     cfg.settings.map_refresh_days = 30
     cfg.settings.map_retry_hours = 24
+    cfg.settings.overpass_urls = [OVERPASS, YEDEK]
     web.json(OVERPASS, {"version": 0.6, "elements": elements})
     return Store(cfg.data_dir), {}
 
@@ -223,3 +224,17 @@ def _offline():
     import httpx
 
     return httpx.MockTransport(lambda request: httpx.Response(404, text="yok"))
+
+
+def test_yeni_overpass_bicimi_yol_dugum_listesiyle():
+    elements = [
+        area("TR-41"),
+        node(1, 40.78, 29.60, barrier="toll_booth", name="Batı Gişeleri"),
+        node(2, 40.7804, 29.6006, barrier="toll_booth", name="Batı Gişeleri"),
+        node(4, 40.76, 29.70, highway="toll_gantry"),
+        {"type": "way", "id": 10, "nodes": [9, 1, 2], "tags": {"highway": "motorway", "ref": "O-4", "name": "Anadolu Otoyolu"}},
+        {"type": "way", "id": 11, "nodes": [4, 8], "tags": {"highway": "motorway", "ref": "O-7"}},
+    ]
+    pts = {p["id"]: p for p in harita.build_map(elements, T0)["noktalar"]}
+    assert pts["osm-node-1"]["yol"] == "O-4" and pts["osm-node-1"]["nokta_sayisi"] == 2
+    assert pts["osm-node-4"]["ad"] == "Serbest geçiş noktası (O-7)"

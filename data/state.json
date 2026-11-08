@@ -1032,7 +1032,9 @@
     ]
   },
   "_harita": {
-    "son_deneme": "2026-11-09T01:19:22+03:00",
-    "hata": "overpass-api.de: HTTP 406; overpass.kumi.systems: HTTP 504"
+    "son_deneme": "2026-11-09T01:33:03+03:00",
+    "hata": null,
+    "son_basari": "2026-11-09T01:33:03+03:00",
+    "nokta": 370
   }
 }

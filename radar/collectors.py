@@ -106,13 +106,21 @@ def _ensure_baseline(ctx: Context, mapped: list[CrossingCfg], parsed: dict | Non
             ctx.notes.append(f"Başlangıç ücreti kaydedildi: {c.name}")
 
 
+def _is_tariff(text: str | None, url: str | None) -> bool:
+    """Ücret tarifesi belgesi mi? (KGM sayfasında strateji planı, trafik standartları gibi başka PDF'ler de var.)"""
+    t = fold(text)
+    return "ucret" in t or "tarife" in t or "ucret" in (url or "").lower()
+
+
 def collect_tarife_listesi(src: Source, st: dict, ctx: Context) -> CollectResult:
     res = ctx.fetcher.get(src.url)
-    links = [l for l in extract_links(res.text, res.final_url) if PDF_RE.search(l.url)]
+    links = [l for l in extract_links(res.text, res.final_url) if PDF_RE.search(l.url) and _is_tariff(l.text, l.url)]
     if not links:
         raise CollectError("Sayfada PDF tarife bağlantısı bulunamadı; sayfa yapısı değişmiş olabilir.")
 
     docs: dict = st.setdefault("docs", {})
+    for key in [k for k, d in docs.items() if not _is_tariff(d.get("title"), d.get("url"))]:
+        del docs[key]  # önceki sürümün kaydettiği ilgisiz belgeler
     first_run = not docs
     present: set[str] = set()
     changed: list[tuple[Link, str, list[CrossingCfg], TariffParse | None]] = []

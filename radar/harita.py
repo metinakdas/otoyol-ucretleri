@@ -42,11 +42,9 @@ foreach.iller->.il(
     node(area.il)["barrier"="toll_booth"];
     node(area.il)["highway"="toll_gantry"];
   )->.noktalar;
-  foreach.noktalar->.n(
-    .n out;
-    way(bn.n)["highway"];
-    out tags;
-  );
+  .noktalar out;
+  way(bn.noktalar)["highway"];
+  out body;
   way(area.il)["barrier"="toll_booth"];
   out tags center;
 );"""
@@ -130,7 +128,13 @@ def parse_elements(elements: list[dict]) -> list[Booth]:
                         name=_name(tags), plaka=plaka, operator=clean_spaces(tags.get("operator") or "") or None,
                     )
                 last = None
-            elif last is not None:
+            elif "nodes" in el:  # yol: üzerindeki gişe noktalarına bağlanır
+                info = _road_info(tags)
+                for nid in el["nodes"]:
+                    b = booths.get(f"node/{nid}")
+                    if b is not None and info not in b.roads:
+                        b.roads.append(info)
+            elif last is not None:  # eski biçim: yol, hemen önceki noktaya aittir
                 info = _road_info(tags)
                 if info not in last.roads:
                     last.roads.append(info)
@@ -243,7 +247,8 @@ def build_map(elements: list[dict], now: datetime) -> dict:
 
 def fetch_elements(cfg: Config, transport: httpx.BaseTransport | None = None) -> list[dict]:
     errors = []
-    headers = {"User-Agent": cfg.settings.user_agent, "Accept": "application/json"}
+    # Overpass tarayıcı gibi görünen istemcileri reddedebiliyor (HTTP 406); kendimizi açıkça tanıtırız.
+    headers = {"User-Agent": "TarifeRadari/0.2 (gecis ucreti radari; OpenStreetMap gise verisi)", "Accept": "*/*"}
     timeout = httpx.Timeout(270.0, connect=20.0)
     with httpx.Client(headers=headers, timeout=timeout, transport=transport, follow_redirects=True) as client:
         for url in cfg.settings.overpass_urls:

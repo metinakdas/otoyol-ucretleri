@@ -67,7 +67,7 @@ def cmd_kaynak_testi(args, cfg) -> int:
     from .extract import extract_links, page_text, parse_tariff_pdf, same_site
     from .fetch import Fetcher
     from .matching import Matcher
-    from .collectors import PDF_RE
+    from .collectors import PDF_RE, _is_tariff
 
     matcher = Matcher(cfg.crossings, cfg.generic_phrases)
     now = tz_now()
@@ -88,7 +88,7 @@ def cmd_kaynak_testi(args, cfg) -> int:
                 continue
             print(f"   HTTP {r.status} · {r.content_type or '?'} · {len(r.content):,} bayt")
             if src.type == "tarife_listesi":
-                links = [l for l in extract_links(r.text, r.final_url) if PDF_RE.search(l.url)]
+                links = [l for l in extract_links(r.text, r.final_url) if PDF_RE.search(l.url) and _is_tariff(l.text, l.url)]
                 print(f"   PDF tarife bağlantısı: {len(links)}")
                 for l in links:
                     mapped = matcher.crossings_for_document(l.text, l.url)

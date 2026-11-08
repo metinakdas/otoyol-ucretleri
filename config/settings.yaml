@@ -42,4 +42,6 @@ harita_tekrar_deneme_saat: 24
 # Sırayla denenen Overpass sunucuları.
 harita_overpass:
   - https://overpass-api.de/api/interpreter
+  - https://overpass.private.coffee/api/interpreter
+  - https://maps.mail.ru/osm/tools/overpass/api/interpreter
   - https://overpass.kumi.systems/api/interpreter
