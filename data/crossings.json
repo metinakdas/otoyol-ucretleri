@@ -1,0 +1,102 @@
+{
+  "15-temmuz-sehitler": {
+    "name": "15 Temmuz Şehitler Köprüsü",
+    "prices": [
+      {
+        "valid_from": "2026-01-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "59.00",
+          "2": "75.00",
+          "3": "168.00",
+          "4": "333.00",
+          "5": "440.00",
+          "6": "25.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/1-15Temmuz-FSM.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      }
+    ]
+  },
+  "fatih-sultan-mehmet": {
+    "name": "Fatih Sultan Mehmet Köprüsü",
+    "prices": [
+      {
+        "valid_from": "2026-01-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "59.00",
+          "2": "75.00",
+          "3": "168.00",
+          "4": "333.00",
+          "5": "440.00",
+          "6": "25.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/1-15Temmuz-FSM.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      }
+    ]
+  },
+  "osmangazi": {
+    "name": "Osmangazi Köprüsü",
+    "prices": [
+      {
+        "valid_from": "2026-07-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "1170.00",
+          "2": "1870.00",
+          "3": "2225.00",
+          "4": "2950.00",
+          "5": "3720.00",
+          "6": "820.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/2-Osmangazi.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      }
+    ]
+  },
+  "yavuz-sultan-selim": {
+    "name": "Yavuz Sultan Selim Köprüsü",
+    "prices": [
+      {
+        "valid_from": "2026-07-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "110.00",
+          "2": "145.00",
+          "3": "270.00",
+          "4": "690.00",
+          "5": "860.00",
+          "6": "75.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/3-YSSKoprusu.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      }
+    ]
+  },
+  "1915-canakkale": {
+    "name": "1915 Çanakkale Köprüsü",
+    "prices": [
+      {
+        "valid_from": "2026-07-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "1170.00",
+          "2": "1465.00",
+          "3": "2635.00",
+          "4": "2925.00",
+          "5": "5560.00",
+          "6": "295.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/4-1915Canakkale.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      }
+    ]
+  }
+}

@@ -1,0 +1,874 @@
+{
+  "schema": 1,
+  "ornek": false,
+  "last_run": "2026-11-09T01:19:22+03:00",
+  "run_interval_minutes": 30,
+  "panel_url": "https://metinakdas.github.io/otoyol-ucretleri/",
+  "names": {
+    "15-temmuz-sehitler": "15 Temmuz Şehitler Köprüsü",
+    "fatih-sultan-mehmet": "Fatih Sultan Mehmet Köprüsü",
+    "yavuz-sultan-selim": "Yavuz Sultan Selim Köprüsü",
+    "avrasya-tuneli": "Avrasya Tüneli",
+    "osmangazi": "Osmangazi Köprüsü",
+    "1915-canakkale": "1915 Çanakkale Köprüsü",
+    "kgm-otoyollari": "KGM otoyolları"
+  },
+  "crossings": [
+    {
+      "id": "15-temmuz-sehitler",
+      "name": "15 Temmuz Şehitler Köprüsü",
+      "operator": "KGM",
+      "current": {
+        "valid_from": "2026-01-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "59.00",
+          "2": "75.00",
+          "3": "168.00",
+          "4": "333.00",
+          "5": "440.00",
+          "6": "25.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/1-15Temmuz-FSM.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      },
+      "upcoming": null,
+      "history": [
+        {
+          "valid_from": "2026-01-01T00:00:00+03:00",
+          "valid_to": null,
+          "class1": "59.00"
+        }
+      ],
+      "free_now": null,
+      "tur": "kopru",
+      "diger_adlar": [
+        "15 Temmuz Köprüsü",
+        "Boğaziçi Köprüsü",
+        "Birinci Köprü",
+        "1. Köprü"
+      ],
+      "konum": [
+        41.0451,
+        29.0345
+      ],
+      "iller": [
+        "İstanbul"
+      ],
+      "bolge": "marmara"
+    },
+    {
+      "id": "fatih-sultan-mehmet",
+      "name": "Fatih Sultan Mehmet Köprüsü",
+      "operator": "KGM",
+      "current": {
+        "valid_from": "2026-01-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "59.00",
+          "2": "75.00",
+          "3": "168.00",
+          "4": "333.00",
+          "5": "440.00",
+          "6": "25.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/1-15Temmuz-FSM.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      },
+      "upcoming": null,
+      "history": [
+        {
+          "valid_from": "2026-01-01T00:00:00+03:00",
+          "valid_to": null,
+          "class1": "59.00"
+        }
+      ],
+      "free_now": null,
+      "tur": "kopru",
+      "diger_adlar": [
+        "FSM Köprüsü",
+        "İkinci Köprü",
+        "2. Köprü"
+      ],
+      "konum": [
+        41.0911,
+        29.0611
+      ],
+      "iller": [
+        "İstanbul"
+      ],
+      "bolge": "marmara"
+    },
+    {
+      "id": "yavuz-sultan-selim",
+      "name": "Yavuz Sultan Selim Köprüsü",
+      "operator": "YİD",
+      "current": {
+        "valid_from": "2026-07-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "110.00",
+          "2": "145.00",
+          "3": "270.00",
+          "4": "690.00",
+          "5": "860.00",
+          "6": "75.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/3-YSSKoprusu.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      },
+      "upcoming": null,
+      "history": [
+        {
+          "valid_from": "2026-07-01T00:00:00+03:00",
+          "valid_to": null,
+          "class1": "110.00"
+        }
+      ],
+      "free_now": null,
+      "tur": "kopru",
+      "diger_adlar": [
+        "YSS Köprüsü",
+        "Üçüncü Köprü",
+        "3. Köprü"
+      ],
+      "konum": [
+        41.2025,
+        29.1117
+      ],
+      "iller": [
+        "İstanbul"
+      ],
+      "bolge": "marmara"
+    },
+    {
+      "id": "avrasya-tuneli",
+      "name": "Avrasya Tüneli",
+      "operator": "YİD",
+      "current": null,
+      "upcoming": null,
+      "history": [],
+      "free_now": null,
+      "tur": "tunel",
+      "diger_adlar": [],
+      "konum": [
+        41.0008,
+        28.9995
+      ],
+      "iller": [
+        "İstanbul"
+      ],
+      "bolge": "marmara"
+    },
+    {
+      "id": "osmangazi",
+      "name": "Osmangazi Köprüsü",
+      "operator": "YİD",
+      "current": {
+        "valid_from": "2026-07-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "1170.00",
+          "2": "1870.00",
+          "3": "2225.00",
+          "4": "2950.00",
+          "5": "3720.00",
+          "6": "820.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/2-Osmangazi.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      },
+      "upcoming": null,
+      "history": [
+        {
+          "valid_from": "2026-07-01T00:00:00+03:00",
+          "valid_to": null,
+          "class1": "1170.00"
+        }
+      ],
+      "free_now": null,
+      "tur": "kopru",
+      "diger_adlar": [
+        "İzmit Körfez Geçişi"
+      ],
+      "konum": [
+        40.7536,
+        29.5153
+      ],
+      "iller": [
+        "Kocaeli",
+        "Yalova"
+      ],
+      "bolge": "marmara"
+    },
+    {
+      "id": "1915-canakkale",
+      "name": "1915 Çanakkale Köprüsü",
+      "operator": "YİD",
+      "current": {
+        "valid_from": "2026-07-01T00:00:00+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "1170.00",
+          "2": "1465.00",
+          "3": "2635.00",
+          "4": "2925.00",
+          "5": "5560.00",
+          "6": "295.00"
+        },
+        "source_url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/4-1915Canakkale.pdf",
+        "event_id": null,
+        "note": "Başlangıç kaydı (KGM tarifesi)"
+      },
+      "upcoming": null,
+      "history": [
+        {
+          "valid_from": "2026-07-01T00:00:00+03:00",
+          "valid_to": null,
+          "class1": "1170.00"
+        }
+      ],
+      "free_now": null,
+      "tur": "kopru",
+      "diger_adlar": [
+        "Çanakkale Köprüsü"
+      ],
+      "konum": [
+        40.3409,
+        26.6365
+      ],
+      "iller": [
+        "Çanakkale"
+      ],
+      "bolge": "marmara"
+    }
+  ],
+  "upcoming": [],
+  "active_rules": [],
+  "next_rules": [],
+  "events": [],
+  "documents": [
+    {
+      "key": "15-temmuz-sehitler-ve-fatih-sultan-mehmet-kopruleri-gecis-ucretleri-ta",
+      "title": "1- 15 Temmuz Şehitler ve Fatih Sultan Mehmet Köprüleri Geçiş Ücretleri Tarifesi",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/1-15Temmuz-FSM.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [
+        "15 Temmuz Şehitler Köprüsü",
+        "Fatih Sultan Mehmet Köprüsü"
+      ],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-cukurova-otoyollari-nigde-mersin-adana-bati-kesimi-gecis-ucretleri",
+      "title": "10- KGM Çukurova Otoyolları (Niğde - Mersin - Adana Batı Kesimi) Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/10-CukurovaOtoyoluNigde-Mersin-Adana.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-avrupa-otoyolu-mahmutbey-edirne-kesimi-gecis-ucretleri",
+      "title": "11- KGM Avrupa Otoyolu (Mahmutbey - Edirne Kesimi) Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/11-AvrupaOtoyoluMahmutbey-Edirne.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "gebze-orhangazi-izmir-izmit-korfez-gecisi-ve-baglanti-yollari-dahil-ot",
+      "title": "12- Gebze - Orhangazi - İzmir (İzmit Körfez Geçişi ve Bağlantı Yolları Dahil) Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/12-Gebze-Orhangazi-Izmir.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2027-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "yavuz-sultan-selim-koprusu-ve-kuzey-cevre-otoyolu-gecis-ucretleri",
+      "title": "13- Yavuz Sultan Selim Köprüsü ve Kuzey Çevre Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/13-YSSKuzeyCevreYolu.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2022-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kuzey-marmara-avrupa-kinali-odayeri-otoyolu-gecis-ucretleri",
+      "title": "14- Kuzey Marmara Avrupa (Kınalı - Odayeri) Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/14-KMOAvrupaKinali-Odayeri.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kuzey-marmara-anadolu-kurtkoy-akyazi-otoyolu-gecis-ucretleri",
+      "title": "15- Kuzey Marmara Anadolu (Kurtköy - Akyazı) Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/15-KMOAnadoluKurtkoy-Akyazi.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "menemen-aliaga-candarli-otoyolu-gecis-ucretleri",
+      "title": "16- Menemen Aliağa Çandarlı Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/16-Menemen-Aliaga-Candarli.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "ankara-nigde-otoyolu-gecis-ucretleri",
+      "title": "17- Ankara - Niğde Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/17-Ankara-Nigde.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "malkara-canakkale-canakkale-koprurusu-dahil-otoyolu-gecis-ucretleri",
+      "title": "18- Malkara - Çanakkale (1915 Çanakkale Köprürüsü dahil) Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/18-Malkara-Canakkale.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [
+        "1915 Çanakkale Köprüsü"
+      ],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "aydin-denizli-otoyolu-gecis-ucretleri",
+      "title": "19- Aydın - Denizli Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/19-Aydin-Denizli.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "osmangazi-koprusu-gecis-ucretleri-tarifesi",
+      "title": "2- Osmangazi Köprüsü Geçiş Ücretleri Tarifesi",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/2-Osmangazi.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [
+        "Osmangazi Köprüsü"
+      ],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "cesmeli-erdemli-sliifke-tasucu-otoyolu-cesmeli-kizkalesi-kesimi-ucret",
+      "title": "20-Çeşmeli – Erdemli – Sliifke – Taşucu Otoyolu Çeşmeli Kızkalesi Kesimi Ücret Tarifesi",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/20-Cesmeli-KizkalesiTR.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-10-19T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "stratejik-plan",
+      "title": "2024-2028 Stratejik Plan",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/StratejikPlan/strateji(2024-2028).pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "yavuz-sultan-selim-koprusu-gecis-ucretleri-tarifesi",
+      "title": "3- Yavuz Sultan Selim Köprüsü Geçiş Ücretleri Tarifesi",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/3-YSSKoprusu.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [
+        "Yavuz Sultan Selim Köprüsü"
+      ],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "canakkale-koprusu-gecis-ucretleri-tarifesi",
+      "title": "4- 1915 Çanakkale Köprüsü Geçiş Ücretleri Tarifesi",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/4-1915Canakkale.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-07-01T00:00:00+03:00",
+      "crossings": [
+        "1915 Çanakkale Köprüsü"
+      ],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-anadolu-otoyolu-camlica-istasyonu-akinci-kesimi-gecis-ucretleri",
+      "title": "5- KGM Anadolu Otoyolu (Çamlıca İstasyonu - Akıncı Kesimi ) Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/5-AnadoluOtoyoluCamlica-Akinci.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-izmir-cesme-otoyolu-gecis-ucretleri",
+      "title": "6- KGM İzmir - Çeşme Otoyolu Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/6-Izmir-Cesme.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-izmir-aydin-otoyolu-isikkent-aydin-bati-kesimi-gecis-ucretleri",
+      "title": "7- KGM İzmir - Aydın Otoyolu (Işıkkent - Aydın Batı Kesimi ) Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/7-Izmir-Aydin.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-cukurova-otoyollari-adana-dogu-gaziantep-bati-kesimi-gecis-ucretle",
+      "title": "8- KGM Çukurova Otoyolları (Adana Doğu - Gaziantep Batı kesimi)Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/8-CukurovaOtoyoluAdana-Gaziantep.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "kgm-cukurova-otoyollari-gaziantep-dogu-sanliurfa-kesimi-gecis-ucretler",
+      "title": "9- KGM Çukurova Otoyolları (Gaziantep Doğu - Şanlıurfa kesimi) Geçiş Ücretleri",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/9-CukurovaOtoyoluGaziantep-Sanliurfa.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": "2026-01-01T00:00:00+03:00",
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "enerji-politikasi",
+      "title": "Enerji Politikası",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/EnerjiPolitikasi.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "erisme-kontrollu-karayollarinda-trafik-isaretleme-standartlari",
+      "title": "Erişme Kontrollü Karayollarında Trafik İşaretleme Standartları",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/erismekontrollukarayollarindatrafikisaretlemestandartlari.pdf",
+      "changed_at": null,
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": "Yanıt çok büyük (35990855 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/erismekontrollukarayollarindatrafikisaretlemestandartlari.pdf"
+    },
+    {
+      "key": "kvkk-aydinlatma-metni",
+      "title": "KVKK Aydınlatma Metni",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/KVKKAydinlatmaMetni.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "karayollari-uzerindeki-yolcu-ve-yuk-tasimalari",
+      "title": "Karayolları Üzerindeki Yolcu ve Yük Taşımaları",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Istatistikler/SeyirveTasimalar/SeyirVeTasimalar.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "karayolu-trafik-isaretleme-standartlari-1",
+      "title": "Karayolu Trafik İşaretleme Standartları 1",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari1.pdf",
+      "changed_at": null,
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": "Yanıt çok büyük (20965923 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari1.pdf"
+    },
+    {
+      "key": "karayolu-trafik-isaretleme-standartlari-2",
+      "title": "Karayolu Trafik İşaretleme Standartları 2",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari2.pdf",
+      "changed_at": null,
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": "Yanıt çok büyük (26857316 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/KarayoluTrafikIsaretlemeStandartlari2.pdf"
+    },
+    {
+      "key": "karayolu-iyilestirme-ve-trafik-guvenligi-projesi-uzman-raporlari",
+      "title": "Karayolu İyileştirme ve Trafik Güvenliği Projesi Uzman Raporları",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/UzmanRaporlari/KITGIUzmanRaporlari.pdf",
+      "changed_at": null,
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": "Yanıt çok büyük (15901564 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/UzmanRaporlari/KITGIUzmanRaporlari.pdf"
+    },
+    {
+      "key": "kurumsal-mali-durum-ve-beklentiler-raporu",
+      "title": "Kurumsal Mali Durum ve Beklentiler Raporu",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/MaliDurum/malidurum.pdf",
+      "changed_at": "2026-11-09T01:19:22+03:00",
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": null
+    },
+    {
+      "key": "yol-yapim-bakim-ve-onarimlarinda-trafik-isaretleme-standartlari",
+      "title": "Yol Yapım Bakım ve Onarımlarında Trafik İşaretleme Standartları",
+      "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/2023YolyapimBakimveOnarimlardaTrfIsrStandratlari.pdf",
+      "changed_at": null,
+      "checked_at": "2026-11-09T01:19:22+03:00",
+      "effective_from": null,
+      "crossings": [],
+      "removed": false,
+      "error": "Yanıt çok büyük (84636280 bayt): https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Trafik/IsaretlerElKitabi/2023YolyapimBakimveOnarimlardaTrfIsrStandratlari.pdf"
+    }
+  ],
+  "sources": [
+    {
+      "id": "kgm-tarifeler",
+      "name": "KGM geçiş ücreti tarifeleri",
+      "tier": "resmi",
+      "type": "tarife_listesi",
+      "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T01:19:22+03:00",
+      "failing_since": null,
+      "error": null,
+      "info": "30 tarife belgesi (başlangıç kaydı)"
+    },
+    {
+      "id": "kgm-duyurular",
+      "name": "KGM duyuruları",
+      "tier": "resmi",
+      "type": "liste",
+      "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T01:19:22+03:00",
+      "failing_since": null,
+      "error": null,
+      "info": "52 başlık (başlangıç kaydı)"
+    },
+    {
+      "id": "uab-haberler",
+      "name": "Bakanlık haberleri",
+      "tier": "resmi",
+      "type": "liste",
+      "url": "https://www.uab.gov.tr/haberler/",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T01:19:22+03:00",
+      "failing_since": null,
+      "error": null,
+      "info": "20 başlık (başlangıç kaydı)"
+    },
+    {
+      "id": "uab-duyurular",
+      "name": "Bakanlık duyuruları",
+      "tier": "resmi",
+      "type": "liste",
+      "url": "https://www.uab.gov.tr/duyurular/",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T01:19:22+03:00",
+      "failing_since": null,
+      "error": null,
+      "info": "20 başlık (başlangıç kaydı)"
+    },
+    {
+      "id": "uab-basin",
+      "name": "Bakanlık basın açıklamaları",
+      "tier": "resmi",
+      "type": "liste",
+      "url": "https://www.uab.gov.tr/basin-aciklamalari/",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T01:19:22+03:00",
+      "failing_since": null,
+      "error": null,
+      "info": "20 başlık (başlangıç kaydı)"
+    },
+    {
+      "id": "avrasya-haberler",
+      "name": "Avrasya Tüneli haber ve duyuruları",
+      "tier": "resmi",
+      "type": "liste",
+      "url": "https://www.avrasyatuneli.com/haberler-ve-duyurular/",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T01:19:22+03:00",
+      "failing_since": null,
+      "error": null,
+      "info": "14 başlık (başlangıç kaydı)"
+    },
+    {
+      "id": "avrasya-ucretler",
+      "name": "Avrasya Tüneli ücret sayfası",
+      "tier": "resmi",
+      "type": "sayfa",
+      "url": "https://www.avrasyatuneli.com/ucretlendirme/",
+      "enabled": false,
+      "ok": null,
+      "last_success": null,
+      "failing_since": null,
+      "error": null,
+      "info": null
+    },
+    {
+      "id": "haber-ucretsiz-gecis",
+      "name": "Haber: köprü ve otoyol ücretsiz geçiş",
+      "tier": "haber",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=k%C3%B6pr%C3%BC+otoyol+%C3%BCcretsiz&hl=tr&gl=TR&ceid=TR:tr",
+      "enabled": false,
+      "ok": null,
+      "last_success": null,
+      "failing_since": null,
+      "error": null,
+      "info": null
+    },
+    {
+      "id": "haber-gecis-zam",
+      "name": "Haber: köprü ve otoyol geçiş ücreti zammı",
+      "tier": "haber",
+      "type": "rss",
+      "url": "https://news.google.com/rss/search?q=k%C3%B6pr%C3%BC+otoyol+ge%C3%A7i%C5%9F+%C3%BCcreti+zam&hl=tr&gl=TR&ceid=TR:tr",
+      "enabled": false,
+      "ok": null,
+      "last_success": null,
+      "failing_since": null,
+      "error": null,
+      "info": null
+    }
+  ],
+  "calendar": [
+    {
+      "id": "yilbasi-2027",
+      "name": "2027 yılbaşı ücret dönemi",
+      "kind": "yilbasi",
+      "start": "2027-01-01",
+      "end": "2027-01-01",
+      "watch_start": "2026-12-11T00:00:00+03:00"
+    },
+    {
+      "id": "ramazan-bayrami-2027",
+      "name": "Ramazan Bayramı 2027",
+      "kind": "bayram",
+      "start": "2027-03-09",
+      "end": "2027-03-11",
+      "watch_start": "2027-02-23T00:00:00+03:00"
+    },
+    {
+      "id": "kurban-bayrami-2027",
+      "name": "Kurban Bayramı 2027",
+      "kind": "bayram",
+      "start": "2027-05-16",
+      "end": "2027-05-19",
+      "watch_start": "2027-05-02T00:00:00+03:00"
+    }
+  ],
+  "bolgeler": [
+    {
+      "id": "marmara",
+      "ad": "Marmara",
+      "sinir": [
+        [
+          39.0,
+          25.6
+        ],
+        [
+          42.1,
+          31.0
+        ]
+      ],
+      "etiket": [
+        40.45,
+        27.9
+      ]
+    },
+    {
+      "id": "ege",
+      "ad": "Ege",
+      "sinir": [
+        [
+          36.6,
+          26.2
+        ],
+        [
+          39.8,
+          31.6
+        ]
+      ],
+      "etiket": [
+        38.4,
+        28.6
+      ]
+    },
+    {
+      "id": "akdeniz",
+      "ad": "Akdeniz",
+      "sinir": [
+        [
+          35.8,
+          29.2
+        ],
+        [
+          38.5,
+          37.6
+        ]
+      ],
+      "etiket": [
+        36.95,
+        33.2
+      ]
+    },
+    {
+      "id": "ic-anadolu",
+      "ad": "İç Anadolu",
+      "sinir": [
+        [
+          36.5,
+          29.9
+        ],
+        [
+          41.0,
+          38.9
+        ]
+      ],
+      "etiket": [
+        38.9,
+        33.6
+      ]
+    },
+    {
+      "id": "karadeniz",
+      "ad": "Karadeniz",
+      "sinir": [
+        [
+          39.6,
+          30.6
+        ],
+        [
+          42.1,
+          42.6
+        ]
+      ],
+      "etiket": [
+        40.9,
+        35.8
+      ]
+    },
+    {
+      "id": "dogu-anadolu",
+      "ad": "Doğu Anadolu",
+      "sinir": [
+        [
+          37.0,
+          37.4
+        ],
+        [
+          41.6,
+          44.8
+        ]
+      ],
+      "etiket": [
+        39.3,
+        41.4
+      ]
+    },
+    {
+      "id": "guneydogu-anadolu",
+      "ad": "Güneydoğu Anadolu",
+      "sinir": [
+        [
+          36.6,
+          36.5
+        ],
+        [
+          38.6,
+          43.0
+        ]
+      ],
+      "etiket": [
+        37.45,
+        39.6
+      ]
+    }
+  ],
+  "harita": {
+    "hata": "overpass-api.de: HTTP 406; overpass.kumi.systems: HTTP 504",
+    "son_basari": null
+  }
+}
