@@ -1,0 +1,9 @@
+# Sürümler sabittir: radar yalnızca test edilmiş sürümlerle kurulur (tedarik zinciri güvenliği).
+# Güncellemek için sürümü değiştirin ve "python -m pytest" ile testleri çalıştırın.
+httpx==0.28.1
+beautifulsoup4==4.15.0
+feedparser==6.0.14
+pdfplumber==0.11.10
+PyYAML==6.0.3
+# Windows'ta saat dilimi verisi için gerekli (Linux'ta zararsız)
+tzdata==2026.5

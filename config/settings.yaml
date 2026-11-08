@@ -1,0 +1,45 @@
+# Genel ayarlar. Gizli bilgiler (Telegram anahtarı, e-posta şifresi) burada değil, .env dosyasında durur.
+
+# Sitelere kendimizi bu adla tanıtıyoruz.
+user_agent: "Mozilla/5.0 (compatible; TarifeRadari/0.1)"
+
+# Aynı siteye iki istek arasında en az bu kadar beklenir (saniye).
+istek_araligi_saniye: 2
+
+# Adresi değişmeyen tarife PDF'leri en fazla bu sıklıkla yeniden kontrol edilir (saat).
+belge_kontrol_saat: 24
+
+# Teyit gelmeyen sinyal ve gündem kayıtları bu kadar gün sonra kapanır.
+sinyal_kapanma_gun: 14
+
+# Yürürlükten kaç gün önce hatırlatma gönderilsin.
+hatirlatma_gun: [7, 1]
+
+# Günlük e-posta özetinin gönderileceği saat (İstanbul saati).
+ozet_saati: 8
+
+# Bir kaynak bu kadar saat okunamazsa teknik gruba uyarı gider.
+kaynak_hata_saat: 24
+
+# Değişiklik yokken panel ve sağlık kaydı en fazla bu sıklıkla yazılır (dakika).
+# Böylece her 30 dakikalık çalışma Git'e yeni kayıt (commit) üretmez.
+heartbeat_dakika: 180
+
+# Radarın çalışma aralığı (yalnızca panelde bilgi olarak gösterilir; asıl aralık GitHub Actions'ta).
+calisma_araligi_dakika: 30
+
+# Olağan dışı ücret değişimi eşiği (yüzde). Bu oranın üstündeki artışlar ve tüm düşüşler "kontrol et" etiketi alır.
+olagan_disi_artis_yuzde: 100
+
+# --- Harita ---
+# Otoyol gişelerinin konumları OpenStreetMap'ten (Overpass API, ücretsiz) bu kadar günde bir yenilenir.
+# 0 yapılırsa otomatik yenileme kapanır; "python -m radar harita-guncelle" ile elle yenilenebilir.
+harita_yenileme_gun: 30
+
+# Yenileme başarısız olursa en erken bu kadar saat sonra yeniden denenir.
+harita_tekrar_deneme_saat: 24
+
+# Sırayla denenen Overpass sunucuları.
+harita_overpass:
+  - https://overpass-api.de/api/interpreter
+  - https://overpass.kumi.systems/api/interpreter

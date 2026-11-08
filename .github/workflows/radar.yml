@@ -1,0 +1,120 @@
+name: Tarife Radarı
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"   # 30 dakikada bir (GitHub yoğunlukta birkaç dakika geciktirebilir)
+  workflow_dispatch: {}      # Actions sekmesinden elle çalıştırmak için
+
+# Güvenlik: varsayılan olarak hiçbir yetki verilmez; her iş yalnızca ihtiyacı olanı alır.
+permissions: {}
+
+concurrency:
+  group: tarife-radari
+  cancel-in-progress: false
+
+jobs:
+  radar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20   # ayda bir harita verisi de alınır (birkaç dakika sürebilir)
+    permissions:
+      contents: write     # yalnızca data/ klasörünü kaydetmek için
+    outputs:
+      hazir: ${{ steps.ayar.outputs.hazir }}
+      changed: ${{ steps.kaydet.outputs.changed }}
+    steps:
+      # Bildirim kanalı tanımlanmadan çalışırsa bildirimler "gönderildi" sayılıp kaybolur; bu yüzden beklenir.
+      - name: Bildirim ayarlarını denetle
+        id: ayar
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+        run: |
+          if { [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; } || { [ -n "$SMTP_HOST" ] && [ -n "$EMAIL_TO" ]; }; then
+            echo "hazir=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::warning::Bildirim kanalı tanımlı değil (Settings > Secrets and variables > Actions). Radar ayarlar girilene kadar çalışmaz."
+            echo "hazir=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@v4
+        if: steps.ayar.outputs.hazir == 'true'
+
+      - uses: actions/setup-python@v5
+        if: steps.ayar.outputs.hazir == 'true'
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Bağımlılıkları kur
+        if: steps.ayar.outputs.hazir == 'true'
+        run: pip install -r requirements.txt
+
+      - name: Radar turu
+        if: steps.ayar.outputs.hazir == 'true'
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_TECH_CHAT_ID: ${{ secrets.TELEGRAM_TECH_CHAT_ID }}
+          SMTP_HOST: ${{ secrets.SMTP_HOST }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_SSL: ${{ secrets.SMTP_SSL }}
+          SMTP_USER: ${{ secrets.SMTP_USER }}
+          SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
+          SMTP_FROM: ${{ secrets.SMTP_FROM }}
+          EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          PANEL_URL: ${{ vars.PANEL_URL }}
+        run: python -m radar calistir
+
+      - name: Değişiklikleri kaydet
+        id: kaydet
+        if: steps.ayar.outputs.hazir == 'true'
+        run: |
+          git config user.name "tarife-radari[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            git commit -m "radar: veri güncellemesi"
+            for i in 1 2 3; do
+              git pull --rebase && git push && break
+              sleep 5
+            done
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Paneli GitHub Pages'e yayımlar. Yalnızca panel dosyaları ile panel.json ve harita.json yayımlanır.
+  panel:
+    needs: radar
+    if: needs.radar.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && needs.radar.outputs.hazir == 'true')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.yayin.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}   # radar işinin az önce kaydettiği son veriyi al
+          persist-credentials: false
+
+      - name: Site klasörünü hazırla
+        run: |
+          mkdir -p _site/data
+          cp -r panel/. _site/
+          rm -f _site/ornek-panel.json _site/ornek-harita.json
+          for f in panel.json harita.json; do
+            if [ -f "data/$f" ]; then cp "data/$f" "_site/data/$f"; fi
+          done
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+      - id: yayin
+        uses: actions/deploy-pages@v4

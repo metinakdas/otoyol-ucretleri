@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# Gizli bilgiler: .env hiçbir zaman depoya girmez (yalnızca .env.example şablonu girer)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Leaflet'in varsayılan işaret ve katman görselleri: panel bunları kullanmaz (kendi işaretlerini çizer)
+panel/vendor/leaflet/images/
+
+# Yerel çalışma dosyaları
+_site/
+cache/
+*.log
+data/*.tmp
+data/events/*.tmp
+data/rules/*.tmp
+
+# Claude'un sohbete eklediği dosyaların kopyaları ve işletim sistemi dosyaları
+Claude outputs/
+Thumbs.db
+desktop.ini
+.DS_Store

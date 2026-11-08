@@ -1,0 +1,27 @@
+# Bilinen dönemler. Radar, her dönemin "watch_days" gün öncesinden itibaren bir izleme kaydı açar
+# ve ekibe haber verir. Karar gelince kayıt karara dönüşür.
+#
+# ÖNEMLİ: Bayram tarihleri yaklaşıktır. Diyanet İşleri Başkanlığı'nın dini günler takviminden doğrulayıp
+# her yıl yeni yılın tarihlerini ekleyin.
+
+periods:
+  - id: yilbasi-2027
+    name: 2027 yılbaşı ücret dönemi
+    kind: yilbasi
+    start: 2027-01-01
+    end: 2027-01-01
+    watch_days: 21
+
+  - id: ramazan-bayrami-2027
+    name: Ramazan Bayramı 2027
+    kind: bayram
+    start: 2027-03-09   # yaklaşık, doğrulayın
+    end: 2027-03-11
+    watch_days: 14
+
+  - id: kurban-bayrami-2027
+    name: Kurban Bayramı 2027
+    kind: bayram
+    start: 2027-05-16   # yaklaşık, doğrulayın
+    end: 2027-05-19
+    watch_days: 14

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
+  <title>Geçiş Ücreti Radarı</title>
+  <meta name="description" content="Köprü, tünel ve otoyol geçiş ücreti değişiklikleri ve bayramda ücretsiz geçiş kararları">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%232563eb'/%3E%3Cpath d='M8 20c2.5-6 13.5-6 16 0' stroke='white' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <h1 class="brand">Geçiş Ücreti Radarı</h1>
+      <div id="status" class="status" role="status" aria-live="polite">Yükleniyor…</div>
+    </div>
+  </header>
+
+  <main class="wrap" id="app">
+    <div id="sample-note" class="sample-note" hidden>
+      ÖRNEK VERİ: Bu görünüm tasarımı göstermek içindir; ücretler gerçek değildir.
+    </div>
+
+    <section id="highlight" class="highlight" aria-label="Öne çıkan"></section>
+
+    <div class="grid">
+      <section class="card prices" aria-labelledby="prices-title">
+        <div class="card-head">
+          <h2 id="prices-title">Güncel ücretler</h2>
+          <div class="segmented" role="group" aria-label="Araç sınıfı" id="class-picker"></div>
+        </div>
+        <table class="table" id="prices-table">
+          <thead><tr><th scope="col">Geçiş</th><th scope="col" class="num">Ücret</th><th scope="col" class="num">Durum</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p class="hint">Ayrıntı, tüm sınıflar ve ücret geçmişi için bir satıra dokunun.</p>
+      </section>
+
+      <div class="side">
+        <section class="card" aria-labelledby="free-title">
+          <h2 id="free-title">Bayramda ücretsiz geçiş</h2>
+          <div id="free"></div>
+        </section>
+        <section class="card" aria-labelledby="sources-title">
+          <h2 id="sources-title">Kaynak durumu</h2>
+          <ul id="sources" class="sources"></ul>
+        </section>
+      </div>
+    </div>
+
+    <section class="card map-card" id="map-card" aria-labelledby="map-title">
+      <div class="card-head">
+        <h2 id="map-title">Ücretli geçiş haritası</h2>
+        <span class="muted small" id="map-meta"></span>
+      </div>
+      <div class="map-tools">
+        <div class="search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12.6 12.6 17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+          <input id="map-search" type="search" placeholder="Köprü, gişe, otoyol ya da il ara" autocomplete="off" spellcheck="false" aria-label="Haritada ara" aria-controls="map-list">
+        </div>
+        <div class="filters">
+          <label class="field"><span>İl</span><select id="f-il"></select></label>
+          <label class="field"><span>Otoyol</span><select id="f-yol"></select></label>
+          <label class="field"><span>Durum</span>
+            <select id="f-durum">
+              <option value="">Hepsi</option>
+              <option value="degisecek">Ücreti değişecek</option>
+              <option value="ucretsiz">Ücretsiz geçiş</option>
+            </select>
+          </label>
+          <button type="button" class="link-btn" id="f-temizle">Temizle</button>
+        </div>
+      </div>
+      <div class="chip-row" id="map-types" role="group" aria-label="Nokta türü"></div>
+      <div class="chip-row region-row" id="map-regions" role="group" aria-label="Bölge"></div>
+      <div class="map-body">
+        <div id="map" class="map" aria-label="Ücretli geçiş noktaları haritası"></div>
+        <div id="map-list" class="map-list" aria-label="Noktalar"></div>
+      </div>
+      <p class="hint" id="map-note"></p>
+    </section>
+
+    <section class="card" aria-labelledby="events-title">
+      <h2 id="events-title">Son kayıtlar</h2>
+      <ul id="events" class="events"></ul>
+    </section>
+
+    <section class="card">
+      <details>
+        <summary><h2 class="inline">KGM tarife belgeleri</h2> <span id="doc-count" class="muted"></span></summary>
+        <ul id="documents" class="documents"></ul>
+      </details>
+    </section>
+
+    <footer class="footer" id="footer"></footer>
+  </main>
+
+  <template id="error-tpl">
+    <div class="card error-card">
+      <h2>Panel verisi okunamadı</h2>
+      <p>Radar henüz çalışmamış olabilir. Yerelde denemek için <code>python -m radar panel --ornek</code> komutunu kullanın.</p>
+    </div>
+  </template>
+
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="harita.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

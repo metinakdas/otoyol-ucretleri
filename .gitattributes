@@ -1,0 +1,4 @@
+# Satır sonları depoda LF olarak tutulur; Windows'ta ve GitHub Actions'ta yazılan dosyalar aynı görünür.
+* text=auto eol=lf
+*.pdf binary
+*.png binary

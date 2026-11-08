@@ -1,0 +1,91 @@
+# İzlenen kaynaklar.
+#
+# type:
+#   tarife_listesi : Sayfadaki PDF tarife bağlantılarını izler. Bağlantı ya da PDF içeriği değişince
+#                    PDF'i indirir, sınıf ücretlerini ve geçerlilik tarihini okur (KGM).
+#   liste          : Sayfadaki yeni duyuru/haber başlıklarını izler; ilgili olanların ayrıntısını okur.
+#   rss            : RSS akışındaki yeni haberleri izler.
+#   sayfa          : Sayfa metni değişti mi diye bakar.
+#
+# tier:
+#   resmi : Kurumun kendi sitesi. Tek başına "Karar çıktı" için yeterlidir.
+#   haber : Haber sitesi. Karar için aynı tarihi veren iki bağımsız haber gerekir.
+#
+# crossings: Bu kaynaktaki her ilgili kayıt varsayılan olarak bu geçişlere bağlanır
+#            (ör. Avrasya Tüneli'nin kendi sitesi).
+#
+# Adresler 8 Kasım 2026'da sitelerin kendisinden doğrulandı. Değişirse "python -m radar kaynak-testi"
+# hangi kaynağın okunamadığını gösterir.
+
+sources:
+  # --- Resmi: Karayolları Genel Müdürlüğü ---
+  - id: kgm-tarifeler
+    name: KGM geçiş ücreti tarifeleri
+    type: tarife_listesi
+    tier: resmi
+    url: https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx
+    enabled: true
+
+  - id: kgm-duyurular
+    name: KGM duyuruları
+    type: liste
+    tier: resmi
+    url: https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx
+    enabled: true
+
+  # --- Resmi: Ulaştırma ve Altyapı Bakanlığı ---
+  - id: uab-haberler
+    name: Bakanlık haberleri
+    type: liste
+    tier: resmi
+    url: https://www.uab.gov.tr/haberler/
+    enabled: true
+
+  - id: uab-duyurular
+    name: Bakanlık duyuruları
+    type: liste
+    tier: resmi
+    url: https://www.uab.gov.tr/duyurular/
+    enabled: true
+
+  - id: uab-basin
+    name: Bakanlık basın açıklamaları
+    type: liste
+    tier: resmi
+    url: https://www.uab.gov.tr/basin-aciklamalari/
+    enabled: true
+
+  # --- Resmi: YİD işletmecileri ---
+  - id: avrasya-haberler
+    name: Avrasya Tüneli haber ve duyuruları
+    type: liste
+    tier: resmi
+    url: https://www.avrasyatuneli.com/haberler-ve-duyurular/
+    crossings: [avrasya-tuneli]
+    enabled: true
+
+  - id: avrasya-ucretler
+    name: Avrasya Tüneli ücret sayfası
+    type: sayfa
+    tier: resmi
+    url: https://www.avrasyatuneli.com/ucretlendirme/
+    crossings: [avrasya-tuneli]
+    # Ücretler sayfaya JavaScript ile yükleniyor; düz okumada görünmüyor. Bu yüzden kapalı.
+    # Avrasya Tüneli ücret değişiklikleri haber ve duyurular sayfasından izlenir.
+    enabled: false
+
+  # --- Haber akışları (isteğe bağlı) ---
+  # Google News RSS ücretsizdir; kullanım koşullarını kontrol ettikten sonra "enabled: true" yapın.
+  - id: haber-ucretsiz-gecis
+    name: "Haber: köprü ve otoyol ücretsiz geçiş"
+    type: rss
+    tier: haber
+    url: https://news.google.com/rss/search?q=k%C3%B6pr%C3%BC+otoyol+%C3%BCcretsiz&hl=tr&gl=TR&ceid=TR:tr
+    enabled: false
+
+  - id: haber-gecis-zam
+    name: "Haber: köprü ve otoyol geçiş ücreti zammı"
+    type: rss
+    tier: haber
+    url: https://news.google.com/rss/search?q=k%C3%B6pr%C3%BC+otoyol+ge%C3%A7i%C5%9F+%C3%BCcreti+zam&hl=tr&gl=TR&ceid=TR:tr
+    enabled: false

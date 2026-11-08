@@ -1,0 +1,101 @@
+# Ücretli geçişler.
+#
+# aliases      : Haber ve duyurularda geçişi tanımak için adlar. Büyük/küçük harf ve Türkçe karakter fark etmez.
+# tariff_match : KGM tarife listesindeki PDF'in dosya adında ya da bağlantı metninde aranacak ifadeler.
+#                KGM her yıl yeni bir klasöre (ör. 2026Gecis_Ucret) yeni PDF'ler koyuyor; dosya adları benzer kalıyor.
+# parse        : "sinif_tablosu" ise PDF'ten 1-6. sınıf ücretleri okunur. Okunamazsa yalnızca değişiklik bildirilir.
+# panel        : Panelin "Güncel ücretler" tablosunda ve haritasında gösterilsin mi?
+# tur          : kopru | tunel | otoyol (haritadaki işaret ve tür filtresi)
+# konum        : [enlem, boylam] haritadaki işaretin yeri. Değerler yaklaşıktır (geçişin orta noktası);
+#                gerekirse OpenStreetMap'ten bakıp düzeltin.
+# il           : İl adı ya da adları (bölge filtresi bundan çıkar).
+
+crossings:
+  - id: 15-temmuz-sehitler
+    name: 15 Temmuz Şehitler Köprüsü
+    operator: KGM
+    aliases: [15 Temmuz Şehitler Köprüsü, 15 Temmuz Köprüsü, Boğaziçi Köprüsü, Birinci Köprü, 1. Köprü]
+    tariff_match: [15Temmuz, 15 Temmuz]
+    parse: sinif_tablosu
+    panel: true
+    tur: kopru
+    konum: [41.0451, 29.0345]
+    il: İstanbul
+
+  - id: fatih-sultan-mehmet
+    name: Fatih Sultan Mehmet Köprüsü
+    operator: KGM
+    aliases: [Fatih Sultan Mehmet Köprüsü, FSM Köprüsü, İkinci Köprü, 2. Köprü]
+    tariff_match: [FSM, Fatih Sultan Mehmet]
+    parse: sinif_tablosu
+    panel: true
+    tur: kopru
+    konum: [41.0911, 29.0611]
+    il: İstanbul
+
+  - id: yavuz-sultan-selim
+    name: Yavuz Sultan Selim Köprüsü
+    operator: YİD
+    aliases: [Yavuz Sultan Selim Köprüsü, YSS Köprüsü, Üçüncü Köprü, 3. Köprü]
+    tariff_match: [YSSKoprusu]
+    parse: sinif_tablosu
+    panel: true
+    tur: kopru
+    konum: [41.2025, 29.1117]
+    il: İstanbul
+
+  - id: avrasya-tuneli
+    name: Avrasya Tüneli
+    operator: YİD
+    aliases: [Avrasya Tüneli]
+    # KGM listesinde yok; işletmecinin sitesinden izlenir.
+    tariff_match: []
+    panel: true
+    tur: tunel
+    konum: [41.0008, 28.9995]
+    il: İstanbul
+
+  - id: osmangazi
+    name: Osmangazi Köprüsü
+    operator: YİD
+    aliases: [Osmangazi Köprüsü, İzmit Körfez Geçişi]
+    tariff_match: [Osmangazi]
+    parse: sinif_tablosu
+    panel: true
+    tur: kopru
+    konum: [40.7536, 29.5153]
+    il: [Kocaeli, Yalova]
+
+  - id: 1915-canakkale
+    name: 1915 Çanakkale Köprüsü
+    operator: YİD
+    aliases: [1915 Çanakkale Köprüsü, Çanakkale Köprüsü]
+    tariff_match: [1915Canakkale, 1915 Çanakkale]
+    parse: sinif_tablosu
+    panel: true
+    tur: kopru
+    konum: [40.3409, 26.6365]
+    il: Çanakkale
+
+  - id: kgm-otoyollari
+    name: KGM otoyolları
+    operator: KGM
+    # Ad yerine aşağıdaki genel ifadelerle eşleşir.
+    aliases: []
+    tariff_match: []
+    panel: false
+    tur: otoyol
+
+# "Köprü ve otoyollar" gibi genel ifadeler. Belirli bir geçiş adı geçmiyorsa olay generic_scope'a bağlanır.
+generic_phrases:
+  - köprü ve otoyol
+  - otoyol ve köprü
+  - köprüler ve otoyollar
+  - otoyollar ve köprüler
+  - köprü ve otoyolların
+  - otoyol ve köprülerin
+
+# Genel ifadeyle duyurulan kararların varsayılan kapsamı.
+# Geçmişte bayram ücretsiz geçişlerinde YİD geçişleri genelde hariçti; bu yüzden yalnızca KGM geçişleri.
+# Bu varsayımla açılan kayıtlar "kapsamı kontrol et" etiketiyle gelir.
+generic_scope: [15-temmuz-sehitler, fatih-sultan-mehmet, kgm-otoyollari]
