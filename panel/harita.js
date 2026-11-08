@@ -11,8 +11,9 @@ window.RadarMap = (function () {
   const TYPE_SHORT = { kopru: "Köprü, tünel", gise: "Gişe", serbest: "Serbest geçiş" };
   const KIND_NAMES = { kopru: "Köprü", tunel: "Tünel", gise: "Otoyol gişesi", serbest: "Serbest geçiş noktası" };
   const TR_BOUNDS = [[35.8, 25.6], [42.2, 44.9]];
-  const FONT = 'system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-  const LABEL_FONTS = { main: "600 12.5px " + FONT, gate: "500 11.5px " + FONT, chip: "650 11px " + FONT, region: "700 11px " + FONT };
+  const FONT = '"Barlow", system-ui, "Segoe UI", Roboto, Arial, sans-serif';
+  const FONT_C = '"Barlow Condensed", "Barlow", system-ui, sans-serif';
+  const LABEL_FONTS = { main: "700 13.5px " + FONT_C, gate: "500 12px " + FONT, chip: "700 11px " + FONT, region: "700 13px " + FONT_C };
   const LIST_LIMIT = 30;
   const ICONS = {
     kopru: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 11.6h12.4M3.2 11.6c1.3-4.2 8.3-4.2 9.6 0M5.6 8.3v3.3M10.4 8.3v3.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
@@ -25,6 +26,7 @@ window.RadarMap = (function () {
     f: { q: "", bolge: "", il: "", yol: "", durum: "", types: new Set(TYPES) },
     visible: [], expanded: new Set(), selected: null,
     map: null, markers: new Map(), labelLayer: null, regionLayer: null, clusterLayer: null, gateRenderer: null,
+    routeLayer: null, route: null, popupExtra: null, onTrip: null,
     clusters: [], clustered: new Set(),
     widths: new Map(), measureCtx: null, colors: {}, searchTimer: null,
   };
@@ -65,13 +67,7 @@ window.RadarMap = (function () {
         operator: c.operator, crossing: c, freeSoon: freeSoon.has(c.id), n: 99,
       });
     });
-    ((S.mapData && S.mapData.noktalar) || []).forEach((p) => {
-      pts.push({
-        id: p.id, type: p.tur === "serbest" ? "serbest" : "gise", kind: p.tur === "serbest" ? "serbest" : "gise",
-        name: p.ad, unnamed: !!p.adsiz, lat: p.lat, lon: p.lon, iller: p.il ? [p.il] : [], bolge: p.bolge,
-        yol: p.yol, yolAdi: p.yol_adi, operator: p.isletmeci, osm: p.osm, n: p.nokta_sayisi || 1,
-      });
-    });
+    kgmGates().forEach((g) => pts.push(g));
     pts.forEach((p) => {
       p.status = statusOf(p);
       p.search = fold([p.name, KIND_NAMES[p.kind], p.iller.join(" "), regionName(p.bolge), p.yol, p.yolAdi, p.operator,
@@ -79,6 +75,41 @@ window.RadarMap = (function () {
       S.byId.set(p.id, p);
     });
     return pts;
+  }
+
+  // Gişeler yalnızca KGM tarifelerinden gelir. OpenStreetMap'te kapanmış ya da tarifede olmayan
+  // gişeler de kayıtlı (ör. eski D-100 gişeleri); onlar haritaya konmaz, yalnızca konum ve il bilgisi için kullanılır.
+  function kgmGates() {
+    const osm = (S.mapData && S.mapData.noktalar) || [];
+    const near = (lat, lon, limit) => {
+      let best = null, bd = limit;
+      osm.forEach((o) => { const d = distM(lat, lon, o.lat, o.lon); if (d < bd) { bd = d; best = o; } });
+      return best;
+    };
+    const groups = [];
+    (S.stations || []).forEach((s) => {
+      if (typeof s.lat !== "number" || typeof s.lon !== "number") return;
+      const g = groups.find((x) => distM(x.lat, x.lon, s.lat, s.lon) < 300);
+      if (g) g.stations.push(s); else groups.push({ lat: s.lat, lon: s.lon, stations: [s] });
+    });
+    return groups.map((g) => {
+      const first = g.stations[0];
+      const names = [...new Set(g.stations.map((s) => s.ad))];
+      const roads = [...new Set(g.stations.map((s) => s.road.yol).filter(Boolean))];
+      const o = near(g.lat, g.lon, 1500);
+      return {
+        id: "kgm:" + first.key, type: "gise", kind: "gise", name: names.join(" / "), unnamed: false,
+        lat: g.lat, lon: g.lon, iller: o && o.il ? [o.il] : [], bolge: o ? o.bolge : null,
+        yol: roads[0] || null, yolAdi: roads.length > 1 ? roads.join(", ") : first.road.ad,
+        operator: null, stations: g.stations.map((s) => s.key), n: g.stations.length,
+      };
+    });
+  }
+
+  function distM(lat1, lon1, lat2, lon2) {
+    const r = Math.PI / 180;
+    const x = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lon2 - lon1) * r / 2) ** 2;
+    return 12742000 * Math.asin(Math.sqrt(x));
   }
 
   function statusOf(p) {
@@ -225,6 +256,7 @@ window.RadarMap = (function () {
   }
 
   function renderMeta() {
+    if (!$("#map-meta")) return;
     const nCross = S.points.filter((p) => p.type === "kopru").length;
     const nGates = S.points.length - nCross;
     const shown = S.visible.length === S.points.length ? "" : ` · ${S.visible.length} gösteriliyor`;
@@ -232,22 +264,24 @@ window.RadarMap = (function () {
   }
 
   function renderNote() {
+    // Kaynak atfı haritanın köşesinde (Leaflet); burada yalnızca bir sorun varsa yazı çıkar.
     const h = S.h;
     const parts = [];
-    const md = S.mapData;
-    if (md && md.ornek) parts.push("Gişeler örnek veridir; gerçek konumlar OpenStreetMap'ten ayda bir alınır.");
-    else if (md) parts.push(`Gişe konumları: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> katkıcıları (ODbL), güncelleme ${h.esc(h.date(md.olusturma))}.`);
-    else parts.push("Otoyol gişeleri henüz alınmadı. Radar ilk turda OpenStreetMap'ten alır; elle almak için <code>python -m radar harita-guncelle</code>.");
+    if (!(S.stations || []).length) parts.push("Otoyol gişeleri KGM ücret tablosu hazırlanınca görünür.");
     const err = S.data.harita && S.data.harita.hata;
-    if (err) parts.push(`<span class="chip bad">Son gişe güncellemesi başarısız</span> ${h.esc(err.slice(0, 160))}`);
-    parts.push("Köprü ve tünel konumları yaklaşıktır. Fareyle yakınlaştırmak için önce haritaya tıklayın.");
-    $("#map-note").innerHTML = parts.join(" ");
+    if (err) parts.push(`<span class="chip bad">Gişe güncellemesi başarısız</span> ${h.esc(err.slice(0, 160))}`);
+    const el = $("#map-note");
+    el.innerHTML = parts.join(" ");
+    el.hidden = !parts.length;
   }
 
   // ------------------------------------------------------------ harita
 
   function readColors() {
-    S.colors = { gise: cssVar("--m-gise") || "#eb6834", ring: cssVar("--surface") || "#ffffff" };
+    S.colors = {
+      gise: cssVar("--m-gise") || "#c4501f", ring: cssVar("--surface") || "#fbf6ea",
+      route: cssVar("--route") || "#e3a21a", casing: cssVar("--route-casing") || "#2a2118",
+    };
   }
 
   function gateRadius() {
@@ -268,22 +302,25 @@ window.RadarMap = (function () {
     }
     readColors();
     const map = L.map(el, {
-      minZoom: 4, maxZoom: 18, zoomSnap: 0.5, scrollWheelZoom: false,
+      minZoom: 4, maxZoom: 18, zoomSnap: 0.25, zoomDelta: 0.5, scrollWheelZoom: false,
       maxBounds: L.latLngBounds([[32.5, 20], [45.5, 50]]), maxBoundsViscosity: 0.7,
     });
     S.map = map;
     map.createPane("regions").style.zIndex = 350;
+    map.createPane("route").style.zIndex = 390;
+    map.createPane("stops").style.zIndex = 640;
     const labels = map.createPane("labels");
     labels.style.zIndex = 450;
     labels.style.pointerEvents = "none";
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıcıları',
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıcıları (ODbL)',
     }).addTo(map);
     S.gateRenderer = L.canvas({ padding: 0.5, tolerance: 7 });
     S.labelLayer = L.layerGroup().addTo(map);
     S.regionLayer = L.layerGroup().addTo(map);
     S.clusterLayer = L.layerGroup().addTo(map);
+    S.routeLayer = L.layerGroup().addTo(map);
     map.fitBounds(TR_BOUNDS);
 
     S.points.forEach((p) => S.markers.set(p.id, createMarker(p)));
@@ -302,12 +339,20 @@ window.RadarMap = (function () {
       if (a) {
         e.preventDefault();
         if (S.onShowCrossing) S.onShowCrossing(a.dataset.showCrossing);
+        return;
+      }
+      const t = e.target.closest("[data-trip-role]");
+      if (t && S.onTrip) {
+        e.preventDefault();
+        map.closePopup();
+        S.onTrip(t.dataset.tripRole, t.dataset.tripKey);
       }
     });
     try {
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
         readColors();
         S.markers.forEach((m, id) => { if (m.options.isGate) m.setStyle(gateStyle(id === S.selected)); });
+        if (S.route) showRoute(Object.assign({}, S.route, { fit: false }));
       });
     } catch (e) { /* eski tarayıcı */ }
   }
@@ -490,7 +535,8 @@ window.RadarMap = (function () {
     S.regions.forEach((r) => {
       if (S.f.bolge && S.f.bolge !== r.id) return;
       const pt = S.map.latLngToContainerPoint(r.etiket);
-      const w = textWidth(r.ad.toLocaleUpperCase("tr"), LABEL_FONTS.region) * 1.12 + 4;
+      const up = r.ad.toLocaleUpperCase("tr");
+      const w = textWidth(up, LABEL_FONTS.region) + up.length * 3.9 + 4;   // harf aralığı 0.3em
       const box = [pt.x - w / 2, pt.y - 8, pt.x + w / 2, pt.y + 8];
       if (box[0] < 0 || box[1] < 0 || box[2] > size.x || box[3] > size.y || overlaps(box, boxes)) return;
       boxes.push(box);
@@ -524,7 +570,8 @@ window.RadarMap = (function () {
     const rows = [];
     if (p.yol) rows.push(`<div class="pop-row"><span>Yol</span><b>${esc(p.yol)}${p.yolAdi ? " · " + esc(p.yolAdi) : ""}</b></div>`);
     if (p.operator) rows.push(`<div class="pop-row"><span>İşletmeci</span><b>${esc(p.operator)}</b></div>`);
-    rows.push(`<div class="pop-n">Otoyol ücreti giriş ve çıkış gişesine göre değişir; tutarlar KGM tarife belgelerindedir.</div>`);
+    const extra = S.popupExtra ? S.popupExtra(p) : "";
+    rows.push(extra || `<div class="pop-n">KGM tarifelerinde eşleşmedi.</div>`);
     const osm = /^(node|way|relation)\/\d+$/.test(p.osm || "")
       ? `<div class="pop-a"><a href="https://www.openstreetmap.org/${esc(p.osm)}" target="_blank" rel="noopener noreferrer">OpenStreetMap'te aç</a></div>` : "";
     return `<div class="pop">${head}${rows.join("")}${osm}</div>`;
@@ -640,6 +687,43 @@ window.RadarMap = (function () {
     });
   }
 
+  // ------------------------------------------------------------ güzergâh (ücret hesabı)
+
+  function stopMarker(s) {
+    const esc = S.h.esc;
+    return L.marker([s.lat, s.lon], {
+      icon: L.divIcon({ className: "stop-wrap", html: `<span class="stop ${s.role}">${s.role === "in" ? "G" : "Ç"}</span>`,
+        iconSize: [30, 30], iconAnchor: [15, 15] }),
+      pane: "stops", keyboard: false, title: (s.role === "in" ? "Giriş: " : "Çıkış: ") + s.name,
+    }).bindTooltip(`<strong>${esc(s.role === "in" ? "Giriş" : "Çıkış")}</strong><br><span>${esc(s.name)}</span>`,
+      { direction: "top", offset: [0, -16], className: "radar-tip" });
+  }
+
+  function showRoute(r) {
+    S.route = r;
+    if (!S.map) return;
+    readColors();
+    S.routeLayer.clearLayers();
+    const path = (r.path || []).filter((p) => Array.isArray(p) && p.length === 2);
+    if (path.length >= 2) {
+      const opts = { pane: "route", interactive: false, lineCap: "round", lineJoin: "round" };
+      L.polyline(path, Object.assign({ color: S.colors.casing, weight: 11, opacity: 0.85 }, opts)).addTo(S.routeLayer);
+      L.polyline(path, Object.assign({ color: S.colors.route, weight: 6, opacity: 1 }, opts)).addTo(S.routeLayer);
+      L.polyline(path, Object.assign({ color: S.colors.casing, weight: 1.4, opacity: 0.7, dashArray: "6 9" }, opts)).addTo(S.routeLayer);
+    }
+    const stops = [r.entry, r.exit].filter((s) => s && typeof s.lat === "number");
+    stops.forEach((s) => stopMarker(s).addTo(S.routeLayer));
+    if (r.fit === false) return;
+    const pts = path.concat(stops.map((s) => [s.lat, s.lon]));
+    if (pts.length >= 2) S.map.flyToBounds(L.latLngBounds(pts), { padding: [70, 70], maxZoom: 12, duration: 0.7 });
+    else if (pts.length === 1) S.map.flyTo(pts[0], Math.max(S.map.getZoom(), 11), { duration: 0.6 });
+  }
+
+  function clearRoute() {
+    S.route = null;
+    if (S.routeLayer) S.routeLayer.clearLayers();
+  }
+
   // ------------------------------------------------------------ dışa açık
 
   function init(opts) {
@@ -648,13 +732,13 @@ window.RadarMap = (function () {
     S.mapData = opts.mapData;
     S.cls = opts.cls || "1";
     S.onShowCrossing = opts.onShowCrossing;
+    S.popupExtra = opts.popupExtra || null;
+    S.onTrip = opts.onTrip || null;
+    S.stations = opts.stations || [];
     S.regions = S.data.bolgeler || [];
     S.regions.forEach((r) => { S.regionById[r.id] = r; });
     S.points = buildPoints();
-    if (!S.points.length) {
-      $("#map-card").hidden = true;
-      return;
-    }
+    // Nokta olmasa da harita açılır: ücret hesabının güzergâhı yine çizilir.
     renderNote();
     bindEvents();
     createMap();
@@ -670,5 +754,7 @@ window.RadarMap = (function () {
     focusPoint("gecis:" + crossingId, true);
   }
 
-  return { init, setClass, focusCrossing, fold };
+  function invalidate() { if (S.map) S.map.invalidateSize(); }
+
+  return { init, setClass, focusCrossing, fold, showRoute, clearRoute, invalidate };
 })();

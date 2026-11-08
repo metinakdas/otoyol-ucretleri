@@ -54,7 +54,7 @@ GitHub Actions (30 dk'da bir, cron)
         ├─ bildirim planla ve gönder (Telegram, e-posta)
         ├─ ayda bir OpenStreetMap'ten gişe konumlarını al (harita)
         └─ data/*.json yaz  → commit + push (Git = veritabanı)
-   └─ panel işi: panel/ + data/panel.json + data/harita.json → GitHub Pages
+   └─ panel işi: panel/ + data/panel.json + data/harita.json + data/ucret-tablosu.json → GitHub Pages
 ```
 
 - **Veritabanı yok:** Tüm durum `data/` altındaki JSON dosyalarında; her değişiklik bir commit. Geçmiş Git'te.
@@ -128,7 +128,8 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
 | `radar/yayin.py` | `python -m radar yayinla`: güvenlik taraması + GitHub'a yayın + depo sıkılaştırma |
 | `radar/config.py` | `config/*.yaml` ve `.env` okuma, doğrulama |
 | `radar/demo.py` | Panel için açıkça "örnek" etiketli veri |
-| `panel/` | Tek sayfalık panel (vanilla JS), `harita.js` (Leaflet), `vendor/leaflet/` (1.9.4, BSD) |
+| `radar/ucret_tablosu.py` | KGM tarife PDF'lerindeki gişe-gişe ücret matrisleri → `data/ucret-tablosu.json` (günde bir ve tarife değişince; bozuk PDF'te eski veri korunur) |
+| `panel/` | Tek sayfalık panel (vanilla JS): `app.js`, `harita.js` (Leaflet), `hesap.js` (ücret hesabı), `vendor/leaflet/` (1.9.4, BSD), `vendor/fonts/` (OFL) |
 | `.github/workflows/radar.yml` | 30 dakikalık çalışma + Pages yayını |
 | `.github/workflows/testler.yml` | Her gönderimde testler (yalnız okuma yetkisi) |
 
@@ -136,19 +137,26 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
 
 ## 5. Panel ve harita
 
-- Bölümler: durum çubuğu, öne çıkan (aktif ücretsiz geçiş / yaklaşan değişiklik geri sayımı), güncel ücretler
-  tablosu (1–6. sınıf seçici, satır ayrıntısında tüm sınıflar ve ücret geçmişi grafiği), bayram kartı, kaynak
-  sağlığı, **ücretli geçiş haritası**, son kayıtlar, KGM belgeleri.
-- **Harita:** Leaflet + OpenStreetMap karoları (ücretsiz, anahtarsız). Köprü/tünel işaretleri
-  `config/crossings.yaml` içindeki yaklaşık `konum` alanından; otoyol gişeleri OpenStreetMap'teki
-  `barrier=toll_booth` ve `highway=toll_gantry` noktalarından (il bazında Overpass sorgusu, bağlı yolun
-  numarası ve adıyla). Aynı gişenin şeritleri tek noktada birleştirilir. Veri `data/harita.json`, ayda bir
-  yenilenir; başarısız olursa eski veri korunur.
-- Özellikler: çakışmasız isim etiketleri, uzaklaşınca İstanbul'daki köprülerin tek işarette toplanması,
-  arama (diğer adlarla, ör. "Boğaz köprüsü" → 15 Temmuz), filtreler (il, otoyol, tür, durum), 7 bölge çipi
-  ve bölgelere göre gruplanmış liste, tablo ile harita arasında karşılıklı bağlantı.
-- Renkler: 3 kategori (köprü/tünel mavi, gişe turuncu, serbest geçiş yeşil), renk körlüğü denetiminden geçti;
-  ayrıca şekille (kare/daire/karo) ayrılır. Açık/koyu tema, mobil uyumlu.
+- **Tasarım (Kasım 2026, yeniden):** eski basılı yol haritası havası — kâğıt zemin ve doku, otoyol tabelası
+  yeşili başlık, hardal sarısı güzergâh, sepya harita karoları; yazı tipleri Barlow / Barlow Condensed /
+  Courier Prime (`panel/vendor/fonts/`, OFL; CSP gereği kendi sunucudan). Açık/koyu tema, mobil uyumlu.
+  İlke: gereksiz yazı yok — boş durumlar yazı yerine şekille (boş fiş), duyuru yoksa şerit gizli, kayıt
+  yoksa kart gizli, kaynak durumu ve belgeler en altta katlanır bölümde.
+- **Yerleşim:** harita sayfanın merkezi (ekran yüksekliğinde). Solda iki sekmeli konsol: *Ücret hesapla* ve
+  *Gişe ara* (arama, bölge çipleri, katlanır filtreler, liste). Altta köprü/tünel ücret tablosu, bayram
+  kartı, son kayıtlar.
+- **Ücret hesabı (`panel/hesap.js`):** giriş/çıkış gişesi (aranabilir liste; çıkış listesi her gişenin
+  ücretini gösterir), 1–6. sınıf, sonuç "geçiş fişi"; güzergâh haritada çizilir (tablo sırası yol boyunca,
+  kola sapan gişeler çizgiden atlanır). Haritadaki gişenin açılır penceresinden Giriş/Çıkış seçilebilir.
+  Seçim adres çubuğunda: `#hesap=<otoyol-id>/<giriş>/<çıkış>/<sınıf>`. Yöne bağlı tarifelerde
+  `ucret_geri` kullanılır.
+- **Haritadaki gişeler yalnızca KGM tarifesinden gelir.** OpenStreetMap'te kapanmış/tarifede olmayan
+  gişeler var (ör. Derince, İzmit merkezdeki adsız nokta, eski D-100 gişeleri) — kullanıcı bunları bilgi
+  kirliliği olarak bildirdi. `data/harita.json` (OSM) artık yalnızca konum ve il/bölge kaynağıdır; konumu
+  eşleşmeyen KGM gişesi haritaya konmaz (hesapta seçilebilir). 300 m içindeki farklı tarifelerin gişeleri
+  tek işarette birleşir.
+- Köprü/tünel işaretleri `config/crossings.yaml` içindeki yaklaşık `konum` alanından. Çakışmasız isim
+  etiketleri, İstanbul köprülerinin uzaklaşınca kümelenmesi, eski adlarla arama, tablo↔harita bağlantısı.
 
 ---
 
@@ -200,7 +208,10 @@ girdiden verilir.
 ## 8. Bilinen sınırlar
 
 - Avrasya Tüneli ücretleri okunamıyor (JavaScript); yalnızca duyurular izleniyor.
-- Otoyol PDF'lerindeki gişe-gişe ücret matrisleri okunmuyor; yalnızca "belge değişti" bildiriliyor.
+- Otoyol gişe-gişe matrisleri hesap için okunuyor (16 PDF, 17 tablo, 201 gişe); otoyol zam bildirimi hâlâ "belge değişti" düzeyinde.
+- KGM gişelerinin ~%25'inin konumu OSM'de eşleşmiyor (ör. Kartepe, Bekirpaşa, Topağaç); haritada görünmezler.
+- Tablodaki bazı değerler şaşırtıcı ama belgede öyle: ör. Adapazarı→Topağaç 1. sınıf 250 TL (Topağaç, KMO bağlantısı).
+- TollGuru yeniden soruldu (Kasım 2026); yine reddedildi: ücretli, Türkiye/TL zayıf, zam ve bayram bilgisi yok. KGM tabloları daha doğru.
 - YSS, Osmangazi ve 1915 Çanakkale PDF biçimleri doğrulanmadı.
 - Bayram tarihleri yaklaşık; köprü konumları yaklaşık.
 - OpenStreetMap gişe verisi eksik/adsız olabilir; OSM karo sunucusu küçük ekip kullanımı için uygun.

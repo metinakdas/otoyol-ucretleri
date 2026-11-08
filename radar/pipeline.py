@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import httpx
 
 from . import calendar as cal
-from . import harita, lifecycle, notify
+from . import harita, lifecycle, notify, ucret_tablosu
 from . import panel as panel_mod
 from . import prices as ledger
 from .collectors import Context, collect
@@ -124,6 +124,16 @@ def run_once(
             report.notes.append(note)
             if not note.startswith("Harita verisi alınamadı"):
                 report.written.append("harita.json")
+        # Gişeden gişeye ücret tabloları (günde bir ya da tarife belgesi değişince). Hata asıl işi etkilemez.
+        try:
+            note = ucret_tablosu.refresh(cfg, store, state, now, transport=transport)
+        except Exception as exc:  # beklenmeyen hata da radar turunu durdurmasın
+            log.debug("Ücret tablosu hatası", exc_info=True)
+            note = f"Ücret tablosu alınamadı: {redact(exc, cfg.settings)[:200]}"
+        if note:
+            report.notes.append(note)
+            if note.startswith("Ücret tablosu:") and "güncellendi" in note:
+                report.written.append(ucret_tablosu.DOSYA)
 
     # 2) Takvim ve kayıtlar
     created_watch = cal.ensure_watch_events(events, cfg, now)

@@ -82,6 +82,46 @@
     return fetchFirst(sample ? ["ornek-harita.json"] : ["data/harita.json", "../data/harita.json"]);
   }
 
+  function loadTable() {
+    const sample = new URLSearchParams(location.search).has("ornek");
+    return fetchFirst(sample ? ["ornek-ucret-tablosu.json"] : ["data/ucret-tablosu.json", "../data/ucret-tablosu.json"]);
+  }
+
+  // ---------------------------------------------------------------- sekmeler
+
+  function selectTab(name, focus) {
+    document.querySelectorAll('.tabs [role="tab"]').forEach((t) => {
+      const on = t.getAttribute("aria-controls") === "tab-" + name;
+      t.setAttribute("aria-selected", String(on));
+      t.tabIndex = on ? 0 : -1;
+      document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
+      if (on && focus) t.focus();
+    });
+    store("radar.sekme", name);
+  }
+
+  function bindTabs() {
+    const tabs = [...document.querySelectorAll('.tabs [role="tab"]')];
+    tabs.forEach((t, i) => {
+      t.addEventListener("click", () => selectTab(t.getAttribute("aria-controls").slice(4)));
+      t.addEventListener("keydown", (e) => {
+        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        e.preventDefault();
+        const next = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length];
+        selectTab(next.getAttribute("aria-controls").slice(4), true);
+      });
+    });
+  }
+
+  // Sınıf seçimi ücret tablosu, hesap ve harita arasında ortaktır.
+  let now_ = new Date();
+  function setClassEverywhere(cls, from) {
+    store("radar.sinif", cls);
+    if (from !== "prices") renderPrices(data_, now_, cls);
+    if (from !== "hesap" && window.RadarHesap) window.RadarHesap.setClass(cls);
+    if (window.RadarMap) window.RadarMap.setClass(cls);
+  }
+
   // ---------------------------------------------------------------- bölümler
 
   function renderStatus(data, now) {
@@ -89,8 +129,10 @@
     const failing = enabled.filter((s) => s.ok === false);
     const stale = data.last_run && now - new Date(data.last_run) > 6 * 3600 * 1000;
     const cls = failing.length ? "bad" : stale ? "warn" : "good";
-    const tail = failing.length ? `${failing.length} kaynak okunamıyor` : "tüm kaynaklar çalışıyor";
-    $("#status").innerHTML = `<span class="dot ${cls}" aria-hidden="true"></span>Son kontrol ${esc(ago(data.last_run, now))} · ${tail}`;
+    const text = failing.length ? `${failing.length} kaynak okunamıyor` : ago(data.last_run, now);
+    const el = $("#status");
+    el.title = `Son kontrol ${ago(data.last_run, now)} · ${failing.length ? failing.length + " kaynak okunamıyor" : "tüm kaynaklar çalışıyor"}`;
+    el.innerHTML = `<span class="dot ${cls}" aria-hidden="true"></span>${esc(text)}`;
   }
 
   function renderHighlight(data, now) {
@@ -99,10 +141,10 @@
     const next = data.upcoming && data.upcoming[0];
     if (active) {
       const c = countdown(active.valid_to, now);
-      el.className = "highlight free";
+      el.className = "banner free";
       el.innerHTML = `
+        <div class="eyebrow">Ücretsiz geçiş sürüyor</div>
         <div>
-          <div class="eyebrow">Ücretsiz geçiş sürüyor</div>
           <div class="title">${esc(active.title)}</div>
           <div class="meta">Kapsam: ${esc(names(data, active.crossings))} · Bitiş: ${esc(dateTime(active.valid_to))}</div>
         </div>
@@ -112,10 +154,10 @@
     if (next) {
       const c = countdown(next.effective_from, now);
       const src = next.sources && next.sources[next.sources.length - 1];
-      el.className = "highlight accent";
+      el.className = "banner accent";
       el.innerHTML = `
+        <div class="eyebrow">Yaklaşan değişiklik</div>
         <div>
-          <div class="eyebrow">Yaklaşan değişiklik</div>
           <div class="title">${esc(next.title)}</div>
           <div class="meta">Yürürlük: <strong>${esc(dateTime(next.effective_from))}</strong>
             ${next.crossings.length ? " · " + esc(names(data, next.crossings)) : ""}
@@ -124,14 +166,8 @@
         <div class="count"><strong>${esc(c.big)}</strong><span>${esc(c.small)}</span></div>`;
       return;
     }
-    const period = (data.calendar || [])[0];
-    el.className = "highlight";
-    el.innerHTML = `
-      <div>
-        <div class="eyebrow">Durum</div>
-        <div class="title">Yaklaşan değişiklik yok</div>
-        <div class="meta">${period ? `Sıradaki dönem: ${esc(period.name)} (${esc(date(period.start))}). İzleme ${esc(date(period.watch_start))} tarihinde başlar.` : "Radar resmi kaynakları izlemeye devam ediyor."}</div>
-      </div>`;
+    // Duyurulacak bir şey yoksa şerit hiç görünmez.
+    el.hidden = true;
   }
 
   function priceState(c, cls, now) {
@@ -190,9 +226,8 @@
     const picker = $("#class-picker");
     picker.innerHTML = CLASSES.map((k) => `<button type="button" data-class="${k}" aria-pressed="${k === cls}" title="${esc(CLASS_NAMES[k])}">${k}<span class="long">. sınıf</span></button>`).join("");
     picker.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
-      store("radar.sinif", b.dataset.class);
       renderPrices(data, now, b.dataset.class);
-      if (window.RadarMap) window.RadarMap.setClass(b.dataset.class);
+      setClassEverywhere(b.dataset.class, "prices");
     }));
     const tbody = $("#prices-table tbody");
     if (!data.crossings.length) {
@@ -229,12 +264,10 @@
       <span class="muted">${esc(dateTime(r.valid_from))} – ${esc(dateTime(r.valid_to))} · ${esc(names(data, r.crossings))}</span>
       ${r.excluded && r.excluded.length ? `<br><span class="muted">Kapsam dışı: ${esc(names(data, r.excluded))}</span>` : ""}</p>`));
     if (!parts.length) {
-      parts.push(`<p>Şu an aktif kural yok.</p>`);
       const bayram = (data.calendar || []).find((p) => p.kind === "bayram");
-      if (bayram) {
-        parts.push(`<p class="muted">Sıradaki: ${esc(bayram.name)} · ${esc(date(bayram.start))}<br>
-          İzleme ${esc(date(bayram.watch_start))} tarihinde başlar.</p>`);
-      }
+      parts.push(bayram
+        ? `<p class="next-free"><span class="muted">Sıradaki</span><strong>${esc(bayram.name)}</strong><span class="when">${esc(date(bayram.start))}</span></p>`
+        : `<p class="muted">Karar çıktığında burada görünür.</p>`);
     }
     el.innerHTML = parts.join("");
   }
@@ -254,7 +287,7 @@
   function renderEvents(data, now) {
     const list = data.events || [];
     if (!list.length) {
-      $("#events").innerHTML = `<li><p class="empty">Henüz kayıt yok. Değişiklik bulunduğunda burada görünür.</p></li>`;
+      $("#events").closest(".card").hidden = true;
       return;
     }
     $("#events").innerHTML = list.map((e) => {
@@ -283,20 +316,25 @@
   }
 
   function renderFooter(data) {
-    $("#footer").textContent = `Radar resmi kaynakları ${data.run_interval_minutes || 30} dakikada bir kontrol eder. ` +
-      "Ücretler KGM tarife belgelerinden otomatik okunur; kesin bilgi için kaynağa bakın.";
+    $("#footer").textContent = `KGM resmi tarifeleri · ${data.run_interval_minutes || 30} dakikada bir güncellenir`;
   }
 
   async function main() {
+    bindTabs();
+    const savedTab = store("radar.sekme");
+    if (savedTab === "ara") selectTab("ara");
     let data;
     try {
       data = await load();
     } catch (e) {
       $("#app").replaceChildren($("#error-tpl").content.cloneNode(true));
+      $("#map-card").hidden = true;
+      $("#highlight").hidden = true;
       $("#status").textContent = "Veri yok";
       return;
     }
     const now = new Date();
+    now_ = now;
     data_ = data;
     $("#sample-note").hidden = !data.ornek;
     const saved = store("radar.sinif");
@@ -322,16 +360,37 @@
   }
 
   async function initMap(data, cls) {
-    if (!window.RadarMap) return;
-    const mapData = await loadMap();
-    try {
-      window.RadarMap.init({
-        data, mapData, cls,
-        helpers: { esc, money, date, dateTime, className: (k) => CLASS_NAMES[k] || k + ". sınıf" },
-        onShowCrossing: openPriceRow,
-      });
-    } catch (e) {
-      console.error("Harita açılamadı", e);
+    const [mapData, table] = await Promise.all([window.RadarMap ? loadMap() : null, loadTable()]);
+    const helpers = { esc, money, date, dateTime, className: (k) => CLASS_NAMES[k] || k + ". sınıf" };
+    const hesap = window.RadarHesap;
+    // Önce hesap: harita gişeleri onun KGM istasyon listesinden kurulur.
+    if (hesap) {
+      try {
+        const r = hesap.init({ table, helpers, cls, map: window.RadarMap, onClass: (c) => setClassEverywhere(c, "hesap") });
+        if (r.fromHash) selectTab("hesap");
+      } catch (e) {
+        console.error("Ücret hesabı açılamadı", e);
+      }
+    }
+    if (window.RadarMap) {
+      try {
+        window.RadarMap.init({
+          data, mapData, cls, helpers,
+          stations: hesap ? hesap.allStations() : [],
+          onShowCrossing: openPriceRow,
+          popupExtra: (p) => (hesap ? hesap.popupHtml(p) : ""),
+          onTrip: (role, key) => {
+            selectTab("hesap");
+            const done = hesap && hesap.pick(role, key);
+            if (done && window.matchMedia("(max-width: 860px)").matches) {
+              $("#trip-result").scrollIntoView({ behavior: "smooth", block: "start" });
+            }
+          },
+        });
+        if (hesap) hesap.redraw();
+      } catch (e) {
+        console.error("Harita açılamadı", e);
+      }
     }
     document.addEventListener("click", (e) => {
       const a = e.target.closest("[data-map-focus]");

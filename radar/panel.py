@@ -156,7 +156,7 @@ def build(cfg: Config, *, events: dict, rules: dict, crossings_data: dict, state
 
 # Yerel sunucunun verebileceği dosyalar: panel klasörü ve iki veri dosyası. Proje kökündeki
 # .env (anahtarlar) ya da data/ altındaki diğer kayıtlar hiçbir koşulda sunulmaz.
-_SERVE_DATA = {"/data/panel.json", "/data/harita.json"}
+_SERVE_DATA = {"/data/panel.json", "/data/harita.json", "/data/ucret-tablosu.json"}
 _LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
 
 
@@ -219,8 +219,10 @@ class _PanelHandler(http.server.SimpleHTTPRequestHandler):
 def serve(root: Path, port: int = 8000, sample: bool = False, open_browser: bool = True) -> None:
     """Paneli yalnızca bu bilgisayardan erişilebilen yerel bir sunucuyla açar."""
     handler = functools.partial(_PanelHandler, directory=str(root))
-    socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("127.0.0.1", port), handler) as httpd:
+    socketserver.ThreadingTCPServer.allow_reuse_address = True
+    socketserver.ThreadingTCPServer.daemon_threads = True
+    # Tarayıcı aynı anda birçok dosya ister; tek iş parçacıklı sunucu bağlantıları reddedebiliyordu.
+    with socketserver.ThreadingTCPServer(("127.0.0.1", port), handler) as httpd:
         url = f"http://localhost:{port}/panel/" + ("?ornek=1" if sample else "")
         print(f"Panel: {url}  (durdurmak için Ctrl+C)")
         if open_browser:

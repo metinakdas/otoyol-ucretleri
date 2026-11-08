@@ -13,6 +13,7 @@ GitHub Actions her değişikliği bir commit olarak saklar, böylece tüm geçmi
 | `notifications.json` | Gönderilen bildirimlerin listesi (aynı bildirim iki kez gitmesin diye). |
 | `panel.json` | Web panelinin okuduğu özet. |
 | `harita.json` | Haritadaki otoyol gişeleri (OpenStreetMap verisi, ayda bir yenilenir). © OpenStreetMap katkıcıları, ODbL. |
+| `ucret-tablosu.json` | Otoyol gişeleri arası ücretler ve mesafeler (KGM tarife PDF'lerinden; günde bir ve tarife değişince yenilenir). Paneldeki ücret hesabı ve haritadaki gişeler bu dosyadan gelir. |
 | `meta.json` | Panelin en son ne zaman yazıldığı. |
 
 Sıfırdan başlamak isterseniz bu klasördeki README dışındaki her şeyi silin; bir sonraki çalışma

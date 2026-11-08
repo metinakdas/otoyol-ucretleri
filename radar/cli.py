@@ -5,6 +5,7 @@
     python -m radar test-bildirim   Telegram ve e-posta ayarlarını deneme mesajıyla sınar
     python -m radar panel           Paneli yerelde açar (--ornek: örnek veriyle)
     python -m radar harita-guncelle Otoyol gişelerinin konumlarını OpenStreetMap'ten yeniler
+    python -m radar ucret-tablosu   Otoyolların gişeden gişeye ücret tablolarını KGM PDF'lerinden yeniler
     python -m radar durum           Kayıtların ve ücretlerin özetini yazdırır
     python -m radar yayinla         Projeyi güvenlik taramasından geçirip GitHub'da yayınlar
 """
@@ -202,6 +203,35 @@ def cmd_harita(args, cfg) -> int:
     return 1 if note and note.startswith("Harita verisi alınamadı") else 0
 
 
+def cmd_ucret_tablosu(args, cfg) -> int:
+    from . import ucret_tablosu
+    from .store import Store
+
+    store = Store(cfg.data_dir)
+    state = store.read("state.json", {})
+    print("KGM otoyol tarife PDF'leri okunuyor (gişeden gişeye ücretler)…")
+    note = ucret_tablosu.refresh(cfg, store, state, tz_now(), force=True)
+    if store.exists:  # radar hiç çalışmadıysa state.json yazılmaz; ilk tur yine "ilk çalıştırma" olur
+        store.write("state.json", state)
+    print(note or "Ücret tablosu: değişiklik yok.")
+    data = store.read(ucret_tablosu.DOSYA, None)
+    st = state.get(ucret_tablosu.STATE_KEY) or {}
+    if data:
+        print(f"\n{len(data['otoyollar'])} otoyol tablosu:")
+        for o in data["otoyollar"]:
+            stations = o["istasyonlar"]
+            located = sum(1 for s in stations if s["lat"] is not None)
+            yon = " · yöne göre" if o.get("yonlu") else ""
+            print(f"  {o['ad']} [{o['yol'] or '—'}]: {len(stations)} istasyon, konum {located}/{len(stations)}{yon}")
+            for w in o.get("uyarilar") or []:
+                print(f"      uyarı: {w}")
+    for err in st.get("hatalar") or []:
+        print(f"  OKUNAMADI: {err}")
+    if not data:
+        return 1
+    return 1 if (note or "").startswith("Ücret tablosu alınamadı") else 0
+
+
 def cmd_yayinla(args, cfg) -> int:
     from .yayin import main as yayin_main
 
@@ -281,6 +311,9 @@ def build_parser() -> argparse.ArgumentParser:
 
     h = sub.add_parser("harita-guncelle", help="Otoyol gişelerinin konumlarını OpenStreetMap'ten yeniler")
     h.set_defaults(func=cmd_harita)
+
+    u = sub.add_parser("ucret-tablosu", help="Otoyolların gişeden gişeye ücret tablolarını KGM PDF'lerinden yeniler")
+    u.set_defaults(func=cmd_ucret_tablosu)
 
     d = sub.add_parser("durum", help="Kayıtların özetini yazdırır")
     d.set_defaults(func=cmd_durum)
