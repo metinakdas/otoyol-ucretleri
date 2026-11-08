@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "olusturma": "2026-11-09T02:04:42+03:00",
+  "olusturma": "2026-11-09T02:40:22+03:00",
   "kaynak": "KGM geçiş ücreti tarifeleri",
   "kaynak_adres": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx",
   "siniflar": {
@@ -25,182 +25,254 @@
         {
           "ad": "Anadolu (Çamlıca)",
           "lat": 40.99246,
-          "lon": 29.17128
+          "lon": 29.17128,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Samandıra",
-          "lat": null,
-          "lon": null
+          "lat": 40.9742,
+          "lon": 29.214,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Sultanbeyli",
-          "lat": null,
-          "lon": null
+          "lat": 40.97029,
+          "lon": 29.25427,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Mecidiye",
           "lat": 40.95307,
-          "lon": 29.31489
+          "lon": 29.31489,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Kurtköy",
           "lat": 40.93243,
-          "lon": 29.32995
+          "lon": 29.32995,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Orhanlı",
           "lat": 40.92673,
-          "lon": 29.34398
+          "lon": 29.34398,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Ş.Pınar",
           "lat": 40.86764,
-          "lon": 29.39023
+          "lon": 29.39023,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Gebze Org. San. Bölgeleri",
           "lat": 40.85407,
-          "lon": 29.40925
+          "lon": 29.40925,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Gebze",
           "lat": 40.80431,
-          "lon": 29.47415
+          "lon": 29.47415,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Muallimköy",
-          "lat": null,
-          "lon": null
+          "lat": 40.79579,
+          "lon": 29.5108,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Liman",
           "lat": null,
-          "lon": null
+          "lon": null,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Dil İskelesi",
-          "lat": null,
-          "lon": null
+          "lat": 40.78102,
+          "lon": 29.52908,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Batı Hereke",
           "lat": 40.77788,
-          "lon": 29.59619
+          "lon": 29.59619,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Körfez",
           "lat": 40.77044,
-          "lon": 29.76915
+          "lon": 29.76915,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Batı İzmit",
           "lat": 40.76307,
-          "lon": 29.87663
+          "lon": 29.87663,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Kandıra",
           "lat": 40.77823,
-          "lon": 29.97335
+          "lon": 29.97335,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Kartepe",
-          "lat": null,
-          "lon": null
+          "lat": 40.76343,
+          "lon": 30.03226,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Doğu İzmit",
           "lat": 40.74905,
-          "lon": 30.03683
+          "lon": 30.03683,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Sapanca",
           "lat": 40.68657,
-          "lon": 30.24019
+          "lon": 30.24019,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Adapazarı",
           "lat": 40.7133,
-          "lon": 30.3846
+          "lon": 30.3846,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Bekirpaşa",
-          "lat": null,
-          "lon": null
+          "lat": 40.72211,
+          "lon": 30.4529,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Akyazı",
           "lat": 40.72177,
-          "lon": 30.56503
+          "lon": 30.56503,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Topağaç",
-          "lat": null,
-          "lon": null
+          "lat": 40.73817,
+          "lon": 30.65029,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Hendek",
           "lat": 40.75884,
-          "lon": 30.71797
+          "lon": 30.71797,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Düzce (Gölyaka)",
-          "lat": 40.80403,
-          "lon": 31.16756
+          "lat": 40.83543,
+          "lon": 31.04364,
+          "il": "Düzce",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Düzce Organize San.",
-          "lat": null,
-          "lon": null
+          "lat": 40.80403,
+          "lon": 31.16756,
+          "il": "Düzce",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Kaynaşlı",
           "lat": 40.78397,
-          "lon": 31.27775
+          "lon": 31.27775,
+          "il": "Düzce",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Abant",
           "lat": 40.71878,
-          "lon": 31.47163
+          "lon": 31.47163,
+          "il": "Bolu",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Bolu Batı",
           "lat": 40.73841,
-          "lon": 31.56529
+          "lon": 31.56529,
+          "il": "Bolu",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Çaydurt",
-          "lat": null,
-          "lon": null
+          "lat": 40.75721,
+          "lon": 31.76378,
+          "il": "Bolu",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Yeniçağa",
           "lat": 40.76834,
-          "lon": 32.00866
+          "lon": 32.00866,
+          "il": "Bolu",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Dörtdivan",
           "lat": 40.74292,
-          "lon": 32.12016
+          "lon": 32.12016,
+          "il": "Bolu",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Gerede",
           "lat": 40.74931,
-          "lon": 32.19867
+          "lon": 32.19867,
+          "il": "Bolu",
+          "bolge": "karadeniz"
         },
         {
           "ad": "Pelitçik (Çamlıdere)",
           "lat": 40.44056,
-          "lon": 32.41022
+          "lon": 32.41022,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Çeltikçi (Kızılcahamam)",
           "lat": 40.33224,
-          "lon": 32.4973
+          "lon": 32.4973,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Akıncı",
           "lat": 40.11654,
-          "lon": 32.60559
+          "lon": 32.60559,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         }
       ],
       "ucret": [
@@ -5989,33 +6061,45 @@
       "istasyonlar": [
         {
           "ad": "Seferihisar (Güzelbahçe)",
-          "lat": null,
-          "lon": null
+          "lat": 38.36319,
+          "lon": 26.86417,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Urla",
           "lat": 38.32299,
-          "lon": 26.78198
+          "lon": 26.78198,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Karaburun",
           "lat": 38.30298,
-          "lon": 26.68606
+          "lon": 26.68606,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Zeytinler",
           "lat": 38.28476,
-          "lon": 26.56412
+          "lon": 26.56412,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Alaçatı",
           "lat": 38.2812,
-          "lon": 26.38241
+          "lon": 26.38241,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Çeşme",
           "lat": 38.29566,
-          "lon": 26.31031
+          "lon": 26.31031,
+          "il": "İzmir",
+          "bolge": "ege"
         }
       ],
       "ucret": [
@@ -6248,33 +6332,45 @@
       "istasyonlar": [
         {
           "ad": "Işıkkent",
-          "lat": null,
-          "lon": null
+          "lat": 38.34124,
+          "lon": 27.23407,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Tahtalıçay (Havalimanı)",
           "lat": 38.27234,
-          "lon": 27.21707
+          "lon": 27.21707,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Torbalı",
           "lat": 38.1776,
-          "lon": 27.32054
+          "lon": 27.32054,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Belevi",
           "lat": 38.02835,
-          "lon": 27.44937
+          "lon": 27.44937,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Germencik",
           "lat": 37.87811,
-          "lon": 27.5776
+          "lon": 27.5776,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Aydın Batı",
-          "lat": null,
-          "lon": null
+          "lat": 37.86069,
+          "lon": 27.787,
+          "il": "Aydın",
+          "bolge": "ege"
         }
       ],
       "ucret": [
@@ -6508,87 +6604,121 @@
         {
           "ad": "Adana Doğu Alın",
           "lat": 36.9887,
-          "lon": 35.75014
+          "lon": 35.75014,
+          "il": "Adana",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Ceyhan",
-          "lat": null,
-          "lon": null
+          "lat": 36.98722,
+          "lon": 35.83289,
+          "il": "Adana",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Toprakkale",
-          "lat": null,
-          "lon": null
+          "lat": 37.07844,
+          "lon": 36.11833,
+          "il": "Osmaniye",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Sakızgediği",
-          "lat": null,
-          "lon": null
+          "lat": 37.08691,
+          "lon": 36.19797,
+          "il": "Osmaniye",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Osmaniye",
           "lat": 37.10248,
-          "lon": 36.24659
+          "lon": 36.24659,
+          "il": "Osmaniye",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Osmaniye Org.San.",
-          "lat": null,
-          "lon": null
+          "lat": 37.00309,
+          "lon": 36.11388,
+          "il": "Osmaniye",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Erzin",
-          "lat": null,
-          "lon": null
+          "lat": 36.96156,
+          "lon": 36.13982,
+          "il": "Hatay",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Yumurtalık Serbest B.",
-          "lat": null,
-          "lon": null
+          "lat": 36.96908,
+          "lon": 36.01839,
+          "il": "Hatay",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Dörtyol",
           "lat": 36.85502,
-          "lon": 36.22576
+          "lon": 36.22576,
+          "il": "Hatay",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Payas",
-          "lat": null,
-          "lon": null
+          "lat": 36.74267,
+          "lon": 36.22176,
+          "il": "Hatay",
+          "bolge": "akdeniz"
         },
         {
           "ad": "İskenderun OSB",
-          "lat": null,
-          "lon": null
+          "lat": 36.70188,
+          "lon": 36.21694,
+          "il": "Hatay",
+          "bolge": "akdeniz"
         },
         {
           "ad": "İskenderun",
-          "lat": null,
-          "lon": null
+          "lat": 36.63546,
+          "lon": 36.23021,
+          "il": "Hatay",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Düziçi",
           "lat": 37.19868,
-          "lon": 36.42562
+          "lon": 36.42562,
+          "il": "Osmaniye",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Bahçe",
           "lat": 37.18226,
-          "lon": 36.51324
+          "lon": 36.51324,
+          "il": "Osmaniye",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Kömürler (Nurdağı)",
           "lat": 37.19751,
-          "lon": 36.76313
+          "lon": 36.76313,
+          "il": "Gaziantep",
+          "bolge": "guneydogu-anadolu"
         },
         {
           "ad": "Narlı",
           "lat": 37.29029,
-          "lon": 37.12734
+          "lon": 37.12734,
+          "il": "Kahramanmaraş",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Gaziantep Batı Alın",
-          "lat": null,
-          "lon": null
+          "lat": 37.20291,
+          "lon": 37.26602,
+          "il": "Gaziantep",
+          "bolge": "guneydogu-anadolu"
         }
       ],
       "ucret": [
@@ -8043,27 +8173,37 @@
         {
           "ad": "Gaziantep Doğu",
           "lat": 37.05214,
-          "lon": 37.55722
+          "lon": 37.55722,
+          "il": "Gaziantep",
+          "bolge": "guneydogu-anadolu"
         },
         {
           "ad": "Nizip",
           "lat": 37.02219,
-          "lon": 37.81924
+          "lon": 37.81924,
+          "il": "Gaziantep",
+          "bolge": "guneydogu-anadolu"
         },
         {
           "ad": "Birecik",
           "lat": 37.06945,
-          "lon": 38.01741
+          "lon": 38.01741,
+          "il": "Şanlıurfa",
+          "bolge": "guneydogu-anadolu"
         },
         {
           "ad": "Suruç",
           "lat": 37.11669,
-          "lon": 38.46103
+          "lon": 38.46103,
+          "il": "Şanlıurfa",
+          "bolge": "guneydogu-anadolu"
         },
         {
           "ad": "Şanlıurfa",
           "lat": 37.18845,
-          "lon": 38.55126
+          "lon": 38.55126,
+          "il": "Şanlıurfa",
+          "bolge": "guneydogu-anadolu"
         }
       ],
       "ucret": [
@@ -8240,77 +8380,107 @@
         {
           "ad": "Niğde Güney",
           "lat": 37.96731,
-          "lon": 34.71081
+          "lon": 34.71081,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Niğde Kuzey",
           "lat": 38.03764,
-          "lon": 34.74496
+          "lon": 34.74496,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Gölcük Alın",
           "lat": 38.11375,
-          "lon": 34.71388
+          "lon": 34.71388,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Kemerhisar",
           "lat": 37.77949,
-          "lon": 34.60526
+          "lon": 34.60526,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Eminlik Alın",
-          "lat": null,
-          "lon": null
+          "lat": 37.64776,
+          "lon": 34.65588,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Pozantı (Kuzey)",
           "lat": 37.44869,
-          "lon": 34.87836
+          "lon": 34.87836,
+          "il": "Adana",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Pozantı (Güney)",
           "lat": 37.41192,
-          "lon": 34.87947
+          "lon": 34.87947,
+          "il": "Adana",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Tekir",
           "lat": 37.3273,
-          "lon": 34.79261
+          "lon": 34.79261,
+          "il": "Adana",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Çamalan",
           "lat": 37.20027,
-          "lon": 34.81609
+          "lon": 34.81609,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Yenice",
           "lat": 36.97884,
-          "lon": 34.97398
+          "lon": 34.97398,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Adana Batı Alın",
-          "lat": null,
-          "lon": null
+          "lat": 37.02897,
+          "lon": 35.11443,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Çamtepe",
           "lat": 37.00112,
-          "lon": 34.94471
+          "lon": 34.94471,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Tarsus",
-          "lat": null,
-          "lon": null
+          "lat": 36.93893,
+          "lon": 34.85622,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Tarsus OSB",
-          "lat": null,
-          "lon": null
+          "lat": 36.94265,
+          "lon": 34.77948,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Mersin Alın",
-          "lat": null,
-          "lon": null
+          "lat": 36.88516,
+          "lon": 34.63406,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         }
       ],
       "ucret": [
@@ -9408,93 +9578,129 @@
       "istasyonlar": [
         {
           "ad": "Mahmutbey",
-          "lat": null,
-          "lon": null
+          "lat": 41.06275,
+          "lon": 28.80037,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Ispartakule",
-          "lat": null,
-          "lon": null
+          "lat": 41.05865,
+          "lon": 28.70955,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Avcılar",
-          "lat": null,
-          "lon": null
+          "lat": 41.04991,
+          "lon": 28.68719,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Esenyurt",
           "lat": 41.05337,
-          "lon": 28.67462
+          "lon": 28.67462,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Hadımköy",
           "lat": 41.08604,
-          "lon": 28.63213
+          "lon": 28.63213,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çatalca",
           "lat": 41.08713,
-          "lon": 28.51313
+          "lon": 28.51313,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "K.Burgaz",
           "lat": 41.0476,
-          "lon": 28.46946
+          "lon": 28.46946,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Selimpaşa",
           "lat": 41.06147,
-          "lon": 28.37632
+          "lon": 28.37632,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Silivri",
-          "lat": null,
-          "lon": null
+          "lat": 41.10754,
+          "lon": 28.26009,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Kınalı",
-          "lat": null,
-          "lon": null
+          "lat": 41.11136,
+          "lon": 28.16664,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Küçükılıçlı",
           "lat": null,
-          "lon": null
+          "lon": null,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çerkezköy",
           "lat": 41.1984,
-          "lon": 28.0837
+          "lon": 28.0837,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çorlu",
           "lat": 41.22566,
-          "lon": 27.87364
+          "lon": 27.87364,
+          "il": "Tekirdağ",
+          "bolge": "marmara"
         },
         {
           "ad": "Saray",
           "lat": 41.32873,
-          "lon": 27.68451
+          "lon": 27.68451,
+          "il": "Tekirdağ",
+          "bolge": "marmara"
         },
         {
           "ad": "Lüleburgaz",
           "lat": 41.445,
-          "lon": 27.38854
+          "lon": 27.38854,
+          "il": "Kırklareli",
+          "bolge": "marmara"
         },
         {
           "ad": "Babaeski",
           "lat": 41.5011,
-          "lon": 27.11718
+          "lon": 27.11718,
+          "il": "Kırklareli",
+          "bolge": "marmara"
         },
         {
           "ad": "Havsa",
           "lat": 41.61442,
-          "lon": 26.84606
+          "lon": 26.84606,
+          "il": "Edirne",
+          "bolge": "marmara"
         },
         {
           "ad": "Edirne",
-          "lat": null,
-          "lon": null
+          "lat": 41.66077,
+          "lon": 26.63026,
+          "il": "Edirne",
+          "bolge": "marmara"
         }
       ],
       "ucret": [
@@ -11113,43 +11319,59 @@
       "istasyonlar": [
         {
           "ad": "Osmangazi Köprüsü (İzmir Yönü)",
-          "lat": null,
-          "lon": null
+          "lat": 40.71643,
+          "lon": 29.50047,
+          "il": "Yalova",
+          "bolge": "marmara"
         },
         {
           "ad": "Osmangazi Köprüsü (İstanbul Yönü)",
-          "lat": null,
-          "lon": null
+          "lat": 40.71643,
+          "lon": 29.50047,
+          "il": "Yalova",
+          "bolge": "marmara"
         },
         {
           "ad": "Altınova",
           "lat": 40.69643,
-          "lon": 29.47541
+          "lon": 29.47541,
+          "il": "Yalova",
+          "bolge": "marmara"
         },
         {
           "ad": "Kılıç",
           "lat": 40.64074,
-          "lon": 29.38577
+          "lon": 29.38577,
+          "il": "Yalova",
+          "bolge": "marmara"
         },
         {
           "ad": "Orhangazi",
           "lat": 40.50198,
-          "lon": 29.34281
+          "lon": 29.34281,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Gemlik",
           "lat": 40.42913,
-          "lon": 29.23973
+          "lon": 29.23973,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Bursa Serbest Bölge",
-          "lat": null,
-          "lon": null
+          "lat": 40.41117,
+          "lon": 29.14759,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Bursa Kuzey",
           "lat": 40.31917,
-          "lon": 29.08672
+          "lon": 29.08672,
+          "il": "Bursa",
+          "bolge": "marmara"
         }
       ],
       "ucret": [
@@ -11667,72 +11889,100 @@
         {
           "ad": "Bursa Batı",
           "lat": 40.25651,
-          "lon": 28.70972
+          "lon": 28.70972,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Teknosab",
           "lat": 40.27062,
-          "lon": 28.65681
+          "lon": 28.65681,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Karacabey - Mustafakemalpaşa - 1",
           "lat": 40.19292,
-          "lon": 28.35179
+          "lon": 28.35179,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Karacabey - Mustafakemalpaşa - 2",
           "lat": 40.19292,
-          "lon": 28.35179
+          "lon": 28.35179,
+          "il": "Bursa",
+          "bolge": "marmara"
         },
         {
           "ad": "Susurluk",
           "lat": 39.962,
-          "lon": 28.16495
+          "lon": 28.16495,
+          "il": "Balıkesir",
+          "bolge": "marmara"
         },
         {
           "ad": "Balıkesir Kuzey",
           "lat": 39.75626,
-          "lon": 27.99696
+          "lon": 27.99696,
+          "il": "Balıkesir",
+          "bolge": "marmara"
         },
         {
           "ad": "Balıkesir Batı",
           "lat": 39.63641,
-          "lon": 27.71865
+          "lon": 27.71865,
+          "il": "Balıkesir",
+          "bolge": "marmara"
         },
         {
           "ad": "Savaştepe",
           "lat": 39.38077,
-          "lon": 27.63948
+          "lon": 27.63948,
+          "il": "Balıkesir",
+          "bolge": "marmara"
         },
         {
           "ad": "Soma",
           "lat": 39.25229,
-          "lon": 27.57456
+          "lon": 27.57456,
+          "il": "Manisa",
+          "bolge": "ege"
         },
         {
           "ad": "Kırkağaç",
           "lat": 39.09678,
-          "lon": 27.7002
+          "lon": 27.7002,
+          "il": "Manisa",
+          "bolge": "ege"
         },
         {
           "ad": "Akhisar",
           "lat": 38.96498,
-          "lon": 27.73622
+          "lon": 27.73622,
+          "il": "Manisa",
+          "bolge": "ege"
         },
         {
           "ad": "Saruhanlı",
           "lat": 38.76408,
-          "lon": 27.6546
+          "lon": 27.6546,
+          "il": "Manisa",
+          "bolge": "ege"
         },
         {
           "ad": "Turgutlu",
           "lat": 38.50567,
-          "lon": 27.60248
+          "lon": 27.60248,
+          "il": "Manisa",
+          "bolge": "ege"
         },
         {
           "ad": "İzmir",
           "lat": 38.45493,
-          "lon": 27.49626
+          "lon": 27.49626,
+          "il": "İzmir",
+          "bolge": "ege"
         }
       ],
       "ucret": [
@@ -13502,62 +13752,86 @@
         {
           "ad": "Fenertepe",
           "lat": 41.19564,
-          "lon": 28.82384
+          "lon": 28.82384,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Işıklar",
           "lat": 41.21069,
-          "lon": 28.83186
+          "lon": 28.83186,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Ağaçlı",
           "lat": null,
-          "lon": null
+          "lon": null,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Odayeri",
           "lat": 41.23794,
-          "lon": 28.82095
+          "lon": 28.82095,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Uskumruköy",
           "lat": 41.23485,
-          "lon": 29.02811
+          "lon": 29.02811,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Riva",
           "lat": 41.19231,
-          "lon": 29.20256
+          "lon": 29.20256,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Hüseyinli",
           "lat": 41.1149,
-          "lon": 29.29755
+          "lon": 29.29755,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Reşadiye",
           "lat": 41.04584,
-          "lon": 29.25766
+          "lon": 29.25766,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Alemdağ",
           "lat": 41.03083,
-          "lon": 29.26616
+          "lon": 29.26616,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Paşaköy",
           "lat": 41.00518,
-          "lon": 29.26883
+          "lon": 29.26883,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Mecidiye",
           "lat": 40.95307,
-          "lon": 29.31489
+          "lon": 29.31489,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Kurnaköy",
           "lat": 40.95762,
-          "lon": 29.32984
+          "lon": 29.32984,
+          "il": "İstanbul",
+          "bolge": "marmara"
         }
       ],
       "ucret": [
@@ -14542,37 +14816,51 @@
         {
           "ad": "Kınalı",
           "lat": 41.12705,
-          "lon": 28.21053
+          "lon": 28.21053,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Silivri",
-          "lat": null,
-          "lon": null
+          "lat": 41.13476,
+          "lon": 28.29032,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çatalca",
-          "lat": 41.08713,
-          "lon": 28.51313
+          "lat": 41.164,
+          "lon": 28.47046,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Nakkaş",
           "lat": 41.16399,
-          "lon": 28.56145
+          "lon": 28.56145,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Yassıören",
           "lat": 41.22313,
-          "lon": 28.5979
+          "lon": 28.5979,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Tayakadın",
           "lat": 41.25382,
-          "lon": 28.67839
+          "lon": 28.67839,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Fatih",
-          "lat": null,
-          "lon": null
+          "lat": 41.24345,
+          "lon": 28.71436,
+          "il": "İstanbul",
+          "bolge": "marmara"
         }
       ],
       "ucret": [
@@ -15237,72 +15525,100 @@
         {
           "ad": "Kurnaköy 2",
           "lat": 40.9413,
-          "lon": 29.35343
+          "lon": 29.35343,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "İstanbulpark",
           "lat": 40.93762,
-          "lon": 29.41162
+          "lon": 29.41162,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Balçık",
           "lat": 40.9126,
-          "lon": 29.47008
+          "lon": 29.47008,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Mermerciler",
           "lat": 40.88153,
-          "lon": 29.54925
+          "lon": 29.54925,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Sevindikli",
           "lat": 40.88458,
-          "lon": 29.7709
+          "lon": 29.7709,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "İlimtepe",
           "lat": 40.864,
-          "lon": 29.77214
+          "lon": 29.77214,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "İzmit Kuzey",
           "lat": 40.79107,
-          "lon": 29.99886
+          "lon": 29.99886,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "İzmit Doğu",
           "lat": 40.78489,
-          "lon": 30.05204
+          "lon": 30.05204,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Akmeşe",
           "lat": 40.85186,
-          "lon": 30.21732
+          "lon": 30.21732,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Adapazarı-1",
           "lat": 40.84282,
-          "lon": 30.34269
+          "lon": 30.34269,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Adapazarı-2",
           "lat": 40.83939,
-          "lon": 30.36378
+          "lon": 30.36378,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "Karasu",
           "lat": 40.82192,
-          "lon": 30.44884
+          "lon": 30.44884,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "KMO Akyazı",
-          "lat": null,
-          "lon": null
+          "lat": 40.75911,
+          "lon": 30.5579,
+          "il": "Sakarya",
+          "bolge": "marmara"
         },
         {
           "ad": "TEM Akyazı",
           "lat": 40.73946,
-          "lon": 30.6239
+          "lon": 30.6239,
+          "il": "Sakarya",
+          "bolge": "marmara"
         }
       ],
       "ucret": [
@@ -17163,7 +17479,7 @@
     {
       "id": "menemen-aliaga-candarli",
       "ad": "Menemen – Aliağa – Çandarlı Otoyolu",
-      "yol": null,
+      "yol": "O-33",
       "belge": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/16-Menemen-Aliaga-Candarli.pdf",
       "belge_adi": "16- Menemen Aliağa Çandarlı Otoyolu Geçiş Ücretleri",
       "gecerlilik": "2026-07-01T00:00:00+03:00",
@@ -17172,38 +17488,52 @@
       "istasyonlar": [
         {
           "ad": "Menemen",
-          "lat": null,
-          "lon": null
+          "lat": 38.67349,
+          "lon": 27.06293,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Eskifoça",
           "lat": 38.69295,
-          "lon": 27.023
+          "lon": 27.023,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Yenifoça",
           "lat": 38.72192,
-          "lon": 26.9938
+          "lon": 26.9938,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Aliağa Petkim",
-          "lat": null,
-          "lon": null
+          "lat": 38.77832,
+          "lon": 26.97694,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Aliağa OSB",
           "lat": 38.80444,
-          "lon": 27.03095
+          "lon": 27.03095,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Yenişakran",
           "lat": 38.88815,
-          "lon": 27.07897
+          "lon": 27.07897,
+          "il": "İzmir",
+          "bolge": "ege"
         },
         {
           "ad": "Çandarlı",
-          "lat": null,
-          "lon": null
+          "lat": 38.97326,
+          "lon": 27.05351,
+          "il": "İzmir",
+          "bolge": "ege"
         }
       ],
       "ucret": [
@@ -17505,72 +17835,100 @@
         {
           "ad": "Ankara Alın",
           "lat": 39.63032,
-          "lon": 32.75875
+          "lon": 32.75875,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Karagedik",
           "lat": 39.60694,
-          "lon": 32.78685
+          "lon": 32.78685,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Ahiboz",
           "lat": 39.54508,
-          "lon": 32.87409
+          "lon": 32.87409,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Emirler",
           "lat": 39.38108,
-          "lon": 32.965
+          "lon": 32.965,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Kulu-Kırıkkale",
           "lat": 39.23687,
-          "lon": 33.1272
+          "lon": 33.1272,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Acıkuyu",
           "lat": 39.11983,
-          "lon": 33.4253
+          "lon": 33.4253,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Evren-Sarıyahşi",
           "lat": 39.01685,
-          "lon": 33.81705
+          "lon": 33.81705,
+          "il": "Ankara",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Ağaçören",
           "lat": 38.93653,
-          "lon": 33.96433
+          "lon": 33.96433,
+          "il": "Aksaray",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Kırşehir",
           "lat": 38.98689,
-          "lon": 34.03672
+          "lon": 34.03672,
+          "il": "Kırşehir",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Ortaköy",
           "lat": 38.7727,
-          "lon": 34.12098
+          "lon": 34.12098,
+          "il": "Aksaray",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Alayhan",
           "lat": 38.50714,
-          "lon": 34.32999
+          "lon": 34.32999,
+          "il": "Aksaray",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Derinkuyu",
           "lat": 38.3426,
-          "lon": 34.56907
+          "lon": 34.56907,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Çiftlik",
           "lat": 38.2577,
-          "lon": 34.62994
+          "lon": 34.62994,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         },
         {
           "ad": "Niğde Alın",
           "lat": 38.14305,
-          "lon": 34.71761
+          "lon": 34.71761,
+          "il": "Niğde",
+          "bolge": "ic-anadolu"
         }
       ],
       "ucret": [
@@ -18586,27 +18944,37 @@
         {
           "ad": "Malkara G-1",
           "lat": 40.86563,
-          "lon": 27.04524
+          "lon": 27.04524,
+          "il": "Tekirdağ",
+          "bolge": "marmara"
         },
         {
           "ad": "Kavakköy G-2",
           "lat": 40.58638,
-          "lon": 26.86307
+          "lon": 26.86307,
+          "il": "Çanakkale",
+          "bolge": "marmara"
         },
         {
           "ad": "Gelibolu Kuzey G-3",
           "lat": 40.47957,
-          "lon": 26.69397
+          "lon": 26.69397,
+          "il": "Çanakkale",
+          "bolge": "marmara"
         },
         {
           "ad": "Gelibolu Güney G-4",
           "lat": 40.36647,
-          "lon": 26.61529
+          "lon": 26.61529,
+          "il": "Çanakkale",
+          "bolge": "marmara"
         },
         {
           "ad": "1915 Çanakkale Köprüsü G-5",
           "lat": 40.35339,
-          "lon": 26.60937
+          "lon": 26.60937,
+          "il": "Çanakkale",
+          "bolge": "marmara"
         }
       ],
       "ucret": [
@@ -18785,58 +19153,80 @@
       "istasyonlar": [
         {
           "ad": "Aydın Alın",
-          "lat": 37.86069,
-          "lon": 27.787
+          "lat": 37.80945,
+          "lon": 27.87845,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Köşk",
           "lat": 37.80139,
-          "lon": 28.0571
+          "lon": 28.0571,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Yeni Pazar",
-          "lat": null,
-          "lon": null
+          "lat": 37.84216,
+          "lon": 28.19901,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Nazilli",
-          "lat": null,
-          "lon": null
+          "lat": 37.8347,
+          "lon": 28.32416,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Kuyucak",
           "lat": 37.8821,
-          "lon": 28.50141
+          "lon": 28.50141,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Buharkent",
           "lat": 37.95161,
-          "lon": 28.72055
+          "lon": 28.72055,
+          "il": "Aydın",
+          "bolge": "ege"
         },
         {
           "ad": "Sarayköy",
           "lat": 37.90062,
-          "lon": 28.94393
+          "lon": 28.94393,
+          "il": "Denizli",
+          "bolge": "ege"
         },
         {
           "ad": "Kumkısık-A",
           "lat": 37.86617,
-          "lon": 29.00716
+          "lon": 29.00716,
+          "il": "Denizli",
+          "bolge": "ege"
         },
         {
           "ad": "Kumkısık-B",
           "lat": 37.86617,
-          "lon": 29.00716
+          "lon": 29.00716,
+          "il": "Denizli",
+          "bolge": "ege"
         },
         {
           "ad": "Pamukkale",
           "lat": 37.85901,
-          "lon": 29.14647
+          "lon": 29.14647,
+          "il": "Denizli",
+          "bolge": "ege"
         },
         {
           "ad": "Kocabaş",
           "lat": 37.82295,
-          "lon": 29.30209
+          "lon": 29.30209,
+          "il": "Denizli",
+          "bolge": "ege"
         }
       ],
       "ucret": [
@@ -19946,7 +20336,7 @@
     {
       "id": "cesmeli-kizkalesi",
       "ad": "Çeşmeli – Kızkalesi Otoyolu",
-      "yol": null,
+      "yol": "O-51",
       "belge": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/20-Cesmeli-KizkalesiTR.pdf",
       "belge_adi": "20-Çeşmeli – Erdemli – Sliifke – Taşucu Otoyolu Çeşmeli Kızkalesi Kesimi Ücret Tarifesi",
       "gecerlilik": "2026-10-19T00:00:00+03:00",
@@ -19956,32 +20346,44 @@
         {
           "ad": "Çeşmeli",
           "lat": 36.70482,
-          "lon": 34.41782
+          "lon": 34.41782,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Erdemli",
-          "lat": null,
-          "lon": null
+          "lat": 36.64686,
+          "lon": 34.32868,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Güzeloluk",
           "lat": 36.61467,
-          "lon": 34.28312
+          "lon": 34.28312,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Erdemli Batı SGS",
-          "lat": null,
-          "lon": null
+          "lat": 36.57856,
+          "lon": 34.24727,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Kumkuyu SGS",
-          "lat": null,
-          "lon": null
+          "lat": 36.54911,
+          "lon": 34.21804,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         },
         {
           "ad": "Kızkalesi",
-          "lat": null,
-          "lon": null
+          "lat": 36.46336,
+          "lon": 34.11962,
+          "il": "Mersin",
+          "bolge": "akdeniz"
         }
       ],
       "ucret": [

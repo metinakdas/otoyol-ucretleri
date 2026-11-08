@@ -52,9 +52,9 @@ GitHub Actions (30 dk'da bir, cron)
         ├─ adayları kayıtlara dönüştür (yaşam döngüsü)
         ├─ takvim (bayram/yılbaşı izleme pencereleri)
         ├─ bildirim planla ve gönder (Telegram, e-posta)
-        ├─ ayda bir OpenStreetMap'ten gişe konumlarını al (harita)
+        ├─ otoyol ücret tabloları (KGM PDF) + gişe konumları (config/giseler.yaml, bizim kaydımız)
         └─ data/*.json yaz  → commit + push (Git = veritabanı)
-   └─ panel işi: panel/ + data/panel.json + data/harita.json + data/ucret-tablosu.json → GitHub Pages
+   └─ panel işi: panel/ + data/panel.json + data/ucret-tablosu.json → GitHub Pages
 ```
 
 - **Veritabanı yok:** Tüm durum `data/` altındaki JSON dosyalarında; her değişiklik bir commit. Geçmiş Git'te.
@@ -112,7 +112,7 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
 
 | Dosya | Görev |
 | --- | --- |
-| `radar/cli.py` | Komutlar: `calistir`, `kaynak-testi`, `test-bildirim`, `panel`, `harita-guncelle`, `durum`, `yayinla` |
+| `radar/cli.py` | Komutlar: `calistir`, `kaynak-testi`, `test-bildirim`, `panel`, `ucret-tablosu`, `durum`, `yayinla` |
 | `radar/pipeline.py` | Bir radar turu (`run_once`): oku → kayıtlar → bildirim → kaydet |
 | `radar/collectors.py` | Kaynak türlerine göre okuyucular, KGM PDF değişiklik tespiti |
 | `radar/extract.py` | Türkçe tarih/saat, TL tutarları, PDF sınıf tablosu, bağlantı ve metin çıkarma |
@@ -122,13 +122,13 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
 | `radar/calendar.py` | Bayram/yılbaşı izleme pencereleri |
 | `radar/notify.py`, `radar/messages.py` | Bildirim planı, Telegram/e-posta gönderimi, mesaj metinleri |
 | `radar/panel.py` | `panel.json` üretimi ve kısıtlı yerel önizleme sunucusu |
-| `radar/harita.py` | OpenStreetMap (Overpass) gişe verisi: sorgu, ayrıştırma, gruplama, aylık yenileme |
 | `radar/bolgeler.py` | 81 il (plaka kodu) ve 7 coğrafi bölge |
 | `radar/guvenlik.py` | Anahtar maskeleme, yalnızca http(s) bağlantı, gizli bilgi desenleri |
 | `radar/yayin.py` | `python -m radar yayinla`: güvenlik taraması + GitHub'a yayın + depo sıkılaştırma |
 | `radar/config.py` | `config/*.yaml` ve `.env` okuma, doğrulama |
 | `radar/demo.py` | Panel için açıkça "örnek" etiketli veri |
-| `radar/ucret_tablosu.py` | KGM tarife PDF'lerindeki gişe-gişe ücret matrisleri → `data/ucret-tablosu.json` (günde bir ve tarife değişince; bozuk PDF'te eski veri korunur) |
+| `radar/ucret_tablosu.py` | KGM tarife PDF'lerindeki gişe-gişe ücret matrisleri → `data/ucret-tablosu.json` (günde bir ve tarife değişince; bozuk PDF'te eski veri korunur). Gişe konumu/il/bölge `config/giseler.yaml`'dan, her turda yansıtılır |
+| `config/giseler.yaml` | Otoyol gişe kaydı (bizim verimiz): otoyol kimliği → tarifedeki ad, konum (ya da `null`), il, not |
 | `panel/` | Tek sayfalık panel (vanilla JS): `app.js`, `harita.js` (Leaflet), `hesap.js` (ücret hesabı), `vendor/leaflet/` (1.9.4, BSD), `vendor/fonts/` (OFL) |
 | `.github/workflows/radar.yml` | 30 dakikalık çalışma + Pages yayını |
 | `.github/workflows/testler.yml` | Her gönderimde testler (yalnız okuma yetkisi) |
@@ -150,11 +150,20 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
   kola sapan gişeler çizgiden atlanır). Haritadaki gişenin açılır penceresinden Giriş/Çıkış seçilebilir.
   Seçim adres çubuğunda: `#hesap=<otoyol-id>/<giriş>/<çıkış>/<sınıf>`. Yöne bağlı tarifelerde
   `ucret_geri` kullanılır.
-- **Haritadaki gişeler yalnızca KGM tarifesinden gelir.** OpenStreetMap'te kapanmış/tarifede olmayan
-  gişeler var (ör. Derince, İzmit merkezdeki adsız nokta, eski D-100 gişeleri) — kullanıcı bunları bilgi
-  kirliliği olarak bildirdi. `data/harita.json` (OSM) artık yalnızca konum ve il/bölge kaynağıdır; konumu
-  eşleşmeyen KGM gişesi haritaya konmaz (hesapta seçilebilir). 300 m içindeki farklı tarifelerin gişeleri
-  tek işarette birleşir.
+- **Haritadaki gişeler yalnızca KGM tarifesinden, konumları yalnızca bizim kaydımızdan gelir.** Sahibin
+  isteği: "bize haritadan veri gelmemeli, bizde gişeler verisi zaten olmalı, biz haritaya çizmeliyiz".
+  OpenStreetMap'te kapanmış/tarifede olmayan gişeler var (ör. Derince, İzmit merkezdeki adsız nokta, eski
+  D-100 gişeleri) — bilgi kirliliği. Bu yüzden Overpass adımı, `radar/harita.py`, `harita-guncelle` komutu
+  ve `data/harita.json` kaldırıldı. Konumlar `config/giseler.yaml`'da (sürüm kontrollü); radar bunları
+  `data/ucret-tablosu.json` istasyonlarına `lat`, `lon`, `il`, `bolge` olarak yazar. Panel gişeleri yalnızca
+  bu dosyadan çizer; harita karoları yalnızca arka plandır.
+- **Kayıt Kasım 2026'da bir kez hazırlandı:** eski OSM eşleşmeleri ve eksik gişeler tarifedeki sıra ve
+  km'lerle tek tek denetlendi (kuş uçuşu uzaklık yol km'sini aşmamalı). Düzeltilenler: Düzce (Gölyaka)
+  (Düzce gişesine bağlanmıştı), KMO Çatalca (Avrupa Otoyolu'nun Çatalca gişesine bağlanmıştı), Aydın Alın
+  (İzmir–Aydın'ın Aydın gişesine bağlanmıştı). 201 gişeden 198'i konumlu; Liman, Küçükılıçlı ve Ağaçlı
+  `konum: null`. Kayıtta olmayan bir gişe tarifeye girerse tabloda konumsuz kalır, `state.json`'a
+  (`_ucret_tablosu.kayitsiz`) yazılır ve teknik gruba her gişe için bir kez "GİŞE KAYDI EKSİK" gider.
+  Testler kaydın biçimini, tarifedeki her gişenin kayıtta olduğunu ve km tutarlılığını denetler.
 - Köprü/tünel işaretleri `config/crossings.yaml` içindeki yaklaşık `konum` alanından. Çakışmasız isim
   etiketleri, İstanbul köprülerinin uzaklaşınca kümelenmesi, eski adlarla arama, tablo↔harita bağlantısı.
 
@@ -166,7 +175,7 @@ Araçlar: `detect-secrets`, `bandit`, `pip-audit` (temiz) ve elle inceleme. Düz
 
 1. E-postada TLS sertifikası doğrulanmıyordu → `ssl.create_default_context()` ile doğrulanıyor.
 2. Yerel panel sunucusu tüm klasörü (`.env` dahil) sunuyordu → yalnızca `panel/`, `data/panel.json`,
-   `data/harita.json`; yalnızca localhost Host başlığı; klasör listesi kapalı.
+   `data/ucret-tablosu.json`; yalnızca localhost Host başlığı; klasör listesi kapalı.
 3. Kaynak sitelerden gelen `javascript:` gibi bağlantılar → yalnızca http(s); panele CSP eklendi.
 4. Actions yetkileri geniş → `permissions: {}` + iş bazında en az yetki; testler gizli bilgiye erişmez.
 5. Bildirim kanalı tanımlı değilse radar çalışmaz (bildirimler "gönderildi" sayılıp kaybolmasın diye).
@@ -188,15 +197,14 @@ girdiden verilir.
 
 ## 7. Mevcut durum (Kasım 2026)
 
-- Kod tamam; **45 test** var (internete çıkmadan, sahte sitelerle; yayın betiği sahte `gh` ve yerel
+- Kod tamam; **63 test** var (internete çıkmadan, sahte sitelerle; yayın betiği sahte `gh` ve yerel
   git deposuyla uçtan uca test edildi). Yayın testlerinden 4'ü yalnızca Linux/macOS'ta çalışır.
 - **GitHub'da yayında.** Depo adı `otoyol-ucretleri` (herkese açık); panel GitHub Pages'te
   `https://<kullanıcı-adı>.github.io/otoyol-ucretleri/` adresinde. Radar 30 dakikada bir Actions'ta çalışıyor;
   Telegram bildirimi doğrulandı (`python -m radar test-bildirim`). Yerelde Python 3.12 `.venv` içinde kurulu.
 - **İlk gerçek turda bulunan ve düzeltilen sorunlar:**
-  - Overpass ana sunucusu tarayıcı gibi görünen istemcileri `HTTP 406` ile reddediyordu; harita boş kaldı.
-    Artık kendi adıyla (`TarifeRadari/0.2 …`) istek atılıyor, iki yedek sunucu eklendi, sorgu hafifletildi.
-    Gerçek veriyle denendi: 370 gişe noktası (59'u serbest geçiş) alındı.
+  - (Geçmiş) OpenStreetMap/Overpass gişe adımı sorun çıkarıyordu ve bilgi kirliliği getiriyordu; Kasım
+    2026'da tamamen kaldırıldı, yerine `config/giseler.yaml` kaydı geldi.
   - KGM tarife sayfasındaki tarife dışı PDF'ler (strateji planı vb.) belge olarak izleniyordu; artık
     yalnızca adında/adresinde "ücret" ya da "tarife" geçen PDF'ler izleniyor.
 - Telegram bot anahtarı bir sohbet kaydında açıkça geçti; sahibi şimdilik yenilememeyi seçti. Yenilenirse:
@@ -209,12 +217,13 @@ girdiden verilir.
 
 - Avrasya Tüneli ücretleri okunamıyor (JavaScript); yalnızca duyurular izleniyor.
 - Otoyol gişe-gişe matrisleri hesap için okunuyor (16 PDF, 17 tablo, 201 gişe); otoyol zam bildirimi hâlâ "belge değişti" düzeyinde.
-- KGM gişelerinin ~%25'inin konumu OSM'de eşleşmiyor (ör. Kartepe, Bekirpaşa, Topağaç); haritada görünmezler.
+- 3 gişenin (Liman, Küçükılıçlı, Ağaçlı) konumu belirlenemedi; haritada görünmezler. Bazı gişeler (ör. Kartepe,
+  Topağaç, Muallimköy, SGS noktaları) gişe binası yerine kavşak konumuyla kayıtlı (`not` alanında yazar).
 - Tablodaki bazı değerler şaşırtıcı ama belgede öyle: ör. Adapazarı→Topağaç 1. sınıf 250 TL (Topağaç, KMO bağlantısı).
 - TollGuru yeniden soruldu (Kasım 2026); yine reddedildi: ücretli, Türkiye/TL zayıf, zam ve bayram bilgisi yok. KGM tabloları daha doğru.
 - YSS, Osmangazi ve 1915 Çanakkale PDF biçimleri doğrulanmadı.
 - Bayram tarihleri yaklaşık; köprü konumları yaklaşık.
-- OpenStreetMap gişe verisi eksik/adsız olabilir; OSM karo sunucusu küçük ekip kullanımı için uygun.
+- OSM karo sunucusu (yalnızca harita altlığı) küçük ekip kullanımı için uygun.
 - GitHub sunucuları yurt dışında; kamu siteleri erişimi engellerse yerel çalıştırma gerekir.
 
 ---

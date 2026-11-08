@@ -202,6 +202,21 @@ def source_error(cfg: Config, name: str, url: str, hours: float, error: str) -> 
     return f"[Tarife Radarı] {head}: {name}", h, p
 
 
+def gise_kaydi_eksik(cfg: Config, giseler: list[dict]) -> tuple[str, str, str]:
+    head = "GİŞE KAYDI EKSİK"
+    t = Text().line(f"<b>[{head}] {len(giseler)} gişe</b>", f"[{head}] {len(giseler)} gişe")
+    t.line("KGM tarifesinde olup gişe kaydında (config/giseler.yaml) olmayan gişeler:")
+    for g in giseler[:40]:
+        t.line(f"• {esc(g['ad'])} · {esc(g.get('otoyol_adi') or g['otoyol'])}",
+               f"- {g['ad']} · {g.get('otoyol_adi') or g['otoyol']}")
+    if len(giseler) > 40:
+        t.line(f"… ve {len(giseler) - 40} gişe daha")
+    t.line("Ücret hesabında seçilebilirler ama haritada görünmezler. Kayda tarifedeki adıyla ekleyin; "
+           "konum bilinmiyorsa \"konum: null\" yazın.")
+    h, p = t.render()
+    return f"[Tarife Radarı] {head}: {len(giseler)} gişe", h, p
+
+
 def setup_done(cfg: Config, n_sources: int, n_prices: int, notes: list[str]) -> tuple[str, str, str]:
     head = "KURULUM"
     t = Text().line(f"<b>[{head}] Tarife Radarı çalışmaya başladı</b>", f"[{head}] Tarife Radarı çalışmaya başladı")

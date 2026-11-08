@@ -14,12 +14,6 @@ ROOT = Path(__file__).resolve().parent.parent
 SOURCE_TYPES = {"tarife_listesi", "liste", "rss", "sayfa"}
 TIERS = {"resmi", "haber"}
 CROSSING_KINDS = {"kopru", "tunel", "otoyol"}
-DEFAULT_OVERPASS = [
-    "https://overpass-api.de/api/interpreter",
-    "https://overpass.private.coffee/api/interpreter",
-    "https://maps.mail.ru/osm/tools/overpass/api/interpreter",
-    "https://overpass.kumi.systems/api/interpreter",
-]
 
 
 class ConfigError(Exception):
@@ -74,9 +68,6 @@ class Settings:
     heartbeat_minutes: int = 180
     run_interval_minutes: int = 30
     unusual_increase_pct: float = 100
-    map_refresh_days: int = 30          # 0: gişe verisini otomatik yenileme
-    map_retry_hours: float = 24
-    overpass_urls: list[str] = field(default_factory=lambda: list(DEFAULT_OVERPASS))
     # .env'den gelenler
     telegram_token: str = ""
     telegram_chat_id: str = ""
@@ -109,6 +100,7 @@ class Config:
     generic_scope: list[str]
     periods: list[Period]
     settings: Settings
+    gise_kaydi: Path | None = None      # config/giseler.yaml: otoyol gişelerinin konumları (bizim kaydımız)
 
     def crossing(self, crossing_id: str) -> CrossingCfg | None:
         return next((c for c in self.crossings if c.id == crossing_id), None)
@@ -257,9 +249,6 @@ def load_config(root: Path | None = None, data_dir: Path | None = None) -> Confi
         heartbeat_minutes=int(raw_settings.get("heartbeat_dakika", 180)),
         run_interval_minutes=int(raw_settings.get("calisma_araligi_dakika", 30)),
         unusual_increase_pct=float(raw_settings.get("olagan_disi_artis_yuzde", 100)),
-        map_refresh_days=int(raw_settings.get("harita_yenileme_gun", 30)),
-        map_retry_hours=float(raw_settings.get("harita_tekrar_deneme_saat", 24)),
-        overpass_urls=[str(u) for u in raw_settings.get("harita_overpass") or DEFAULT_OVERPASS],
         telegram_token=os.environ.get("TELEGRAM_BOT_TOKEN", "").strip(),
         telegram_chat_id=os.environ.get("TELEGRAM_CHAT_ID", "").strip(),
         telegram_tech_chat_id=os.environ.get("TELEGRAM_TECH_CHAT_ID", "").strip(),
@@ -282,4 +271,5 @@ def load_config(root: Path | None = None, data_dir: Path | None = None) -> Confi
         generic_scope=generic_scope,
         periods=periods,
         settings=s,
+        gise_kaydi=cfg_dir / "giseler.yaml",
     )

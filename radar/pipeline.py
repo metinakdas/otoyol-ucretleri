@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import httpx
 
 from . import calendar as cal
-from . import harita, lifecycle, notify, ucret_tablosu
+from . import lifecycle, notify, ucret_tablosu
 from . import panel as panel_mod
 from . import prices as ledger
 from .collectors import Context, collect
@@ -77,6 +77,7 @@ def run_once(
     report = RunReport(first_run=not store.exists)
 
     state: dict = store.read("state.json", {})
+    state.pop("_harita", None)   # kaldırılan OpenStreetMap harita adımının eski kaydı
     health: dict = store.read("health.json", {})
     sent: dict = store.read("notifications.json", {})
     crossings_data: dict = store.read("crossings.json", {})
@@ -117,14 +118,9 @@ def run_once(
         fetcher.close()
     report.candidates = len(candidates)
 
-    # 1b) Harita: otoyol gişelerinin konumları (ayda bir). Hata radarın asıl işini etkilemez.
+    # 1b) Gişeden gişeye ücret tabloları (günde bir ya da tarife belgesi değişince); gişe konumları
+    # config/giseler.yaml kaydından her turda yansıtılır. Hata radarın asıl işini etkilemez.
     if not dry_run:
-        note = harita.refresh(cfg, store, state, now, transport=transport)
-        if note:
-            report.notes.append(note)
-            if not note.startswith("Harita verisi alınamadı"):
-                report.written.append("harita.json")
-        # Gişeden gişeye ücret tabloları (günde bir ya da tarife belgesi değişince). Hata asıl işi etkilemez.
         try:
             note = ucret_tablosu.refresh(cfg, store, state, now, transport=transport)
         except Exception as exc:  # beklenmeyen hata da radar turunu durdurmasın
@@ -165,8 +161,10 @@ def run_once(
 
     # 3) Bildirimler
     n_prices = sum(1 for c in cfg.crossings if ledger.entries(crossings_data, c.id))
+    kayitsiz = (state.get(ucret_tablosu.STATE_KEY) or {}).get("kayitsiz") or []
     messages = notify.plan(cfg, events, transitions, created_watch, health, sent, now,
-                           first_run=report.first_run, n_prices=n_prices, notes=report.notes)
+                           first_run=report.first_run, n_prices=n_prices, notes=report.notes,
+                           kayitsiz_giseler=kayitsiz)
     if send or dry_run:
         report.messages = notify.deliver(cfg, messages, sent, now, dry_run=dry_run, client=notify_client)
     else:
@@ -185,8 +183,7 @@ def run_once(
         report.written.append("rules/")
 
     panel_data = panel_mod.build(cfg, events=events, rules=rules, crossings_data=crossings_data,
-                                 state=state, health=health, now=now, last_run=to_iso(now),
-                                 map_info=harita.panel_info(state))
+                                 state=state, health=health, now=now, last_run=to_iso(now))
     signature = _panel_signature(panel_data)
     heartbeat_due = hours_since(meta.get("heartbeat_at"), now) * 60 >= cfg.settings.heartbeat_minutes
     if heartbeat_due or health_changed or signature != meta.get("panel_signature") or report.written:

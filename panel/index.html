@@ -2,152 +2,100 @@
 <html lang="tr">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="color-scheme" content="light dark">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#0b0f17" media="(prefers-color-scheme: dark)">
   <title>Otoyol Ücretleri</title>
-  <meta name="description" content="Otoyol gişeleri arası geçiş ücreti hesaplama, köprü ve otoyol ücret değişiklikleri, bayramda ücretsiz geçiş kararları">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='2' y='2' width='28' height='28' rx='5' fill='%231d5c3f'/%3E%3Crect x='4.5' y='4.5' width='23' height='23' rx='3' fill='none' stroke='%23f6efdc' stroke-width='1.5'/%3E%3Cpath d='M12 25 15 8h2l3 17' fill='none' stroke='%23f6efdc' stroke-width='2.2' stroke-linejoin='round'/%3E%3Cpath d='M16 11v2.5M16 16v2.5M16 21v2.5' stroke='%23e3a21a' stroke-width='1.6'/%3E%3C/svg%3E">
+  <meta name="description" content="Otoyol gişeleri arası geçiş ücreti hesaplama, köprü ücretleri ve bayramda ücretsiz geçiş kararları">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%231d4ed8'/%3E%3Cpath d='M11 25 14.5 7h3L21 25' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M16 10.5v2.5M16 15.5v2.5M16 20.5v2.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="sign">
-    <div class="sign-inner">
-      <div class="brand">
-        <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
-          <rect x="1.5" y="1.5" width="37" height="37" rx="6" fill="none" stroke="currentColor" stroke-width="2"/>
-          <path d="M14 33 18.6 9h2.8L26 33" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linejoin="round"/>
-          <path d="M20 13v3.5M20 20v3.5M20 27v3.5" class="brand-lane" stroke-width="2"/>
-        </svg>
-        <h1>Otoyol Ücretleri</h1>
-      </div>
-      <div id="status" class="status" role="status" aria-live="polite">Yükleniyor…</div>
-    </div>
+  <header class="appbar">
+    <a class="logo" href="./" aria-label="Otoyol Ücretleri, ana sayfa">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="logo-bg"/><path d="M11 25 14.5 7h3L21 25" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 10.5v2.5M16 15.5v2.5M16 20.5v2.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+      <span>Otoyol Ücretleri</span>
+    </a>
+    <div id="status" class="status" role="status" aria-live="polite"></div>
   </header>
 
-  <div id="sample-note" class="sample-note" hidden>
-    Örnek veri · tasarım önizlemesi
-  </div>
+  <div class="app" id="app">
+    <div class="map-area">
+      <div id="map" class="map" aria-label="Otoyol gişeleri ve köprüler haritası"></div>
+      <button type="button" id="notice" class="notice" hidden></button>
+    </div>
 
-  <section id="highlight" class="banner" aria-label="Öne çıkan"></section>
+    <aside class="panel" aria-label="Ücret hesabı ve bilgiler">
+      <div id="sample-note" class="sample-note" hidden>Örnek veri ile önizleme</div>
+      <nav class="tabs" role="tablist" aria-label="Bölümler">
+        <button type="button" role="tab" id="tab-btn-rota" aria-controls="tab-rota" aria-selected="true">Rota</button>
+        <button type="button" role="tab" id="tab-btn-kopru" aria-controls="tab-kopru" aria-selected="false" tabindex="-1">Köprüler</button>
+        <button type="button" role="tab" id="tab-btn-duyuru" aria-controls="tab-duyuru" aria-selected="false" tabindex="-1">Duyurular<span class="badge" id="duyuru-badge" hidden></span></button>
+      </nav>
 
-  <section class="stage" id="map-card" aria-labelledby="map-title">
-    <h2 id="map-title" class="visually-hidden">Ücretli geçiş haritası</h2>
-
-    <aside class="console" aria-label="Ücret hesabı ve gişe arama">
-      <div class="tabs" role="tablist" aria-label="Bölümler">
-        <button type="button" role="tab" id="tab-btn-hesap" aria-controls="tab-hesap" aria-selected="true">Ücret hesapla</button>
-        <button type="button" role="tab" id="tab-btn-ara" aria-controls="tab-ara" aria-selected="false" tabindex="-1">Gişe ara</button>
-      </div>
-
-      <div class="tab-panel" id="tab-hesap" role="tabpanel" aria-labelledby="tab-btn-hesap">
-        <form class="trip" id="trip" autocomplete="off" novalidate>
-          <div class="trip-fields">
-            <div class="combo" id="combo-giris">
-              <label for="trip-giris"><span class="tag tag-in">G</span> Giriş gişesi</label>
+      <section class="tab-panel" id="tab-rota" role="tabpanel" aria-labelledby="tab-btn-rota">
+        <form class="route" id="trip" autocomplete="off" novalidate>
+          <div class="route-fields">
+            <span class="route-rail" aria-hidden="true"><i class="dot dot-in"></i><i class="rail"></i><i class="dot dot-out"></i></span>
+            <div class="combo">
+              <label class="visually-hidden" for="trip-giris">Giriş gişesi</label>
               <input id="trip-giris" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                     aria-controls="trip-giris-list" placeholder="Nereden?" spellcheck="false">
+                     aria-controls="trip-giris-list" placeholder="Giriş gişesi" spellcheck="false">
               <ul class="combo-list" id="trip-giris-list" role="listbox" hidden></ul>
             </div>
-            <button type="button" class="swap" id="trip-swap" title="Giriş ve çıkışı değiştir" aria-label="Giriş ve çıkışı değiştir">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M6 3v13M6 16l-3-3M6 16l3-3M14 17V4M14 4l-3 3M14 4l3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <div class="combo" id="combo-cikis">
-              <label for="trip-cikis"><span class="tag tag-out">Ç</span> Çıkış gişesi</label>
+            <div class="combo">
+              <label class="visually-hidden" for="trip-cikis">Çıkış gişesi</label>
               <input id="trip-cikis" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                     aria-controls="trip-cikis-list" placeholder="Nereye?" spellcheck="false">
+                     aria-controls="trip-cikis-list" placeholder="Çıkış gişesi" spellcheck="false">
               <ul class="combo-list" id="trip-cikis-list" role="listbox" hidden></ul>
             </div>
+            <button type="button" class="icon-btn swap" id="trip-swap" title="Yönü değiştir" aria-label="Giriş ve çıkışı değiştir">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4v12M7 16l-3-3M7 16l3-3M13 16V4M13 4l-3 3M13 4l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
           </div>
-          <fieldset class="classes">
+          <fieldset class="vehicles">
             <legend>Araç sınıfı</legend>
-            <div class="class-row" id="trip-classes"></div>
+            <div class="vehicle-grid" id="trip-classes"></div>
           </fieldset>
         </form>
-        <div id="trip-result" class="trip-result" aria-live="polite"></div>
-      </div>
-
-      <div class="tab-panel" id="tab-ara" role="tabpanel" aria-labelledby="tab-btn-ara" hidden>
-        <div class="search">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12.6 12.6 17 17" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
-          <input id="map-search" type="search" placeholder="Köprü, gişe, otoyol ya da il" autocomplete="off" spellcheck="false" aria-label="Haritada ara" aria-controls="map-list">
-        </div>
-        <div class="chip-row region-row" id="map-regions" role="group" aria-label="Bölge"></div>
-        <details class="more-filters">
-          <summary>Filtreler</summary>
-          <div class="filters">
-            <label class="field"><span>İl</span><select id="f-il"></select></label>
-            <label class="field"><span>Otoyol</span><select id="f-yol"></select></label>
-            <label class="field"><span>Durum</span>
-              <select id="f-durum">
-                <option value="">Hepsi</option>
-                <option value="degisecek">Ücreti değişecek</option>
-                <option value="ucretsiz">Ücretsiz geçiş</option>
-              </select>
-            </label>
-            <button type="button" class="link-btn" id="f-temizle">Temizle</button>
-          </div>
-        </details>
-        <div id="map-list" class="map-list" aria-label="Noktalar"></div>
-      </div>
-    </aside>
-
-    <div class="map-wrap">
-      <div id="map" class="map" aria-label="Ücretli geçiş noktaları haritası"></div>
-      <div class="map-bar">
-        <div class="chip-row" id="map-types" role="group" aria-label="Nokta türü"></div>
-      </div>
-      <div class="compass" aria-hidden="true">
-        <svg viewBox="0 0 60 60"><circle cx="30" cy="30" r="27" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="30" cy="30" r="22" fill="none" stroke="currentColor" stroke-width="0.6" stroke-dasharray="1.5 2.5"/><path d="M30 6 34 30 30 54 26 30Z" fill="currentColor" opacity=".18"/><path d="M30 6 34 30H26Z" fill="currentColor"/><text x="30" y="5" text-anchor="middle">K</text></svg>
-      </div>
-    </div>
-  </section>
-  <p class="map-note wrap" id="map-note"></p>
-
-  <main class="wrap board" id="app">
-    <div class="grid">
-      <section class="card prices" aria-labelledby="prices-title">
-        <div class="card-head">
-          <h2 id="prices-title">Köprü ve tünel ücretleri</h2>
-          <div class="segmented" role="group" aria-label="Araç sınıfı" id="class-picker"></div>
-        </div>
-        <table class="table" id="prices-table">
-          <thead><tr><th scope="col">Geçiş</th><th scope="col" class="num">Ücret</th><th scope="col" class="num">Durum</th></tr></thead>
-          <tbody></tbody>
-        </table>
+        <div id="trip-result" class="result" aria-live="polite"></div>
       </section>
 
-      <div class="side">
-        <section class="card" aria-labelledby="free-title">
-          <h2 id="free-title">Bayramda ücretsiz geçiş</h2>
-          <div id="free"></div>
-        </section>
-        <section class="card" aria-labelledby="events-title">
-          <h2 id="events-title">Son kayıtlar</h2>
-          <ul id="events" class="events"></ul>
-        </section>
-      </div>
-    </div>
-
-    <section class="card fineprint">
-      <details>
-        <summary><h2 class="inline">Kaynaklar ve tarife belgeleri</h2> <span id="doc-count" class="muted"></span></summary>
-        <div class="fine-grid">
-          <ul id="sources" class="sources"></ul>
-          <ul id="documents" class="documents"></ul>
+      <section class="tab-panel" id="tab-kopru" role="tabpanel" aria-labelledby="tab-btn-kopru" hidden>
+        <div class="section-head">
+          <h2>Köprü ve tüneller</h2>
+          <span class="muted small" id="kopru-sinif"></span>
         </div>
-      </details>
-    </section>
+        <ul class="crossings" id="crossings"></ul>
+      </section>
 
-    <footer class="footer" id="footer"></footer>
-  </main>
+      <section class="tab-panel" id="tab-duyuru" role="tabpanel" aria-labelledby="tab-btn-duyuru" hidden>
+        <div id="announcements"></div>
+        <div class="section-head"><h2>Bayramda ücretsiz geçiş</h2></div>
+        <div id="free" class="free"></div>
+        <div class="section-head" id="events-head"><h2>Son kayıtlar</h2></div>
+        <ul id="events" class="events"></ul>
+        <details class="disclosure">
+          <summary>Kaynaklar <span class="muted" id="source-summary"></span></summary>
+          <ul id="sources" class="sources"></ul>
+        </details>
+        <details class="disclosure">
+          <summary>KGM tarife belgeleri <span class="muted" id="doc-count"></span></summary>
+          <ul id="documents" class="documents"></ul>
+        </details>
+        <p class="footnote" id="footer"></p>
+      </section>
+    </aside>
+  </div>
 
   <template id="error-tpl">
-    <div class="card error-card">
-      <h2>Panel verisi okunamadı</h2>
-      <p>Radar henüz çalışmamış olabilir. Yerelde denemek için <code>python -m radar panel --ornek</code> komutunu kullanın.</p>
+    <div class="error-box">
+      <h2>Veri okunamadı</h2>
+      <p>Radar henüz çalışmamış olabilir. Yerelde denemek için <code>python -m radar panel --ornek</code>.</p>
     </div>
   </template>
 

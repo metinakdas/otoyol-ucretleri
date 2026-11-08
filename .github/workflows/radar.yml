@@ -15,7 +15,7 @@ concurrency:
 jobs:
   radar:
     runs-on: ubuntu-latest
-    timeout-minutes: 20   # ayda bir harita verisi de alınır (birkaç dakika sürebilir)
+    timeout-minutes: 20
     permissions:
       contents: write     # yalnızca data/ klasörünü kaydetmek için
     outputs:
@@ -85,7 +85,7 @@ jobs:
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
 
-  # Paneli GitHub Pages'e yayımlar. Yalnızca panel dosyaları ile panel.json, harita.json ve ucret-tablosu.json yayımlanır.
+  # Paneli GitHub Pages'e yayımlar. Yalnızca panel dosyaları ile panel.json ve ucret-tablosu.json yayımlanır.
   panel:
     needs: radar
     if: needs.radar.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && needs.radar.outputs.hazir == 'true')
@@ -108,7 +108,7 @@ jobs:
           mkdir -p _site/data
           cp -r panel/. _site/
           rm -f _site/ornek-*.json
-          for f in panel.json harita.json ucret-tablosu.json; do
+          for f in panel.json ucret-tablosu.json; do
             if [ -f "data/$f" ]; then cp "data/$f" "_site/data/$f"; fi
           done
 

@@ -112,42 +112,5 @@ def sample_panel(cfg: Config, now: datetime) -> dict:
         "sources": sources,
         "calendar": periods,
         "bolgeler": bolgeler.panel_listesi(),
-        "harita": {"hata": None, "son_basari": to_iso(now - timedelta(days=3))},
     }
 
-
-# Örnek gişeler: yerleri kabaca gerçek otoyol güzergâhlarında, adları "(örnek)" etiketli.
-_SAMPLE_GATES = [
-    ("Edirne gişeleri (örnek)", 41.66, 26.62, 22, "O-3", "Avrupa Otoyolu", "gise"),
-    ("Çatalca gişeleri (örnek)", 41.13, 28.45, 34, "O-3", "Avrupa Otoyolu", "gise"),
-    ("Kuzey Marmara serbest geçiş (örnek)", 41.22, 28.95, 34, "O-7", "Kuzey Marmara Otoyolu", "serbest"),
-    ("Gebze gişeleri (örnek)", 40.80, 29.43, 41, "O-4", "Anadolu Otoyolu", "gise"),
-    ("İzmit gişeleri (örnek)", 40.77, 29.95, 41, "O-4", "Anadolu Otoyolu", "gise"),
-    ("Bursa gişeleri (örnek)", 40.25, 29.05, 16, "O-5", "İstanbul-İzmir Otoyolu", "gise"),
-    ("Düzce gişeleri (örnek)", 40.83, 31.15, 81, "O-4", "Anadolu Otoyolu", "gise"),
-    ("Bolu gişeleri (örnek)", 40.72, 31.60, 14, "O-4", "Anadolu Otoyolu", "gise"),
-    ("Ankara gişeleri (örnek)", 39.98, 32.70, 6, "O-4", "Anadolu Otoyolu", "gise"),
-    (None, 39.90, 32.40, 6, "O-4", "Anadolu Otoyolu", "gise"),
-    ("Niğde gişeleri (örnek)", 37.97, 34.68, 51, "O-21", "Ankara-Niğde Otoyolu", "gise"),
-    ("İzmir gişeleri (örnek)", 38.45, 27.25, 35, "O-5", "İstanbul-İzmir Otoyolu", "gise"),
-    ("Aydın gişeleri (örnek)", 37.86, 27.80, 9, "O-31", "İzmir-Aydın Otoyolu", "gise"),
-    ("Mersin gişeleri (örnek)", 36.85, 34.55, 33, "O-51", "Mersin-Adana Otoyolu", "gise"),
-    ("Adana gişeleri (örnek)", 37.02, 35.25, 1, "O-52", "Adana-Şanlıurfa Otoyolu", "gise"),
-    ("Gaziantep gişeleri (örnek)", 37.10, 37.30, 27, "O-52", "Adana-Şanlıurfa Otoyolu", "gise"),
-    ("Şanlıurfa gişeleri (örnek)", 37.20, 38.70, 63, "O-52", "Adana-Şanlıurfa Otoyolu", "gise"),
-]
-
-
-def sample_map(now: datetime) -> dict:
-    points = []
-    for i, (ad, lat, lon, plaka, ref, yol_adi, tur) in enumerate(_SAMPLE_GATES, start=1):
-        points.append({
-            "id": f"ornek-{i}", "ad": ad or f"Gişe ({ref})", "adsiz": ad is None, "tur": tur,
-            "lat": lat, "lon": lon, "plaka": plaka, "il": bolgeler.il_adi(plaka), "bolge": bolgeler.bolge(plaka),
-            "yol": ref, "yol_adi": yol_adi, "isletmeci": None, "osm": None, "nokta_sayisi": 2,
-        })
-    return {
-        "schema": 1, "ornek": True, "olusturma": to_iso(now - timedelta(days=3)),
-        "kaynak": "Örnek veri", "lisans": "Örnek veri; gerçek gişe konumları OpenStreetMap'ten alınır",
-        "ozet": {"toplam": len(points)}, "noktalar": points,
-    }

@@ -4,8 +4,8 @@
     python -m radar kaynak-testi    Kaynakların okunup okunmadığını ve PDF'lerden okunan ücretleri gösterir
     python -m radar test-bildirim   Telegram ve e-posta ayarlarını deneme mesajıyla sınar
     python -m radar panel           Paneli yerelde açar (--ornek: örnek veriyle)
-    python -m radar harita-guncelle Otoyol gişelerinin konumlarını OpenStreetMap'ten yeniler
     python -m radar ucret-tablosu   Otoyolların gişeden gişeye ücret tablolarını KGM PDF'lerinden yeniler
+                                    (gişe konumları config/giseler.yaml kaydından gelir)
     python -m radar durum           Kayıtların ve ücretlerin özetini yazdırır
     python -m radar yayinla         Projeyi güvenlik taramasından geçirip GitHub'da yayınlar
 """
@@ -160,47 +160,16 @@ def cmd_test_bildirim(args, cfg) -> int:
 
 
 def cmd_panel(args, cfg) -> int:
-    from .demo import sample_map, sample_panel
+    from .demo import sample_panel
     from .panel import serve, write_json
 
     if args.ornek:
         write_json(cfg.root / "panel" / "ornek-panel.json", sample_panel(cfg, tz_now()))
-        write_json(cfg.root / "panel" / "ornek-harita.json", sample_map(tz_now()))
     elif not (cfg.data_dir / "panel.json").exists():
         print("Henüz panel verisi yok. Önce 'python -m radar calistir' çalıştırın ya da '--ornek' ile örnek veriye bakın.")
         return 1
     serve(cfg.root, port=args.port, sample=args.ornek, open_browser=not args.tarayici_yok)
     return 0
-
-
-def cmd_harita(args, cfg) -> int:
-    from collections import Counter
-
-    from . import bolgeler, harita
-    from .store import Store
-
-    store = Store(cfg.data_dir)
-    state = store.read("state.json", {})
-    print("Gişe konumları OpenStreetMap'ten alınıyor (birkaç dakika sürebilir)…")
-    note = harita.refresh(cfg, store, state, tz_now(), force=True)
-    if store.exists:  # radar hiç çalışmadıysa state.json yazılmaz; ilk tur yine "ilk çalıştırma" olur
-        store.write("state.json", state)
-    print(note)
-    data = store.read("harita.json", None)
-    if not data:
-        return 1
-    points = data["noktalar"]
-    print(f"\nToplam {len(points)} nokta · {sum(1 for p in points if p['adsiz'])} adsız · "
-          f"{sum(1 for p in points if p['tur'] == 'serbest')} serbest geçiş noktası")
-    per_region = Counter(p["bolge"] for p in points)
-    for bid, ad, _, _ in bolgeler.BOLGELER:
-        print(f"  {ad}: {per_region.get(bid, 0)}")
-    if per_region.get(None):
-        print(f"  İli bulunamayan: {per_region[None]}")
-    roads = Counter(p["yol"] for p in points if p["yol"])
-    if roads:
-        print("En çok gişesi olan yollar: " + ", ".join(f"{r} ({n})" for r, n in roads.most_common(8)))
-    return 1 if note and note.startswith("Harita verisi alınamadı") else 0
 
 
 def cmd_ucret_tablosu(args, cfg) -> int:
@@ -227,6 +196,12 @@ def cmd_ucret_tablosu(args, cfg) -> int:
                 print(f"      uyarı: {w}")
     for err in st.get("hatalar") or []:
         print(f"  OKUNAMADI: {err}")
+    kayitsiz = st.get("kayitsiz") or []
+    if kayitsiz:
+        print(f"\nGişe kaydında (config/giseler.yaml) olmayan {len(kayitsiz)} gişe; haritada görünmezler:")
+        for k in kayitsiz:
+            print(f"  - {k['ad']}  [{k['otoyol']}]")
+        print("  Kayda tarifedeki adıyla ekleyin (konum bilinmiyorsa 'konum: null').")
     if not data:
         return 1
     return 1 if (note or "").startswith("Ücret tablosu alınamadı") else 0
@@ -272,12 +247,13 @@ def cmd_durum(args, cfg) -> int:
         h = health.get(s.id, {})
         state = "çalışıyor" if h.get("ok") else f"HATA: {h.get('error', 'bilinmiyor')}"
         print(f"  {s.name}: {state}")
-    harita_data = store.read("harita.json", None)
-    if harita_data:
-        print(f"\nHarita: {len(harita_data['noktalar'])} gişe noktası · "
-              f"güncelleme {fmt_datetime(from_iso(harita_data['olusturma']))}")
+    tablo = store.read("ucret-tablosu.json", None)
+    if tablo:
+        stations = [s for o in tablo["otoyollar"] for s in o["istasyonlar"]]
+        located = sum(1 for s in stations if s.get("lat") is not None)
+        print(f"\nOtoyol gişeleri: {len(stations)} gişe, {located} tanesinin konumu var (config/giseler.yaml)")
     else:
-        print("\nHarita: gişe verisi henüz yok ('python -m radar harita-guncelle').")
+        print("\nOtoyol ücret tablosu henüz yok ('python -m radar ucret-tablosu').")
     return 0
 
 
@@ -308,9 +284,6 @@ def build_parser() -> argparse.ArgumentParser:
     pn.add_argument("--port", type=int, default=8000)
     pn.add_argument("--tarayici-yok", action="store_true", help="Tarayıcıyı otomatik açma")
     pn.set_defaults(func=cmd_panel)
-
-    h = sub.add_parser("harita-guncelle", help="Otoyol gişelerinin konumlarını OpenStreetMap'ten yeniler")
-    h.set_defaults(func=cmd_harita)
 
     u = sub.add_parser("ucret-tablosu", help="Otoyolların gişeden gişeye ücret tablolarını KGM PDF'lerinden yeniler")
     u.set_defaults(func=cmd_ucret_tablosu)

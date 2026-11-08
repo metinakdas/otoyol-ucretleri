@@ -1,4 +1,4 @@
-"""Gişeden gişeye ücret tabloları: KGM PDF matrislerinin okunması, konum eşleme ve günlük yenileme.
+"""Gişeden gişeye ücret tabloları: KGM PDF matrislerinin okunması, gişe kaydıyla eşleme ve yenileme.
 
 Gerçek KGM PDF'lerinden iki küçük örnek tests/fixtures altında (kamu belgesi): İzmir–Aydın (üçgen tablo)
 ve Kuzey Marmara Kınalı–Odayeri (yöne göre değişen kare tablo + serbest geçiş noktaları). Anadolu Otoyolu
@@ -148,55 +148,39 @@ def test_turkce_baslik_harfi():
     assert ut.baslik_harfi("Ankara Alın") == "Ankara Alın"   # küçük harf içeren ada dokunulmaz
 
 
-# ------------------------------------------------------------------ konum eşleme
+# ------------------------------------------------------------------ gişe kaydı
 
-def _nokta(i, ad, lat, lon, yol=None, tur="gise"):
-    return {"id": f"osm-node-{i}", "ad": ad, "adsiz": False, "tur": tur, "lat": lat, "lon": lon, "yol": yol}
+# Testlerin gişe kaydı (config/giseler.yaml biçiminde). KMO'nun "Fatih" gişesi bilerek yazılmadı.
+KAYIT = """
+izmir-aydin:
+  - {ad: Işıkkent, konum: [38.33, 27.21], il: İzmir}
+  - {ad: Tahtalıçay (Havalimanı), konum: [38.27, 27.22], il: İzmir}
+  - {ad: Torbalı, konum: [38.18, 27.32], il: İzmir}
+  - {ad: Belevi, konum: [38.03, 27.45], il: İzmir}
+  - {ad: Germencik, konum: [37.88, 27.58], il: Aydın}
+  - {ad: Aydın Batı, konum: null, il: Aydın}
+kmo-kinali-odayeri:
+  - {ad: Kınalı, konum: [41.13, 28.21], il: İstanbul}
+  - {ad: Silivri, konum: [41.13, 28.29], il: İstanbul}
+  - {ad: Çatalca, konum: [41.16, 28.47], il: İstanbul}
+  - {ad: Nakkaş, konum: [41.16, 28.56], il: İstanbul}
+  - {ad: Yassıören, konum: [41.22, 28.60], il: İstanbul}
+  - {ad: Tayakadın, konum: [41.25, 28.68], il: İstanbul}
+"""
 
 
-HARITA = {"noktalar": [
-    _nokta(1, "Işıkkent Gişeleri", 38.33, 27.21),
-    _nokta(2, "Havalimanı Gişeleri", 38.27, 27.22),
-    _nokta(3, "Torbalı Otomatik Geçiş Sistemi", 38.18, 27.32, tur="serbest"),
-    _nokta(4, "Belevi Gişeleri", 38.03, 27.45, yol="O-31"),
-    _nokta(5, "Germencik Gişeleri", 37.88, 27.58),
-    _nokta(6, "Germencik Gişeleri", 39.90, 32.80),            # aynı adlı, çok uzak: belirsiz
-    _nokta(7, "Aydın Batı Gişeleri", 37.85, 27.75, yol="O-4"),  # başka otoyola ait: elenir
-    _nokta(8, "Kınalı Gişeleri", 41.11, 28.17, yol="O-6"),
-    _nokta(9, "Kınalı Gişeleri", 41.13, 28.21, yol="O-7"),
-]}
-
-
-def test_konumlar_guvenilir_eslesmeyle_yazilir():
+def test_konumlar_gise_kaydindan_yazilir(tmp_path):
     [t] = ut.parse_matrix_pdf((FIX / "ucret-7-Izmir-Aydin-2026.pdf").read_bytes(), ref=T0)
     [o] = ut.otoyol_kayitlari([t], IZMIR, "7- KGM İzmir - Aydın Otoyolu Geçiş Ücretleri")
     assert (o["id"], o["yol"]) == ("izmir-aydin", "O-31")
-    info = ut.konumlari_esle(o, HARITA["noktalar"])
-    konum = {s["ad"]: (s["lat"], s["lon"]) for s in o["istasyonlar"]}
-    assert konum["Işıkkent"] == (38.33, 27.21)
-    assert konum["Tahtalıçay (Havalimanı)"] == (38.27, 27.22)     # parantez içindeki adla
-    assert konum["Torbalı"] == (38.18, 27.32)
-    assert konum["Germencik"] == (37.88, 27.58)                   # komşu istasyonlara yakın olan seçilir
-    assert konum["Aydın Batı"] == (None, None)                    # O-4'teki aynı adlı nokta alınmaz
-    assert info == {"eslesen": 5, "toplam": 6, "yol": "O-31"}
-
-
-def test_yol_mesafesiyle_celisen_eslesme_atilir():
-    [t] = ut.parse_matrix_pdf((FIX / "ucret-7-Izmir-Aydin-2026.pdf").read_bytes(), ref=T0)
-    [o] = ut.otoyol_kayitlari([t], IZMIR, "7- KGM İzmir - Aydın Otoyolu Geçiş Ücretleri")
-    pts = [dict(p) for p in HARITA["noktalar"]]
-    pts[2].update(lat=38.60, lon=27.90)    # Torbalı'yı 70 km öteye taşı: Işıkkent'e yol 23 km
-    ut.konumlari_esle(o, pts)
-    konum = {s["ad"]: s["lat"] for s in o["istasyonlar"]}
-    assert konum["Torbalı"] is None and konum["Işıkkent"] == 38.33
-
-
-def test_kinali_iki_ayri_otoyolda():
-    [t] = ut.parse_matrix_pdf((FIX / "ucret-14-KMOAvrupaKinali-Odayeri-2026.pdf").read_bytes(), ref=T0)
-    [o] = ut.otoyol_kayitlari([t], KMO, "14- Kuzey Marmara Avrupa (Kınalı - Odayeri) Otoyolu Geçiş Ücretleri")
-    assert o["yol"] == "O-7"
-    ut.konumlari_esle(o, HARITA["noktalar"])
-    assert (o["istasyonlar"][0]["lat"], o["istasyonlar"][0]["lon"]) == (41.13, 28.21)
+    assert o["istasyonlar"][0] == {"ad": "Işıkkent", "lat": None, "lon": None, "il": None, "bolge": None}
+    path = tmp_path / "giseler.yaml"
+    path.write_text(KAYIT, encoding="utf-8")
+    assert ut.konumlari_uygula([o], ut.gise_kaydi_oku(path)) == []
+    konum = {s["ad"]: (s["lat"], s["lon"], s["il"], s["bolge"]) for s in o["istasyonlar"]}
+    assert konum["Işıkkent"] == (38.33, 27.21, "İzmir", "ege")
+    assert konum["Germencik"] == (37.88, 27.58, "Aydın", "ege")
+    assert konum["Aydın Batı"] == (None, None, "Aydın", "ege")
 
 
 # ------------------------------------------------------------------ yenileme
@@ -215,26 +199,30 @@ def _setup(cfg, web):
     web.pdf(FSM, FIX / "1-15Temmuz-FSM-2026.pdf")
     web.pdf(IZMIR, FIX / "ucret-7-Izmir-Aydin-2026.pdf")
     web.pdf(KMO, FIX / "ucret-14-KMOAvrupaKinali-Odayeri-2026.pdf")
-    store = Store(cfg.data_dir)
-    store.write("harita.json", HARITA)
-    return store, {}
+    cfg.gise_kaydi = cfg.data_dir.parent / "giseler.yaml"
+    cfg.gise_kaydi.write_text(KAYIT, encoding="utf-8")
+    return Store(cfg.data_dir), {}
 
 
 def test_yenileme_dosyayi_yazar(cfg, web):
     store, state = _setup(cfg, web)
     note = ut.refresh(cfg, store, state, T0, transport=web.transport)
-    assert note == "Ücret tablosu: 2 otoyol, 13 istasyon güncellendi"
+    assert note == ("Ücret tablosu: 2 otoyol, 13 istasyon güncellendi; "
+                    "gişe kaydında olmayan 1 gişe: Fatih (kmo-kinali-odayeri)")
     data = store.read("ucret-tablosu.json", None)
     assert data["schema"] == 1 and data["olusturma"] == to_iso(T0) and data["kaynak"] == "KGM geçiş ücreti tarifeleri"
     assert list(data["siniflar"]) == ["1", "2", "3", "4", "5", "6"] and "Motosiklet" in data["siniflar"]["6"]
     izmir, kmo = data["otoyollar"]
     assert izmir["id"] == "izmir-aydin" and izmir["belge"] == IZMIR
     assert izmir["belge_adi"].startswith("7- KGM İzmir - Aydın Otoyolu")
-    assert izmir["istasyonlar"][0] == {"ad": "Işıkkent", "lat": 38.33, "lon": 27.21}
+    assert izmir["istasyonlar"][0] == {"ad": "Işıkkent", "lat": 38.33, "lon": 27.21, "il": "İzmir", "bolge": "ege"}
+    assert kmo["istasyonlar"][-1] == {"ad": "Fatih", "lat": None, "lon": None, "il": None, "bolge": None}
     assert set(izmir) >= {"id", "ad", "yol", "belge", "belge_adi", "istasyonlar", "ucret", "km", "azami"}
     assert kmo["id"] == "kmo-kinali-odayeri" and kmo["yonlu"] and kmo["ucret_geri"]
     st = state["_ucret_tablosu"]
     assert st["hata"] is None and st["hatalar"] == [] and st["konum"]["izmir-aydin"] == "5/6"
+    assert st["kayitsiz"] == [{"otoyol": "kmo-kinali-odayeri", "ad": "Fatih",
+                               "otoyol_adi": "Kuzey Marmara Otoyolu (Kınalı – Odayeri)"}]
     fsm = next(d for d in st["belgeler"].values() if d["url"] == FSM)
     assert fsm["matris"] is False and fsm["otoyollar"] == [] and fsm["hata"] is None
     assert all("strateji" not in u for u in web.requests)
@@ -247,6 +235,45 @@ def test_yenileme_dosyayi_yazar(cfg, web):
     assert ut.refresh(cfg, store, state, T0 + timedelta(hours=25), transport=web.transport) is None
     assert len(web.requests) > n
     assert store.read("ucret-tablosu.json", None)["olusturma"] == to_iso(T0)
+
+
+def test_gise_kaydi_degisince_pdf_indirilmeden_yansir(cfg, web):
+    store, state = _setup(cfg, web)
+    ut.refresh(cfg, store, state, T0, transport=web.transport)
+    n = len(web.requests)
+    cfg.gise_kaydi.write_text(KAYIT + "  - {ad: Fatih, konum: [41.24, 28.71], il: İstanbul}\n", encoding="utf-8")
+    note = ut.refresh(cfg, store, state, T0 + timedelta(hours=1), transport=web.transport)
+    assert note == "Ücret tablosu: gişe konumları güncellendi (config/giseler.yaml)"
+    assert len(web.requests) == n                         # PDF'ler yeniden indirilmedi
+    kmo = store.read("ucret-tablosu.json", None)["otoyollar"][1]
+    assert kmo["istasyonlar"][-1] == {"ad": "Fatih", "lat": 41.24, "lon": 28.71, "il": "İstanbul", "bolge": "marmara"}
+    assert state["_ucret_tablosu"]["kayitsiz"] == [] and state["_ucret_tablosu"]["konum"]["kmo-kinali-odayeri"] == "7/7"
+    # Değişiklik yoksa hiçbir şey yazılmaz
+    assert ut.refresh(cfg, store, state, T0 + timedelta(hours=2), transport=web.transport) is None
+
+    # Bozuk kayıt: konumlar olduğu gibi kalır, not bir kez düşülür
+    before = store.read("ucret-tablosu.json", None)
+    cfg.gise_kaydi.write_text("izmir-aydin: [\n", encoding="utf-8")
+    note = ut.refresh(cfg, store, state, T0 + timedelta(hours=3), transport=web.transport)
+    assert note.startswith("Gişe kaydı okunamadı")
+    assert ut.refresh(cfg, store, state, T0 + timedelta(hours=4), transport=web.transport) is None
+    assert store.read("ucret-tablosu.json", None) == before
+    # Bozuk kayıtla tam yenileme: ücretler okunur, önceki konumlar korunur
+    ut.refresh(cfg, store, state, T0 + timedelta(days=2), force=True, transport=web.transport)
+    assert store.read("ucret-tablosu.json", None)["otoyollar"] == before["otoyollar"]
+
+
+def test_kayitsiz_gise_teknik_gruba_bir_kez_bildirilir(cfg, web, telegram):
+    _setup(cfg, web)
+    run_once(cfg, now=T0, notify_client=telegram.client, transport=web.transport)   # ilk tur: yalnız kurulum
+    telegram.take()
+    run_once(cfg, now=T0 + timedelta(minutes=30), notify_client=telegram.client, transport=web.transport)
+    msgs = [m for m in telegram.sent if "GİŞE KAYDI EKSİK" in m["text"]]
+    assert len(msgs) == 1 and msgs[0]["chat_id"] == "-200"
+    assert "Fatih · Kuzey Marmara Otoyolu (Kınalı – Odayeri)" in msgs[0]["text"]
+    telegram.take()
+    run_once(cfg, now=T0 + timedelta(hours=1), notify_client=telegram.client, transport=web.transport)
+    assert not any("GİŞE KAYDI EKSİK" in t for t in telegram.texts())
 
 
 def test_okunamayan_pdf_onceki_veriyi_korur(cfg, web):
@@ -309,6 +336,7 @@ def test_ucret_tablosu_komutu(cfg, web, monkeypatch, capsys):
     assert cli.cmd_ucret_tablosu(None, cfg) == 0
     out = capsys.readouterr().out
     assert "2 otoyol tablosu" in out and "İzmir – Aydın Otoyolu" in out and "konum 5/6" in out
+    assert "olmayan 1 gişe" in out and "- Fatih  [kmo-kinali-odayeri]" in out
     assert not (cfg.data_dir / "state.json").exists()   # radar hiç çalışmadıysa ilk tur bozulmaz
 
 
@@ -316,3 +344,4 @@ def test_panel_sunucusu_dosyayi_sunar():
     from radar.panel import _allowed_path
 
     assert _allowed_path("/data/ucret-tablosu.json") == "/data/ucret-tablosu.json"
+    assert _allowed_path("/data/harita.json") is None      # OSM gişe verisi artık yok

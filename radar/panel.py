@@ -56,7 +56,7 @@ def crossing_place(c) -> dict:
 
 
 def build(cfg: Config, *, events: dict, rules: dict, crossings_data: dict, state: dict,
-          health: dict, now: datetime, last_run: str | None, map_info: dict | None = None) -> dict:
+          health: dict, now: datetime, last_run: str | None) -> dict:
     crossings = []
     for c in cfg.crossings:
         if not c.panel:
@@ -150,13 +150,12 @@ def build(cfg: Config, *, events: dict, rules: dict, crossings_data: dict, state
         "sources": sources,
         "calendar": periods,
         "bolgeler": bolgeler.panel_listesi(),
-        "harita": map_info or {"hata": None, "son_basari": None},
     }
 
 
 # Yerel sunucunun verebileceği dosyalar: panel klasörü ve iki veri dosyası. Proje kökündeki
 # .env (anahtarlar) ya da data/ altındaki diğer kayıtlar hiçbir koşulda sunulmaz.
-_SERVE_DATA = {"/data/panel.json", "/data/harita.json", "/data/ucret-tablosu.json"}
+_SERVE_DATA = {"/data/panel.json", "/data/ucret-tablosu.json"}
 _LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
 
 

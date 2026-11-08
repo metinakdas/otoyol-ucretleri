@@ -76,7 +76,6 @@ def cfg(tmp_path):
     s.email_to = []
     s.request_delay = 0
     s.panel_url = "https://ornek.github.io/otoyol/"
-    s.map_refresh_days = 0  # harita testleri kendileri açar
     return c
 
 

@@ -19,6 +19,7 @@ from . import messages as msg
 from .config import Config
 from .guvenlik import redact
 from .lifecycle import DECIDED
+from .textutil import slugify
 from .timeutil import fmt_date, from_iso, hours_since, to_iso
 
 log = logging.getLogger(__name__)
@@ -56,6 +57,7 @@ def plan(
     first_run: bool = False,
     n_prices: int = 0,
     notes: list[str] | None = None,
+    kayitsiz_giseler: list[dict] | None = None,
 ) -> list[Message]:
     out: list[Message] = []
     s = cfg.settings
@@ -118,6 +120,12 @@ def plan(
             if todo(key):
                 out.append(_m(key, ("tech",), msg.source_error(cfg, src.name, src.url, hours, h.get("error") or "")))
 
+    # Tarifede olup gişe kaydında (config/giseler.yaml) olmayan gişeler: her gişe için bir kez, teknik gruba
+    yeni = [g for g in kayitsiz_giseler or [] if todo(gise_anahtari(g))]
+    if yeni:
+        keys = [gise_anahtari(g) for g in yeni]
+        out.append(_m(keys[0], ("tech",), msg.gise_kaydi_eksik(cfg, yeni), extra=keys[1:]))
+
     # Günlük özet (e-posta)
     if now.hour >= s.digest_hour:
         key = f"ozet:{now.date().isoformat()}"
@@ -129,6 +137,10 @@ def plan(
             if todo(wkey):
                 out.append(_weekly_digest(cfg, events, health, now, wkey))
     return out
+
+
+def gise_anahtari(g: dict) -> str:
+    return f"gise-kaydi:{g['otoyol']}:{slugify(g['ad'], 60)}"
 
 
 def _problems(cfg: Config, health: dict, now: datetime) -> list[str]:

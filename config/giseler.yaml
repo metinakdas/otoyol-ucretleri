@@ -1,0 +1,752 @@
+# Gişe kaydı: otoyol gişelerinin konumları. BU DOSYA BİZİM VERİMİZDİR.
+#
+# Haritadaki otoyol gişeleri yalnızca buradan çizilir. Radar çalışırken hiçbir konum dışarıdan
+# (OpenStreetMap, Overpass vb.) alınmaz; harita karoları yalnızca arka plandır. Böylece kapanmış ya da
+# tarifede olmayan gişeler (ör. Derince, eski D-100 gişeleri) haritaya giremez.
+#
+# Yapı: otoyol kimliği (data/ucret-tablosu.json'daki "id") → gişeler, tarifedeki sırayla:
+#
+#   anadolu-camlica-akinci:
+#     - ad: Adapazarı            # tarifedeki istasyon adıyla aynı yazılır
+#       konum: [40.7133, 30.3846] # [enlem, boylam]; bilinmiyorsa null (haritaya konmaz, hesapta seçilir)
+#       il: Sakarya              # il adı; bölge buradan bulunur
+#       not: ...                 # isteğe bağlı açıklama
+#
+# Eşleşme otoyol kimliği + istasyon adıyla yapılır; büyük/küçük harf ve Türkçe harf farkı (ı/i, ş/s…)
+# önemsizdir, ama başka bir yazım (ör. "Adapazari Gişeleri") eşleşmez.
+#
+# Ekleme / düzeltme:
+#   1. KGM tarifesine yeni bir gişe girerse radar teknik gruba "gişe kaydı eksik" uyarısı gönderir
+#      (her gişe için bir kez) ve "python -m radar ucret-tablosu" çıktısında listeler. O gişe tabloda
+#      kalır ama haritada görünmez.
+#   2. Gişeyi ilgili otoyolun listesine, tarifedeki adıyla ekleyin. Konumu gişe binasının (ya da serbest
+#      geçiş noktasının) üzerinden alın; emin değilseniz konum: null bırakın. Yanlış nokta, eksik
+#      noktadan kötüdür.
+#   3. Kontrol: iki komşu gişe arasındaki kuş uçuşu uzaklık tarifedeki yol km'sinden büyük olmamalı.
+#   4. "python -m pytest" kaydın biçimini ve tarifedeki her gişenin burada olduğunu denetler.
+#
+# İlk kayıt (Kasım 2026): konumlar KGM tarifesindeki sıra ve km'lerle tek tek denetlenerek, gişe
+# binaları / kavşaklar üzerinden bir kez belirlendi (kaynak: OpenStreetMap katkıcıları, ODbL).
+# Belirlenemeyen 3 gişe null bırakıldı.
+
+
+# Anadolu Otoyolu (Çamlıca – Akıncı)
+anadolu-camlica-akinci:
+  - ad: Anadolu (Çamlıca)
+    konum: [40.99246, 29.17128]
+    il: İstanbul
+  - ad: Samandıra
+    konum: [40.97420, 29.21400]
+    il: İstanbul
+    not: Samandıra–Kartal bağlantısındaki serbest geçiş noktası (OSM'de adsız).
+  - ad: Sultanbeyli
+    konum: [40.97029, 29.25427]
+    il: İstanbul
+    not: Kavşak kolundaki serbest geçiş noktası (OSM'de adsız).
+  - ad: Mecidiye
+    konum: [40.95307, 29.31489]
+    il: İstanbul
+  - ad: Kurtköy
+    konum: [40.93243, 29.32995]
+    il: İstanbul
+  - ad: Orhanlı
+    konum: [40.92673, 29.34398]
+    il: İstanbul
+  - ad: Ş.Pınar
+    konum: [40.86764, 29.39023]
+    il: Kocaeli
+  - ad: Gebze Org. San. Bölgeleri
+    konum: [40.85407, 29.40925]
+    il: Kocaeli
+  - ad: Gebze
+    konum: [40.80431, 29.47415]
+    il: Kocaeli
+  - ad: Muallimköy
+    konum: [40.79579, 29.51080]
+    il: Kocaeli
+    not: Gişe noktası haritalanmamış; kavşak konumu.
+  - ad: Liman
+    konum: null
+    il: Kocaeli
+    not: Konumu belirlenemedi (tarifede Muallimköy'e 0 km).
+  - ad: Dil İskelesi
+    konum: [40.78102, 29.52908]
+    il: Kocaeli
+    not: OSM'de 'Dilovası Gişeleri'.
+  - ad: Batı Hereke
+    konum: [40.77788, 29.59619]
+    il: Kocaeli
+  - ad: Körfez
+    konum: [40.77044, 29.76915]
+    il: Kocaeli
+  - ad: Batı İzmit
+    konum: [40.76307, 29.87663]
+    il: Kocaeli
+    not: OSM'de 'İzmit Batı Gişeleri'. Derince'deki eski gişe kullanılmıyor. Tarifedeki Körfez–Batı İzmit km'si (7,0) kuş uçuşundan (9 km) kısa.
+  - ad: Kandıra
+    konum: [40.77823, 29.97335]
+    il: Kocaeli
+  - ad: Kartepe
+    konum: [40.76343, 30.03226]
+    il: Kocaeli
+    not: Gişe noktası haritalanmamış; Kandıra ile Doğu İzmit arasındaki tek kavşak (OSM 'TEM İzmit 1').
+  - ad: Doğu İzmit
+    konum: [40.74905, 30.03683]
+    il: Kocaeli
+  - ad: Sapanca
+    konum: [40.68657, 30.24019]
+    il: Sakarya
+  - ad: Adapazarı
+    konum: [40.71330, 30.38460]
+    il: Sakarya
+  - ad: Bekirpaşa
+    konum: [40.72211, 30.45290]
+    il: Sakarya
+    not: OSM'de 'Erenler' gişesi.
+  - ad: Akyazı
+    konum: [40.72177, 30.56503]
+    il: Sakarya
+    not: O-4 Akyazı kavşağının gişesi. 'D-100 Akyazı' ve 'TEM Akyazı' gişeleri Kuzey Marmara Otoyolu'na aittir.
+  - ad: Topağaç
+    konum: [40.73817, 30.65029]
+    il: Sakarya
+    not: TEM–KMO bağlantı kavşağı (OSM 'TEM Akyazı'); gişe noktası haritalanmamış.
+  - ad: Hendek
+    konum: [40.75884, 30.71797]
+    il: Sakarya
+  - ad: Düzce (Gölyaka)
+    konum: [40.83543, 31.04364]
+    il: Düzce
+    not: Gölyaka gişeleri. Eski OSM eşleşmesi Düzce gişelerini veriyordu; Hendek'e 32 km'lik tarifeye uymuyordu.
+  - ad: Düzce Organize San.
+    konum: [40.80403, 31.16756]
+    il: Düzce
+    not: OSM'de 'Düzce Gişeleri'.
+  - ad: Kaynaşlı
+    konum: [40.78397, 31.27775]
+    il: Düzce
+  - ad: Abant
+    konum: [40.71878, 31.47163]
+    il: Bolu
+  - ad: Bolu Batı
+    konum: [40.73841, 31.56529]
+    il: Bolu
+  - ad: Çaydurt
+    konum: [40.75721, 31.76378]
+    il: Bolu
+    not: OSM'de 'Bolu Doğu Gişeleri'.
+  - ad: Yeniçağa
+    konum: [40.76834, 32.00866]
+    il: Bolu
+  - ad: Dörtdivan
+    konum: [40.74292, 32.12016]
+    il: Bolu
+  - ad: Gerede
+    konum: [40.74931, 32.19867]
+    il: Bolu
+  - ad: Pelitçik (Çamlıdere)
+    konum: [40.44056, 32.41022]
+    il: Ankara
+    not: OSM'de 'Çamlıdere Gişeleri'.
+  - ad: Çeltikçi (Kızılcahamam)
+    konum: [40.33224, 32.49730]
+    il: Ankara
+    not: OSM'de 'Kızılcahamam Gişeleri'.
+  - ad: Akıncı
+    konum: [40.11654, 32.60559]
+    il: Ankara
+
+# İzmir – Çeşme Otoyolu
+izmir-cesme:
+  - ad: Seferihisar (Güzelbahçe)
+    konum: [38.36319, 26.86417]
+    il: İzmir
+    not: "Ana hat ücret noktası (OSM: Kahramandere-Şirinkent)."
+  - ad: Urla
+    konum: [38.32299, 26.78198]
+    il: İzmir
+  - ad: Karaburun
+    konum: [38.30298, 26.68606]
+    il: İzmir
+  - ad: Zeytinler
+    konum: [38.28476, 26.56412]
+    il: İzmir
+  - ad: Alaçatı
+    konum: [38.28120, 26.38241]
+    il: İzmir
+  - ad: Çeşme
+    konum: [38.29566, 26.31031]
+    il: İzmir
+
+# İzmir – Aydın Otoyolu (Işıkkent – Aydın Batı)
+izmir-aydin:
+  - ad: Işıkkent
+    konum: [38.34124, 27.23407]
+    il: İzmir
+    not: Ana hat ücret noktası (OSM'de adsız).
+  - ad: Tahtalıçay (Havalimanı)
+    konum: [38.27234, 27.21707]
+    il: İzmir
+    not: OSM'de 'Havalimanı Gişeleri'.
+  - ad: Torbalı
+    konum: [38.17760, 27.32054]
+    il: İzmir
+  - ad: Belevi
+    konum: [38.02835, 27.44937]
+    il: İzmir
+  - ad: Germencik
+    konum: [37.87811, 27.57760]
+    il: Aydın
+  - ad: Aydın Batı
+    konum: [37.86069, 27.78700]
+    il: Aydın
+    not: "Ana hat gişesi (OSM: 'Aydın Gişeleri')."
+
+# Çukurova Otoyolu (Adana Doğu – Gaziantep Batı)
+cukurova-adana-gaziantep:
+  - ad: Adana Doğu Alın
+    konum: [36.98870, 35.75014]
+    il: Adana
+  - ad: Ceyhan
+    konum: [36.98722, 35.83289]
+    il: Adana
+    not: OSM'de 'Ceyhan Yumurtalık Gişeleri'.
+  - ad: Toprakkale
+    konum: [37.07844, 36.11833]
+    il: Osmaniye
+    not: Toprakkale kavşağı gişesi (OSM'de adsız).
+  - ad: Sakızgediği
+    konum: [37.08691, 36.19797]
+    il: Osmaniye
+    not: Osmaniye Batı kavşağı gişesi (OSM'de adsız).
+  - ad: Osmaniye
+    konum: [37.10248, 36.24659]
+    il: Osmaniye
+  - ad: Osmaniye Org.San.
+    konum: [37.00309, 36.11388]
+    il: Osmaniye
+    not: O-53 Organize Sanayi kavşağı gişesi (OSM'de adsız).
+  - ad: Erzin
+    konum: [36.96156, 36.13982]
+    il: Hatay
+    not: Erzin kavşağı gişesi (OSM'de adsız).
+  - ad: Yumurtalık Serbest B.
+    konum: [36.96908, 36.01839]
+    il: Hatay
+    not: Serbest Bölge kavşağı gişesi (OSM'de adsız).
+  - ad: Dörtyol
+    konum: [36.85502, 36.22576]
+    il: Hatay
+  - ad: Payas
+    konum: [36.74267, 36.22176]
+    il: Hatay
+    not: Payas kavşağı gişesi (OSM'de adsız).
+  - ad: İskenderun OSB
+    konum: [36.70188, 36.21694]
+    il: Hatay
+    not: İskenderun OSB kavşağı gişesi (OSM'de adsız).
+  - ad: İskenderun
+    konum: [36.63546, 36.23021]
+    il: Hatay
+    not: O-53 ana hat gişesi.
+  - ad: Düziçi
+    konum: [37.19868, 36.42562]
+    il: Osmaniye
+  - ad: Bahçe
+    konum: [37.18226, 36.51324]
+    il: Osmaniye
+  - ad: Kömürler (Nurdağı)
+    konum: [37.19751, 36.76313]
+    il: Gaziantep
+    not: OSM'de 'Nurdağı Gişeleri'.
+  - ad: Narlı
+    konum: [37.29029, 37.12734]
+    il: Kahramanmaraş
+  - ad: Gaziantep Batı Alın
+    konum: [37.20291, 37.26602]
+    il: Gaziantep
+    not: Gaziantep Batı kavşağı gişesi (OSM'de adsız).
+
+# Çukurova Otoyolu (Gaziantep Doğu – Şanlıurfa)
+cukurova-gaziantep-sanliurfa:
+  - ad: Gaziantep Doğu
+    konum: [37.05214, 37.55722]
+    il: Gaziantep
+  - ad: Nizip
+    konum: [37.02219, 37.81924]
+    il: Gaziantep
+  - ad: Birecik
+    konum: [37.06945, 38.01741]
+    il: Şanlıurfa
+  - ad: Suruç
+    konum: [37.11669, 38.46103]
+    il: Şanlıurfa
+  - ad: Şanlıurfa
+    konum: [37.18845, 38.55126]
+    il: Şanlıurfa
+    not: "Ana hat gişesi. Tarifedeki Suruç–Şanlıurfa 36 km, kuş uçuşu 11 km: km otoyolun sonuna göre olabilir."
+
+# Çukurova Otoyolu (Niğde – Mersin – Adana Batı)
+cukurova-nigde-mersin-adana:
+  - ad: Niğde Güney
+    konum: [37.96731, 34.71081]
+    il: Niğde
+  - ad: Niğde Kuzey
+    konum: [38.03764, 34.74496]
+    il: Niğde
+  - ad: Gölcük Alın
+    konum: [38.11375, 34.71388]
+    il: Niğde
+    not: OSM'de 'Gölcük Gişeleri'.
+  - ad: Kemerhisar
+    konum: [37.77949, 34.60526]
+    il: Niğde
+  - ad: Eminlik Alın
+    konum: [37.64776, 34.65588]
+    il: Niğde
+    not: OSM'de 'Eminlik Gişeleri' (O-21A).
+  - ad: Pozantı (Kuzey)
+    konum: [37.44869, 34.87836]
+    il: Adana
+  - ad: Pozantı (Güney)
+    konum: [37.41192, 34.87947]
+    il: Adana
+  - ad: Tekir
+    konum: [37.32730, 34.79261]
+    il: Adana
+  - ad: Çamalan
+    konum: [37.20027, 34.81609]
+    il: Mersin
+  - ad: Yenice
+    konum: [36.97884, 34.97398]
+    il: Mersin
+  - ad: Adana Batı Alın
+    konum: [37.02897, 35.11443]
+    il: Mersin
+    not: "O-51 ana hat gişesi (OSM: 'Adana Batı Gişeleri')."
+  - ad: Çamtepe
+    konum: [37.00112, 34.94471]
+    il: Mersin
+  - ad: Tarsus
+    konum: [36.93893, 34.85622]
+    il: Mersin
+    not: OSM'de 'Tarsus Batı Gişeleri'.
+  - ad: Tarsus OSB
+    konum: [36.94265, 34.77948]
+    il: Mersin
+    not: OSM'de 'Mersin OSB Gişeleri' (Mersin-Tarsus OSB).
+  - ad: Mersin Alın
+    konum: [36.88516, 34.63406]
+    il: Mersin
+    not: "O-51 ana hat gişesi (OSM: 'Mersin Doğu')."
+
+# Avrupa Otoyolu (Mahmutbey – Edirne)
+avrupa-mahmutbey-edirne:
+  - ad: Mahmutbey
+    konum: [41.06275, 28.80037]
+    il: İstanbul
+    not: Ana hat serbest geçiş noktası (OSM'de adsız).
+  - ad: Ispartakule
+    konum: [41.05865, 28.70955]
+    il: İstanbul
+    not: Ispartakule kavşağı serbest geçiş noktası.
+  - ad: Avcılar
+    konum: [41.04991, 28.68719]
+    il: İstanbul
+    not: Avcılar–Haramidere bağlantısındaki serbest geçiş noktası.
+  - ad: Esenyurt
+    konum: [41.05337, 28.67462]
+    il: İstanbul
+  - ad: Hadımköy
+    konum: [41.08604, 28.63213]
+    il: İstanbul
+  - ad: Çatalca
+    konum: [41.08713, 28.51313]
+    il: İstanbul
+  - ad: K.Burgaz
+    konum: [41.04760, 28.46946]
+    il: İstanbul
+  - ad: Selimpaşa
+    konum: [41.06147, 28.37632]
+    il: İstanbul
+  - ad: Silivri
+    konum: [41.10754, 28.26009]
+    il: İstanbul
+    not: O-3 Silivri kavşağı gişesi (Kuzey Marmara'nın Silivri gişesi ayrıdır).
+  - ad: Kınalı
+    konum: [41.11136, 28.16664]
+    il: İstanbul
+    not: Kınalı kavşağındaki gişe (O-6 bağlantısı).
+  - ad: Küçükılıçlı
+    konum: null
+    il: İstanbul
+    not: Konumu belirlenemedi (tarifede Kınalı'ya 0 km).
+  - ad: Çerkezköy
+    konum: [41.19840, 28.08370]
+    il: İstanbul
+  - ad: Çorlu
+    konum: [41.22566, 27.87364]
+    il: Tekirdağ
+  - ad: Saray
+    konum: [41.32873, 27.68451]
+    il: Tekirdağ
+  - ad: Lüleburgaz
+    konum: [41.44500, 27.38854]
+    il: Kırklareli
+  - ad: Babaeski
+    konum: [41.50110, 27.11718]
+    il: Kırklareli
+  - ad: Havsa
+    konum: [41.61442, 26.84606]
+    il: Edirne
+  - ad: Edirne
+    konum: [41.66077, 26.63026]
+    il: Edirne
+    not: Ana hat serbest geçiş noktası (OSM'de adsız).
+
+# Gebze – Orhangazi – İzmir Otoyolu: Gebze – Bursa
+gebze-orhangazi-izmir-gebze-bursa:
+  - ad: Osmangazi Köprüsü (İzmir Yönü)
+    konum: [40.71643, 29.50047]
+    il: Yalova
+    not: Köprünün Hersek yakasındaki gişeler; iki yön aynı yerde.
+  - ad: Osmangazi Köprüsü (İstanbul Yönü)
+    konum: [40.71643, 29.50047]
+    il: Yalova
+    not: Köprünün Hersek yakasındaki gişeler; iki yön aynı yerde.
+  - ad: Altınova
+    konum: [40.69643, 29.47541]
+    il: Yalova
+  - ad: Kılıç
+    konum: [40.64074, 29.38577]
+    il: Yalova
+  - ad: Orhangazi
+    konum: [40.50198, 29.34281]
+    il: Bursa
+  - ad: Gemlik
+    konum: [40.42913, 29.23973]
+    il: Bursa
+  - ad: Bursa Serbest Bölge
+    konum: [40.41117, 29.14759]
+    il: Bursa
+    not: OSM'de 'Gemlik Serbest Bölgesi Gişeleri'.
+  - ad: Bursa Kuzey
+    konum: [40.31917, 29.08672]
+    il: Bursa
+
+# Gebze – Orhangazi – İzmir Otoyolu: Bursa – İzmir
+gebze-orhangazi-izmir-bursa-izmir:
+  - ad: Bursa Batı
+    konum: [40.25651, 28.70972]
+    il: Bursa
+  - ad: Teknosab
+    konum: [40.27062, 28.65681]
+    il: Bursa
+  - ad: Karacabey - Mustafakemalpaşa - 1
+    konum: [40.19292, 28.35179]
+    il: Bursa
+    not: İki gişe aynı kavşakta (Karacabey Köprülü Kavşağı); tek noktada gösterilir.
+  - ad: Karacabey - Mustafakemalpaşa - 2
+    konum: [40.19292, 28.35179]
+    il: Bursa
+    not: İki gişe aynı kavşakta (Karacabey Köprülü Kavşağı); tek noktada gösterilir.
+  - ad: Susurluk
+    konum: [39.96200, 28.16495]
+    il: Balıkesir
+  - ad: Balıkesir Kuzey
+    konum: [39.75626, 27.99696]
+    il: Balıkesir
+  - ad: Balıkesir Batı
+    konum: [39.63641, 27.71865]
+    il: Balıkesir
+  - ad: Savaştepe
+    konum: [39.38077, 27.63948]
+    il: Balıkesir
+  - ad: Soma
+    konum: [39.25229, 27.57456]
+    il: Manisa
+  - ad: Kırkağaç
+    konum: [39.09678, 27.70020]
+    il: Manisa
+  - ad: Akhisar
+    konum: [38.96498, 27.73622]
+    il: Manisa
+  - ad: Saruhanlı
+    konum: [38.76408, 27.65460]
+    il: Manisa
+  - ad: Turgutlu
+    konum: [38.50567, 27.60248]
+    il: Manisa
+  - ad: İzmir
+    konum: [38.45493, 27.49626]
+    il: İzmir
+    not: Ana hat gişesi.
+
+# Yavuz Sultan Selim Köprüsü ve Kuzey Çevre Otoyolu
+yss-kuzey-cevre:
+  - ad: Fenertepe
+    konum: [41.19564, 28.82384]
+    il: İstanbul
+  - ad: Işıklar
+    konum: [41.21069, 28.83186]
+    il: İstanbul
+  - ad: Ağaçlı
+    konum: null
+    il: İstanbul
+    not: Konumu belirlenemedi.
+  - ad: Odayeri
+    konum: [41.23794, 28.82095]
+    il: İstanbul
+  - ad: Uskumruköy
+    konum: [41.23485, 29.02811]
+    il: İstanbul
+  - ad: Riva
+    konum: [41.19231, 29.20256]
+    il: İstanbul
+  - ad: Hüseyinli
+    konum: [41.11490, 29.29755]
+    il: İstanbul
+  - ad: Reşadiye
+    konum: [41.04584, 29.25766]
+    il: İstanbul
+  - ad: Alemdağ
+    konum: [41.03083, 29.26616]
+    il: İstanbul
+  - ad: Paşaköy
+    konum: [41.00518, 29.26883]
+    il: İstanbul
+  - ad: Mecidiye
+    konum: [40.95307, 29.31489]
+    il: İstanbul
+  - ad: Kurnaköy
+    konum: [40.95762, 29.32984]
+    il: İstanbul
+
+# Kuzey Marmara Otoyolu (Kınalı – Odayeri)
+kmo-kinali-odayeri:
+  - ad: Kınalı
+    konum: [41.12705, 28.21053]
+    il: İstanbul
+  - ad: Silivri
+    konum: [41.13476, 28.29032]
+    il: İstanbul
+    not: KMO Silivri kavşağı gişesi.
+  - ad: Çatalca
+    konum: [41.16400, 28.47046]
+    il: İstanbul
+    not: KMO Çatalca kavşağı gişesi (OSM'de adsız). Eski eşleşme Avrupa Otoyolu'nun Çatalca gişesiydi.
+  - ad: Nakkaş
+    konum: [41.16399, 28.56145]
+    il: İstanbul
+  - ad: Yassıören
+    konum: [41.22313, 28.59790]
+    il: İstanbul
+  - ad: Tayakadın
+    konum: [41.25382, 28.67839]
+    il: İstanbul
+  - ad: Fatih
+    konum: [41.24345, 28.71436]
+    il: İstanbul
+    not: OSM'de 'Fahih Gişeleri' (yazım hatası).
+
+# Kuzey Marmara Otoyolu (Kurtköy – Akyazı)
+kmo-kurtkoy-akyazi:
+  - ad: Kurnaköy 2
+    konum: [40.94130, 29.35343]
+    il: İstanbul
+  - ad: İstanbulpark
+    konum: [40.93762, 29.41162]
+    il: İstanbul
+  - ad: Balçık
+    konum: [40.91260, 29.47008]
+    il: Kocaeli
+  - ad: Mermerciler
+    konum: [40.88153, 29.54925]
+    il: Kocaeli
+  - ad: Sevindikli
+    konum: [40.88458, 29.77090]
+    il: Kocaeli
+  - ad: İlimtepe
+    konum: [40.86400, 29.77214]
+    il: Kocaeli
+  - ad: İzmit Kuzey
+    konum: [40.79107, 29.99886]
+    il: Kocaeli
+  - ad: İzmit Doğu
+    konum: [40.78489, 30.05204]
+    il: Kocaeli
+  - ad: Akmeşe
+    konum: [40.85186, 30.21732]
+    il: Kocaeli
+  - ad: Adapazarı-1
+    konum: [40.84282, 30.34269]
+    il: Sakarya
+  - ad: Adapazarı-2
+    konum: [40.83939, 30.36378]
+    il: Sakarya
+  - ad: Karasu
+    konum: [40.82192, 30.44884]
+    il: Sakarya
+  - ad: KMO Akyazı
+    konum: [40.75911, 30.55790]
+    il: Sakarya
+    not: OSM'de 'D-100 Akyazı Gişeleri' (KMO'nun D-100 bağlantısı).
+  - ad: TEM Akyazı
+    konum: [40.73946, 30.62390]
+    il: Sakarya
+
+# Menemen – Aliağa – Çandarlı Otoyolu
+menemen-aliaga-candarli:
+  - ad: Menemen
+    konum: [38.67349, 27.06293]
+    il: İzmir
+    not: "Ana hat gişesi (OSM: 'Buruncuk Gişeleri')."
+  - ad: Eskifoça
+    konum: [38.69295, 27.02300]
+    il: İzmir
+  - ad: Yenifoça
+    konum: [38.72192, 26.99380]
+    il: İzmir
+  - ad: Aliağa Petkim
+    konum: [38.77832, 26.97694]
+    il: İzmir
+    not: OSM'de 'Aliağa Gişeleri'.
+  - ad: Aliağa OSB
+    konum: [38.80444, 27.03095]
+    il: İzmir
+  - ad: Yenişakran
+    konum: [38.88815, 27.07897]
+    il: İzmir
+  - ad: Çandarlı
+    konum: [38.97326, 27.05351]
+    il: İzmir
+    not: "Otoyolun sonundaki gişe (OSM: 'Liman Gişeleri')."
+
+# Ankara – Niğde Otoyolu
+ankara-nigde:
+  - ad: Ankara Alın
+    konum: [39.63032, 32.75875]
+    il: Ankara
+  - ad: Karagedik
+    konum: [39.60694, 32.78685]
+    il: Ankara
+  - ad: Ahiboz
+    konum: [39.54508, 32.87409]
+    il: Ankara
+  - ad: Emirler
+    konum: [39.38108, 32.96500]
+    il: Ankara
+  - ad: Kulu-Kırıkkale
+    konum: [39.23687, 33.12720]
+    il: Ankara
+  - ad: Acıkuyu
+    konum: [39.11983, 33.42530]
+    il: Ankara
+  - ad: Evren-Sarıyahşi
+    konum: [39.01685, 33.81705]
+    il: Ankara
+  - ad: Ağaçören
+    konum: [38.93653, 33.96433]
+    il: Aksaray
+  - ad: Kırşehir
+    konum: [38.98689, 34.03672]
+    il: Kırşehir
+  - ad: Ortaköy
+    konum: [38.77270, 34.12098]
+    il: Aksaray
+  - ad: Alayhan
+    konum: [38.50714, 34.32999]
+    il: Aksaray
+  - ad: Derinkuyu
+    konum: [38.34260, 34.56907]
+    il: Niğde
+  - ad: Çiftlik
+    konum: [38.25770, 34.62994]
+    il: Niğde
+  - ad: Niğde Alın
+    konum: [38.14305, 34.71761]
+    il: Niğde
+
+# Malkara – Çanakkale Otoyolu (1915 Çanakkale Köprüsü dahil)
+malkara-canakkale:
+  - ad: Malkara G-1
+    konum: [40.86563, 27.04524]
+    il: Tekirdağ
+  - ad: Kavakköy G-2
+    konum: [40.58638, 26.86307]
+    il: Çanakkale
+  - ad: Gelibolu Kuzey G-3
+    konum: [40.47957, 26.69397]
+    il: Çanakkale
+  - ad: Gelibolu Güney G-4
+    konum: [40.36647, 26.61529]
+    il: Çanakkale
+  - ad: 1915 Çanakkale Köprüsü G-5
+    konum: [40.35339, 26.60937]
+    il: Çanakkale
+
+# Aydın – Denizli Otoyolu
+aydin-denizli:
+  - ad: Aydın Alın
+    konum: [37.80945, 27.87845]
+    il: Aydın
+    not: OSM'de 'Aydın Doğu Gişeleri'. Eski eşleşme İzmir–Aydın'ın 'Aydın Gişeleri'ydi.
+  - ad: Köşk
+    konum: [37.80139, 28.05710]
+    il: Aydın
+  - ad: Yeni Pazar
+    konum: [37.84216, 28.19901]
+    il: Aydın
+    not: OSM'de 'Yenipazar Yörük Ali Efe Gişeleri'.
+  - ad: Nazilli
+    konum: [37.83470, 28.32416]
+    il: Aydın
+    not: Nazilli kavşağı gişesi (OSM'de adsız).
+  - ad: Kuyucak
+    konum: [37.88210, 28.50141]
+    il: Aydın
+  - ad: Buharkent
+    konum: [37.95161, 28.72055]
+    il: Aydın
+  - ad: Sarayköy
+    konum: [37.90062, 28.94393]
+    il: Denizli
+  - ad: Kumkısık-A
+    konum: [37.86617, 29.00716]
+    il: Denizli
+    not: Kumkısık A ve B aynı kavşakta; tek noktada gösterilir.
+  - ad: Kumkısık-B
+    konum: [37.86617, 29.00716]
+    il: Denizli
+    not: Kumkısık A ve B aynı kavşakta; tek noktada gösterilir.
+  - ad: Pamukkale
+    konum: [37.85901, 29.14647]
+    il: Denizli
+  - ad: Kocabaş
+    konum: [37.82295, 29.30209]
+    il: Denizli
+
+# Çeşmeli – Kızkalesi Otoyolu
+cesmeli-kizkalesi:
+  - ad: Çeşmeli
+    konum: [36.70482, 34.41782]
+    il: Mersin
+  - ad: Erdemli
+    konum: [36.64686, 34.32868]
+    il: Mersin
+    not: OSM'de 'Erdemli Doğu Gişeleri'.
+  - ad: Güzeloluk
+    konum: [36.61467, 34.28312]
+    il: Mersin
+  - ad: Erdemli Batı SGS
+    konum: [36.57856, 34.24727]
+    il: Mersin
+    not: Serbest geçiş; kavşak konumu.
+  - ad: Kumkuyu SGS
+    konum: [36.54911, 34.21804]
+    il: Mersin
+    not: Serbest geçiş; kavşak konumu.
+  - ad: Kızkalesi
+    konum: [36.46336, 34.11962]
+    il: Mersin
+    not: Gişe noktası haritalanmamış; kavşak konumu.

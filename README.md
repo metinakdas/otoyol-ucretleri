@@ -24,8 +24,8 @@ GitHub Pages (panel), Telegram ve e-posta (bildirim). Yapay zekâ ya da ücretli
   çubuğunda tutulduğu için bağlantıyla paylaşılabilir. Veri: KGM tarife PDF'lerindeki gişe-gişe tablolar
   (`data/ucret-tablosu.json`; 17 otoyol tablosu, yöne göre değişen tarifeler dahil).
 - **Harita:** Sayfanın merkezindedir. Köprü, tünel ve **yalnızca KGM tarifesinde bulunan** otoyol gişeleri
-  gösterilir; OpenStreetMap'teki kapanmış ya da tarifede olmayan gişeler (bilgi kirliliği) konmaz,
-  OpenStreetMap yalnızca konum için kullanılır. Arama, il/otoyol/durum filtreleri ve 7 bölge vardır.
+  gösterilir. Gişe konumları bizim tuttuğumuz `config/giseler.yaml` kaydından gelir; radar dışarıdan
+  gişe verisi almaz, harita karoları yalnızca arka plandır. Arama, il/otoyol/durum filtreleri ve 7 bölge vardır.
 - **Panel:** Köprü ve tünel ücretleri (sınıf seçerek), bayramda ücretsiz geçişler, kayıtlar; kaynakların
   durumu ve KGM belgeleri en altta. Hepsi ücretsizdir, API anahtarı gerekmez.
 
@@ -58,6 +58,7 @@ mesajı gider. Sonraki çalışmalarda yalnızca değişiklikler bildirilir.
 | `config/sources.yaml` | İzlenen kaynaklar |
 | `config/crossings.yaml` | Geçişler, diğer adları ve KGM PDF eşleşmeleri |
 | `config/calendar.yaml` | Bayram ve yılbaşı dönemleri |
+| `config/giseler.yaml` | Otoyol gişelerinin konumu ve ili (bizim kaydımız; haritadaki gişeler yalnızca buradan çizilir) |
 | `config/settings.yaml` | Genel ayarlar (hatırlatma günleri, özet saati vb.) |
 | `panel/` | Web paneli (tek sayfa). Harita için Leaflet `panel/vendor/leaflet/` içinde gelir (BSD lisanslı) |
 | `data/` | Radarın kayıtları; radar yazar, elle düzenlenmez ([ayrıntı](data/README.md)) |
@@ -227,7 +228,7 @@ hiçbir bildirim "gönderildi" sayılıp kaybolmaz.
 - GitHub Pages özel depolarda ücretsiz değildir. `radar.yml` içindeki `panel` işini silin ve paneli
   Cloudflare Pages (ücretsiz) + Cloudflare Access (50 kullanıcıya kadar ücretsiz giriş koruması) ile ya da
   kendi sunucunuzda yayınlayın. Panel için gereken dosyalar: `panel/` klasörünün tamamı ve yanında
-  `data/panel.json`, `data/harita.json` ve `data/ucret-tablosu.json`.
+  `data/panel.json` ve `data/ucret-tablosu.json`.
 
 ### Kendi bilgisayarınız ya da sunucunuz
 
@@ -332,8 +333,11 @@ bayram günleri varsayıldı; "Olağan dışı değişim": düşüş ya da %100'
   veren iki bağımsız haber gerekir.
 - **Hatırlatma günleri, özet saati, uyarı eşikleri:** `config/settings.yaml`.
 - **Harita:** Köprü ve tünel konumları `config/crossings.yaml` içindeki `konum` ve `il` alanlarındadır
-  (yaklaşık; gerekirse düzeltin). Gişe konumlarının yenilenme sıklığı `settings.yaml` içinde
-  `harita_yenileme_gun` (varsayılan 30 gün; 0 otomatik yenilemeyi kapatır).
+  (yaklaşık; gerekirse düzeltin). Otoyol gişeleri `config/giseler.yaml` kaydındadır: otoyol kimliği altında,
+  tarifedeki adıyla `ad`, `konum: [enlem, boylam]` (bilinmiyorsa `null`), `il` ve isteğe bağlı `not`.
+  Değişiklik bir sonraki radar turunda `data/ucret-tablosu.json`'a yansır. Tarifeye kayıtta olmayan bir
+  gişe girerse teknik gruba bir kez "GİŞE KAYDI EKSİK" uyarısı gelir; gişe hesapta seçilebilir ama
+  kayda eklenene kadar haritada görünmez.
 
 ## Komutlar
 
@@ -343,8 +347,7 @@ bayram günleri varsayıldı; "Olağan dışı değişim": düşüş ya da %100'
 | `python -m radar kaynak-testi` | Kaynakları dener. `--kaynak kgm-tarifeler`: tek kaynak; `--hepsi`: kapalılar dahil; `--hizli`: PDF indirmeden |
 | `python -m radar test-bildirim` | Telegram ve e-postaya deneme mesajı |
 | `python -m radar panel` | Paneli yerelde açar. `--ornek`: örnek veri; `--port 8080` |
-| `python -m radar ucret-tablosu` | KGM tarife PDF'lerindeki gişe-gişe ücret tablolarını hemen okur, otoyol ve gişe sayılarını yazdırır |
-| `python -m radar harita-guncelle` | Otoyol gişelerinin konumlarını OpenStreetMap'ten hemen yeniler, bölgelere göre sayıları yazdırır |
+| `python -m radar ucret-tablosu` | KGM tarife PDF'lerindeki gişe-gişe ücret tablolarını hemen okur, konumları gişe kaydından ekler; otoyol, gişe ve konum sayılarını ve kayıtta olmayan gişeleri yazdırır |
 | `python -m radar durum` | Güncel ücretler, açık kayıtlar ve kaynak durumu |
 | `python -m radar yayinla` | Güvenlik taramasından geçirip GitHub'da yayınlar. `--deneme`: yalnızca tarama; `--yalnizca-ayarlar`: anahtarları ve güvenlik ayarlarını yeniler; `--gizli`: gizli depo; `--depo ad`: depo adı |
 
@@ -374,9 +377,10 @@ GitHub'a her gönderimde de otomatik çalışır.
 - Sitelerin tasarımı değişirse okuma bozulabilir. Bu durumda teknik gruba "KAYNAK HATASI" gelir;
   `python -m radar kaynak-testi` sorunu gösterir.
 - Bayram tarihleri yaklaşık girilmiştir (yukarıdaki Ayarlar bölümüne bakın).
-- **Haritadaki gişeler** KGM tarifesinden gelir; konumları OpenStreetMap'te adıyla eşleşen noktadır.
-  Eşleşmeyen gişeler (yaklaşık dörtte biri, ör. Kartepe, Bekirpaşa) haritada görünmez ama hesapta
-  seçilebilir; yanlış yere işaret koymaktansa hiç konmaz.
+- **Haritadaki gişeler** KGM tarifesinden, konumları `config/giseler.yaml` kaydından gelir. Kayıt Kasım
+  2026'da tarifedeki sıra ve km'lerle tek tek denetlenerek hazırlandı (201 gişeden 198'i konumlu). Konumu
+  belirlenemeyen 3 gişe (Liman, Küçükılıçlı, Ağaçlı) haritada görünmez ama hesapta seçilebilir; yanlış yere
+  işaret koymaktansa hiç konmaz.
 - **Harita altlığı** OpenStreetMap'in ücretsiz karo sunucusundan gelir. Birkaç kişilik bir ekip paneli için
   uygundur; paneli çok sayıda kullanıcıya açarsanız OpenStreetMap'in kullanım koşulları gereği başka bir
   karo sağlayıcısına geçmek gerekir.

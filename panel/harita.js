@@ -1,57 +1,34 @@
 "use strict";
 
 /*
- * Harita: köprü/tünel ve otoyol gişeleri, arama, filtreler ve bölgeler.
- * Altlık: OpenStreetMap (ücretsiz). Kütüphane: Leaflet (vendor/leaflet). Leaflet yüklenemezse
- * arama, filtre ve liste yine çalışır; yalnızca harita görünmez.
+ * Harita: köprü/tüneller (config/crossings.yaml) ve otoyol gişeleri (config/giseler.yaml → ucret-tablosu.json).
+ * Haritadan veri alınmaz; OpenStreetMap yalnızca altlık karolarıdır. Kütüphane: Leaflet (vendor/leaflet).
  */
 window.RadarMap = (function () {
-  const TYPES = ["kopru", "gise", "serbest"];
-  const TYPE_NAMES = { kopru: "Köprü ve tüneller", gise: "Otoyol gişeleri", serbest: "Serbest geçiş noktaları" };
-  const TYPE_SHORT = { kopru: "Köprü, tünel", gise: "Gişe", serbest: "Serbest geçiş" };
-  const KIND_NAMES = { kopru: "Köprü", tunel: "Tünel", gise: "Otoyol gişesi", serbest: "Serbest geçiş noktası" };
-  const TR_BOUNDS = [[35.8, 25.6], [42.2, 44.9]];
-  const FONT = '"Barlow", system-ui, "Segoe UI", Roboto, Arial, sans-serif';
-  const FONT_C = '"Barlow Condensed", "Barlow", system-ui, sans-serif';
-  const LABEL_FONTS = { main: "700 13.5px " + FONT_C, gate: "500 12px " + FONT, chip: "700 11px " + FONT, region: "700 13px " + FONT_C };
-  const LIST_LIMIT = 30;
+  const TR_BOUNDS = [[35.8, 25.9], [42.2, 44.8]];
+  const FONT = '"Inter", system-ui, sans-serif';
+  const LABEL_FONTS = { main: "650 12.5px " + FONT, gate: "550 11.5px " + FONT, route: "650 12px " + FONT };
+  const KIND_NAMES = { kopru: "Köprü", tunel: "Tünel", gise: "Otoyol gişesi" };
   const ICONS = {
-    kopru: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 11.6h12.4M3.2 11.6c1.3-4.2 8.3-4.2 9.6 0M5.6 8.3v3.3M10.4 8.3v3.3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
-    tunel: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 12.4V9a4.8 4.8 0 0 1 9.6 0v3.4M1.8 12.4h12.4" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>',
+    kopru: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 11.6h12.4M3.2 11.6c1.3-4.2 8.3-4.2 9.6 0M5.6 8.3v3.3M10.4 8.3v3.3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
+    tunel: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 12.4V9a4.8 4.8 0 0 1 9.6 0v3.4M1.8 12.4h12.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>',
   };
 
   const S = {
-    h: null, data: null, mapData: null, cls: "1", onShowCrossing: null,
-    points: [], byId: new Map(), regions: [], regionById: {},
-    f: { q: "", bolge: "", il: "", yol: "", durum: "", types: new Set(TYPES) },
-    visible: [], expanded: new Set(), selected: null,
-    map: null, markers: new Map(), labelLayer: null, regionLayer: null, clusterLayer: null, gateRenderer: null,
-    routeLayer: null, route: null, popupExtra: null, onTrip: null,
-    clusters: [], clustered: new Set(),
-    widths: new Map(), measureCtx: null, colors: {}, searchTimer: null,
+    h: null, data: null, stations: [], cls: "1",
+    onShowCrossing: null, onTrip: null, popupExtra: null,
+    map: null, gateRenderer: null, markers: new Map(), labelLayer: null, clusterLayer: null, routeLayer: null,
+    points: [], byId: new Map(), clusters: [], clustered: new Set(), selected: null, route: null,
+    widths: new Map(), measureCtx: null, colors: {},
   };
-
-  // ------------------------------------------------------------ yardımcılar
-
   const $ = (sel) => document.querySelector(sel);
-  const FOLD = { "ç": "c", "ğ": "g", "ı": "i", "ö": "o", "ş": "s", "ü": "u", "â": "a", "î": "i", "û": "u" };
-  function fold(s) {
-    return String(s || "").toLocaleLowerCase("tr").replace(/[çğıöşüâîû]/g, (c) => FOLD[c]).replace(/\s+/g, " ").trim();
+  const cssVar = (name) => getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+
+  function distM(lat1, lon1, lat2, lon2) {
+    const r = Math.PI / 180;
+    const x = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lon2 - lon1) * r / 2) ** 2;
+    return 12742000 * Math.asin(Math.sqrt(x));
   }
-  function refKey(ref) {
-    const m = /^([^\d]*?)[-\s]?(\d+)(.*)$/.exec(ref || "");
-    return m ? [m[1].toUpperCase() === "O" ? 0 : 1, m[1], Number(m[2]), m[3]] : [2, ref || "", 0, ""];
-  }
-  function compareRefs(a, b) {
-    const ka = refKey(a), kb = refKey(b);
-    for (let i = 0; i < ka.length; i++) {
-      if (ka[i] < kb[i]) return -1;
-      if (ka[i] > kb[i]) return 1;
-    }
-    return 0;
-  }
-  function regionName(id) { return (S.regionById[id] || {}).ad || "Bölgesi bilinmiyor"; }
-  function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 
   // ------------------------------------------------------------ veri
 
@@ -61,292 +38,100 @@ window.RadarMap = (function () {
     const pts = [];
     (S.data.crossings || []).forEach((c) => {
       if (!c.konum) return;
-      pts.push({
-        id: "gecis:" + c.id, type: "kopru", kind: c.tur || "kopru", name: c.name, unnamed: false,
-        lat: c.konum[0], lon: c.konum[1], iller: c.iller || [], bolge: c.bolge, yol: null, yolAdi: null,
-        operator: c.operator, crossing: c, freeSoon: freeSoon.has(c.id), n: 99,
-      });
+      const status = c.free_now || freeSoon.has(c.id) ? "free" : c.upcoming ? "change" : "";
+      pts.push({ id: "gecis:" + c.id, type: "kopru", kind: c.tur || "kopru", name: c.name, lat: c.konum[0], lon: c.konum[1],
+        sub: [(c.iller || []).join(" / "), c.operator].filter(Boolean).join(" · "), crossing: c, status, n: 99 });
     });
-    kgmGates().forEach((g) => pts.push(g));
-    pts.forEach((p) => {
-      p.status = statusOf(p);
-      p.search = fold([p.name, KIND_NAMES[p.kind], p.iller.join(" "), regionName(p.bolge), p.yol, p.yolAdi, p.operator,
-        p.crossing ? p.crossing.id.replace(/-/g, " ") : "", p.crossing ? (p.crossing.diger_adlar || []).join(" ") : ""].join(" "));
-      S.byId.set(p.id, p);
-    });
+    gates().forEach((g) => pts.push(g));
+    pts.forEach((p) => S.byId.set(p.id, p));
     return pts;
   }
 
-  // Gişeler yalnızca KGM tarifelerinden gelir. OpenStreetMap'te kapanmış ya da tarifede olmayan
-  // gişeler de kayıtlı (ör. eski D-100 gişeleri); onlar haritaya konmaz, yalnızca konum ve il bilgisi için kullanılır.
-  function kgmGates() {
-    const osm = (S.mapData && S.mapData.noktalar) || [];
-    const near = (lat, lon, limit) => {
-      let best = null, bd = limit;
-      osm.forEach((o) => { const d = distM(lat, lon, o.lat, o.lon); if (d < bd) { bd = d; best = o; } });
-      return best;
-    };
+  // Aynı yerdeki (300 m) farklı tarifelerin gişeleri tek işarettir (ör. iki otoyolun kesiştiği gişe).
+  function gates() {
     const groups = [];
-    (S.stations || []).forEach((s) => {
+    S.stations.forEach((s) => {
       if (typeof s.lat !== "number" || typeof s.lon !== "number") return;
       const g = groups.find((x) => distM(x.lat, x.lon, s.lat, s.lon) < 300);
       if (g) g.stations.push(s); else groups.push({ lat: s.lat, lon: s.lon, stations: [s] });
     });
     return groups.map((g) => {
       const first = g.stations[0];
-      const names = [...new Set(g.stations.map((s) => s.ad))];
-      const roads = [...new Set(g.stations.map((s) => s.road.yol).filter(Boolean))];
-      const o = near(g.lat, g.lon, 1500);
+      // "X (İzmir Yönü)" ve "X (İstanbul Yönü)" aynı yerdedir: haritada tek ad.
+      const names = [...new Set(g.stations.map((s) => s.ad.replace(/\s*\([^)]*yönü\)\s*$/i, "")))];
+      const refs = [...new Set(g.stations.map((s) => s.road.yol).filter(Boolean))];
       return {
-        id: "kgm:" + first.key, type: "gise", kind: "gise", name: names.join(" / "), unnamed: false,
-        lat: g.lat, lon: g.lon, iller: o && o.il ? [o.il] : [], bolge: o ? o.bolge : null,
-        yol: roads[0] || null, yolAdi: roads.length > 1 ? roads.join(", ") : first.road.ad,
-        operator: null, stations: g.stations.map((s) => s.key), n: g.stations.length,
+        id: "gise:" + first.key, type: "gise", kind: "gise", name: names.join(" / "), lat: g.lat, lon: g.lon,
+        sub: [first.il, refs.join(", ") || first.road.ad].filter(Boolean).join(" · "),
+        stations: g.stations.map((s) => s.key), roads: [...new Set(g.stations.map((s) => s.road.ad))], n: 1,
       };
     });
-  }
-
-  function distM(lat1, lon1, lat2, lon2) {
-    const r = Math.PI / 180;
-    const x = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lon2 - lon1) * r / 2) ** 2;
-    return 12742000 * Math.asin(Math.sqrt(x));
-  }
-
-  function statusOf(p) {
-    const c = p.crossing;
-    if (!c) return null;
-    if (c.free_now) return { key: "ucretsiz", cls: "free", short: "ücretsiz" };
-    if (c.upcoming) return { key: "degisecek", cls: "change", short: "değişecek" };
-    if (p.freeSoon) return { key: "ucretsiz", cls: "free", short: "ücretsiz olacak" };
-    return null;
-  }
-
-  // ------------------------------------------------------------ filtre
-
-  function matches(p, skip) {
-    const f = S.f;
-    if (skip !== "types" && !f.types.has(p.type)) return false;
-    if (skip !== "bolge" && f.bolge && p.bolge !== f.bolge) return false;
-    if (skip !== "il" && f.il && !p.iller.includes(f.il)) return false;
-    if (skip !== "yol" && f.yol && p.yol !== f.yol) return false;
-    if (skip !== "durum" && f.durum && !(p.status && p.status.key === f.durum)) return false;
-    if (f.q) {
-      for (const token of f.q.split(" ")) if (!p.search.includes(token)) return false;
-    }
-    return true;
-  }
-
-  function apply(opts) {
-    const o = opts || {};
-    S.visible = S.points.filter((p) => matches(p));
-    if (S.selected && !S.visible.some((p) => p.id === S.selected)) deselect();
-    renderTypeChips();
-    renderRegionChips();
-    renderSelects();
-    renderList();
-    renderMeta();
-    syncMarkers();
-    if (o.fit) fitTo(S.visible, o.region);
-    placeLabels();
-  }
-
-  function clearFilters() {
-    S.f = { q: "", bolge: "", il: "", yol: "", durum: "", types: new Set(TYPES) };
-    $("#map-search").value = "";
-    apply({ fit: true });
-  }
-
-  // ------------------------------------------------------------ denetimler
-
-  function renderTypeChips() {
-    const counts = {};
-    S.points.forEach((p) => { if (matches(p, "types")) counts[p.type] = (counts[p.type] || 0) + 1; });
-    const present = TYPES.filter((t) => S.points.some((p) => p.type === t));
-    $("#map-types").innerHTML = `<span class="row-label">Göster</span>` + present.map((t) => `
-      <button type="button" class="fchip type-chip" data-type="${t}" aria-pressed="${S.f.types.has(t)}">
-        <span class="sw sw-${t}" aria-hidden="true"></span><span class="long">${TYPE_NAMES[t]}</span><span class="short">${TYPE_SHORT[t]}</span><span class="n">${counts[t] || 0}</span>
-      </button>`).join("");
-  }
-
-  function renderRegionChips() {
-    const counts = {};
-    let total = 0;
-    S.points.forEach((p) => {
-      if (!matches(p, "bolge")) return;
-      total++;
-      counts[p.bolge] = (counts[p.bolge] || 0) + 1;
-    });
-    const chip = (id, label, n) => `<button type="button" class="fchip region-chip" data-region="${id}"
-        aria-pressed="${S.f.bolge === id}" ${n || S.f.bolge === id ? "" : "disabled"}>${label}<span class="n">${n}</span></button>`;
-    $("#map-regions").innerHTML = `<span class="row-label">Bölgeler</span>` + chip("", "Tümü", total) +
-      S.regions.map((r) => chip(r.id, S.h.esc(r.ad), counts[r.id] || 0)).join("");
-  }
-
-  function renderSelects() {
-    const esc = S.h.esc;
-    const ilCounts = new Map();
-    S.points.forEach((p) => { if (matches(p, "il")) p.iller.forEach((il) => ilCounts.set(il, (ilCounts.get(il) || 0) + 1)); });
-    if (S.f.il && !ilCounts.has(S.f.il)) ilCounts.set(S.f.il, 0);
-    const iller = [...ilCounts.keys()].sort((a, b) => a.localeCompare(b, "tr"));
-    $("#f-il").innerHTML = `<option value="">Tüm iller</option>` +
-      iller.map((il) => `<option value="${esc(il)}" ${il === S.f.il ? "selected" : ""}>${esc(il)} (${ilCounts.get(il)})</option>`).join("");
-
-    const yolCounts = new Map(), yolNames = new Map();
-    S.points.forEach((p) => {
-      if (!p.yol || !matches(p, "yol")) return;
-      yolCounts.set(p.yol, (yolCounts.get(p.yol) || 0) + 1);
-      if (p.yolAdi && !yolNames.has(p.yol)) yolNames.set(p.yol, p.yolAdi);
-    });
-    if (S.f.yol && !yolCounts.has(S.f.yol)) yolCounts.set(S.f.yol, 0);
-    const yollar = [...yolCounts.keys()].sort(compareRefs);
-    const sel = $("#f-yol");
-    sel.innerHTML = `<option value="">Tüm yollar</option>` + yollar.map((y) =>
-      `<option value="${esc(y)}" ${y === S.f.yol ? "selected" : ""}>${esc(y)}${yolNames.has(y) ? " · " + esc(yolNames.get(y)) : ""} (${yolCounts.get(y)})</option>`).join("");
-    sel.disabled = !yollar.length;
-    $("#f-durum").value = S.f.durum;
-  }
-
-  function priceLine(p) {
-    const c = p.crossing;
-    const v = c.current && c.current.classes[S.cls];
-    return v != null ? `${S.cls}. sınıf ${S.h.money(v)}` : c.id === "avrasya-tuneli" ? "duyurular izleniyor" : "ücret kaydı yok";
-  }
-
-  function itemSub(p) {
-    if (p.crossing) return [p.iller.join(" / "), p.operator, priceLine(p)].filter(Boolean).join(" · ");
-    return [p.iller.join(" / ") || "il bilinmiyor", p.yol ? p.yol + (p.yolAdi ? " " + p.yolAdi : "") : null].filter(Boolean).join(" · ");
-  }
-
-  function renderList() {
-    const esc = S.h.esc;
-    const el = $("#map-list");
-    if (!S.visible.length) {
-      el.innerHTML = `<div class="list-empty"><p>Bu arama ve filtrelerle eşleşen nokta yok.</p>
-        <button type="button" class="link-btn" data-action="clear">Filtreleri temizle</button></div>`;
-      return;
-    }
-    const groups = new Map();
-    S.visible.forEach((p) => {
-      const key = p.bolge || "";
-      if (!groups.has(key)) groups.set(key, []);
-      groups.get(key).push(p);
-    });
-    const order = S.regions.map((r) => r.id).concat([""]);
-    const html = [];
-    order.forEach((rid) => {
-      const items = groups.get(rid);
-      if (!items) return;
-      items.sort((a, b) => (a.type === "kopru" ? 0 : 1) - (b.type === "kopru" ? 0 : 1) || (a.unnamed - b.unnamed) ||
-        a.name.localeCompare(b.name, "tr"));
-      const limit = S.expanded.has(rid) ? items.length : LIST_LIMIT;
-      html.push(`<div class="grp"><div class="grp-h"><span>${esc(regionName(rid))}</span><span>${items.length}</span></div>`);
-      items.slice(0, limit).forEach((p) => {
-        html.push(`<button type="button" class="pt${p.unnamed ? " unnamed" : ""}${p.id === S.selected ? " is-selected" : ""}" data-id="${esc(p.id)}">
-          <span class="sw sw-${p.type}" aria-hidden="true"></span>
-          <span class="pt-main"><span class="pt-name">${esc(p.name)}</span><span class="pt-sub">${esc(itemSub(p))}</span></span>
-          ${p.status ? `<span class="pt-chip ${p.status.cls}">${esc(p.status.short)}</span>` : ""}
-        </button>`);
-      });
-      if (items.length > limit) {
-        html.push(`<button type="button" class="more" data-expand="${rid}">${items.length - limit} nokta daha göster</button>`);
-      }
-      html.push(`</div>`);
-    });
-    el.innerHTML = html.join("");
-  }
-
-  function renderMeta() {
-    if (!$("#map-meta")) return;
-    const nCross = S.points.filter((p) => p.type === "kopru").length;
-    const nGates = S.points.length - nCross;
-    const shown = S.visible.length === S.points.length ? "" : ` · ${S.visible.length} gösteriliyor`;
-    $("#map-meta").textContent = `${nCross} köprü ve tünel · ${nGates} gişe noktası${shown}`;
-  }
-
-  function renderNote() {
-    // Kaynak atfı haritanın köşesinde (Leaflet); burada yalnızca bir sorun varsa yazı çıkar.
-    const h = S.h;
-    const parts = [];
-    if (!(S.stations || []).length) parts.push("Otoyol gişeleri KGM ücret tablosu hazırlanınca görünür.");
-    const err = S.data.harita && S.data.harita.hata;
-    if (err) parts.push(`<span class="chip bad">Gişe güncellemesi başarısız</span> ${h.esc(err.slice(0, 160))}`);
-    const el = $("#map-note");
-    el.innerHTML = parts.join(" ");
-    el.hidden = !parts.length;
   }
 
   // ------------------------------------------------------------ harita
 
   function readColors() {
     S.colors = {
-      gise: cssVar("--m-gise") || "#c4501f", ring: cssVar("--surface") || "#fbf6ea",
-      route: cssVar("--route") || "#e3a21a", casing: cssVar("--route-casing") || "#2a2118",
+      gate: cssVar("--m-gate") || "#fff", ring: cssVar("--m-gate-ring") || "#334155",
+      route: cssVar("--route") || "#2563eb", casing: cssVar("--route-casing") || "#fff",
     };
   }
-
   function gateRadius() {
     const z = S.map ? S.map.getZoom() : 6;
-    return z <= 6 ? 4 : z <= 9 ? 5 : 6.5;
+    return z < 7 ? 3.5 : z < 9 ? 4.5 : z < 11 ? 5.5 : 6.5;
   }
-
-  function gateStyle(selected) {
-    return { radius: gateRadius() + (selected ? 3 : 0), color: S.colors.ring, weight: selected ? 3 : 2,
-      fillColor: S.colors.gise, fillOpacity: 1, opacity: 1 };
+  function gateStyle(on) {
+    return { radius: gateRadius() + (on ? 2.5 : 0), color: on ? S.colors.route : S.colors.ring, weight: on ? 3 : 1.8,
+      fillColor: S.colors.gate, fillOpacity: 1, opacity: 1 };
   }
 
   function createMap() {
     const el = $("#map");
     if (!window.L) {
-      el.innerHTML = `<p class="map-missing">Harita kütüphanesi yüklenemedi. Liste, arama ve filtreler çalışmaya devam eder.</p>`;
+      el.innerHTML = `<p class="empty" style="padding:24px">Harita yüklenemedi; ücret hesabı çalışmaya devam eder.</p>`;
       return;
     }
     readColors();
     const map = L.map(el, {
-      minZoom: 4, maxZoom: 18, zoomSnap: 0.25, zoomDelta: 0.5, scrollWheelZoom: false,
-      maxBounds: L.latLngBounds([[32.5, 20], [45.5, 50]]), maxBoundsViscosity: 0.7,
+      minZoom: 5, maxZoom: 17, zoomSnap: 0.25, zoomDelta: 0.5, zoomControl: false,
+      // Sınır, panelin kapladığı alana rağmen Türkiye'nin görünür alana kaydırılabilmesi için geniş tutulur.
+      maxBounds: L.latLngBounds([[28, 8], [48, 58]]), maxBoundsViscosity: 0.8, worldCopyJump: false,
     });
     S.map = map;
-    map.createPane("regions").style.zIndex = 350;
+    L.control.zoom({ position: "bottomright", zoomInTitle: "Yakınlaştır", zoomOutTitle: "Uzaklaştır" }).addTo(map);
+    map.attributionControl.setPrefix(false);
     map.createPane("route").style.zIndex = 390;
     map.createPane("stops").style.zIndex = 640;
     const labels = map.createPane("labels");
-    labels.style.zIndex = 450;
+    labels.style.zIndex = 650;
     labels.style.pointerEvents = "none";
     L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıcıları (ODbL)',
+      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> katkıcıları',
     }).addTo(map);
-    S.gateRenderer = L.canvas({ padding: 0.5, tolerance: 7 });
-    S.labelLayer = L.layerGroup().addTo(map);
-    S.regionLayer = L.layerGroup().addTo(map);
-    S.clusterLayer = L.layerGroup().addTo(map);
+    S.gateRenderer = L.canvas({ padding: 0.5, tolerance: 8 });
     S.routeLayer = L.layerGroup().addTo(map);
-    map.fitBounds(TR_BOUNDS);
+    S.labelLayer = L.layerGroup().addTo(map);
+    S.clusterLayer = L.layerGroup().addTo(map);
+    fitTurkey();
 
-    S.points.forEach((p) => S.markers.set(p.id, createMarker(p)));
+    S.points.forEach((p) => {
+      const m = createMarker(p);
+      S.markers.set(p.id, m);
+      m.addTo(map);
+    });
+    clusterMain();
 
-    map.on("click focus", () => map.scrollWheelZoom.enable());
-    el.addEventListener("mouseleave", () => map.scrollWheelZoom.disable());
     map.on("zoomend", () => {
-      const style = gateStyle(false);
-      S.markers.forEach((m, id) => { if (m.options.isGate) m.setStyle(id === S.selected ? gateStyle(true) : style); });
+      S.markers.forEach((m, id) => { if (m.options.isGate) m.setStyle(gateStyle(id === S.selected)); });
       clusterMain();
     });
     map.on("zoomend moveend", placeLabels);
-    map.on("popupclose", () => deselect());
+    map.on("popupclose", () => select(null));
     el.addEventListener("click", (e) => {
       const a = e.target.closest("[data-show-crossing]");
-      if (a) {
-        e.preventDefault();
-        if (S.onShowCrossing) S.onShowCrossing(a.dataset.showCrossing);
-        return;
-      }
+      if (a) { e.preventDefault(); if (S.onShowCrossing) S.onShowCrossing(a.dataset.showCrossing); return; }
       const t = e.target.closest("[data-trip-role]");
-      if (t && S.onTrip) {
-        e.preventDefault();
-        map.closePopup();
-        S.onTrip(t.dataset.tripRole, t.dataset.tripKey);
-      }
+      if (t && S.onTrip) { e.preventDefault(); map.closePopup(); S.onTrip(t.dataset.tripRole, t.dataset.tripKey); }
     });
     try {
       window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
@@ -355,49 +140,40 @@ window.RadarMap = (function () {
         if (S.route) showRoute(Object.assign({}, S.route, { fit: false }));
       });
     } catch (e) { /* eski tarayıcı */ }
+    window.addEventListener("resize", () => map.invalidateSize());
+  }
+
+  function fitTurkey() {
+    const narrow = window.matchMedia("(max-width: 900px)").matches;
+    const panelW = narrow ? 0 : ($(".panel") ? $(".panel").offsetWidth + 24 : 0);
+    S.map.fitBounds(TR_BOUNDS, { paddingTopLeft: [panelW + 8, 8], paddingBottomRight: [8, 8] });
   }
 
   function createMarker(p) {
+    const esc = S.h.esc;
     let m;
     if (p.type === "gise") {
       m = L.circleMarker([p.lat, p.lon], Object.assign(gateStyle(false), { renderer: S.gateRenderer, isGate: true }));
-    } else if (p.type === "serbest") {
-      m = L.marker([p.lat, p.lon], {
-        icon: L.divIcon({ className: "gantry-wrap", html: '<span class="gantry"></span>', iconSize: [14, 14], iconAnchor: [7, 7] }),
-        title: p.name, keyboard: true,
-      });
     } else {
       m = L.marker([p.lat, p.lon], {
-        icon: L.divIcon({ className: "pin-wrap", html: `<span class="pin pin-${p.kind}">${ICONS[p.kind] || ICONS.kopru}</span>`,
-          iconSize: [26, 26], iconAnchor: [13, 13] }),
+        icon: L.divIcon({ className: "pin-wrap", html: `<span class="pin ${p.status}">${ICONS[p.kind] || ICONS.kopru}</span>`, iconSize: [26, 26], iconAnchor: [13, 13] }),
         title: p.name, keyboard: true, riseOnHover: true, zIndexOffset: 1000,
       });
     }
-    m.bindTooltip(() => `<strong>${S.h.esc(p.name)}</strong><br><span>${S.h.esc(itemSub(p))}</span>`,
-      { direction: "top", offset: [0, p.type === "kopru" ? -12 : -6], className: "radar-tip" });
-    m.bindPopup(() => popupHtml(p), { maxWidth: 290, minWidth: 220, className: "radar-pop", autoPanPadding: [24, 24] });
-    m.on("popupopen", () => select(p.id, false));
+    m.bindTooltip(() => `${esc(p.name)}${p.sub ? `<br><span>${esc(p.sub)}</span>` : ""}`,
+      { direction: "top", offset: [0, p.type === "kopru" ? -14 : -6], className: "tip" });
+    m.bindPopup(() => popupHtml(p), { maxWidth: 300, minWidth: 230, autoPanPaddingTopLeft: [S.map && !window.matchMedia("(max-width: 900px)").matches ? 440 : 20, 20] });
+    m.on("popupopen", () => select(p.id));
     return m;
   }
 
-  function syncMarkers() {
-    if (!S.map) return;
-    const show = new Set(S.visible.map((p) => p.id));
-    S.markers.forEach((m, id) => {
-      const on = S.map.hasLayer(m);
-      if (show.has(id) && !on) m.addTo(S.map);
-      else if (!show.has(id) && on) m.remove();
-    });
-    clusterMain();
-  }
-
-  // Uzaklaşınca üst üste binen köprü/tünel işaretleri (ör. İstanbul'daki dört geçiş) tek işarette toplanır.
+  // Uzaklaşınca üst üste binen köprü işaretleri (İstanbul'daki dört geçiş) tek işarette toplanır.
   function clusterMain() {
     if (!S.map) return;
     S.clusterLayer.clearLayers();
     S.clusters = [];
     S.clustered = new Set();
-    const mains = S.visible.filter((p) => p.type === "kopru").map((p) => ({ p, pt: S.map.latLngToContainerPoint([p.lat, p.lon]) }));
+    const mains = S.points.filter((p) => p.type === "kopru").map((p) => ({ p, pt: S.map.latLngToContainerPoint([p.lat, p.lon]) }));
     const groups = [];
     mains.forEach((a) => {
       const g = groups.find((grp) => grp.some((b) => Math.hypot(a.pt.x - b.pt.x, a.pt.y - b.pt.y) < 30));
@@ -409,43 +185,23 @@ window.RadarMap = (function () {
       pts.forEach((p) => S.clustered.add(p.id));
       const lat = pts.reduce((t, p) => t + p.lat, 0) / pts.length;
       const lon = pts.reduce((t, p) => t + p.lon, 0) / pts.length;
-      const iller = [...new Set(pts.flatMap((p) => p.iller))];
-      const regions = [...new Set(pts.map((p) => p.bolge))];
-      const place = iller.length === 1 ? iller[0] : regions.length === 1 && regions[0] ? regionName(regions[0]) : "";
-      const name = (place ? place + " · " : "") + pts.length + " geçiş";
-      const cluster = { id: "kume:" + pts.map((p) => p.id).join(","), lat, lon, name, points: pts, type: "kume", n: 1000 };
-      S.clusters.push(cluster);
-      const esc = S.h.esc;
+      const name = `${pts.length} köprü ve tünel`;
+      S.clusters.push({ id: "kume:" + pts.map((p) => p.id).join(","), lat, lon, name, type: "kume", n: 1000 });
       L.marker([lat, lon], {
-        icon: L.divIcon({ className: "pin-wrap", html: `<span class="pin pin-cluster">${pts.length}</span>`, iconSize: [28, 28], iconAnchor: [14, 14] }),
+        icon: L.divIcon({ className: "pin-wrap", html: `<span class="pin pin-cluster">${pts.length}</span>`, iconSize: [26, 26], iconAnchor: [13, 13] }),
         title: name, keyboard: true, zIndexOffset: 1100,
       })
-        .bindTooltip(`<strong>${esc(name)}</strong><br><span>${pts.map((p) => esc(p.name)).join("<br>")}</span>`,
-          { direction: "top", offset: [0, -14], className: "radar-tip" })
-        .on("click", () => S.map.fitBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lon])), { padding: [70, 70], maxZoom: 13 }))
+        .bindTooltip(pts.map((p) => S.h.esc(p.name)).join("<br>"), { direction: "top", offset: [0, -14], className: "tip" })
+        .on("click", () => S.map.flyToBounds(L.latLngBounds(pts.map((p) => [p.lat, p.lon])), { padding: [80, 80], maxZoom: 12, duration: 0.6 }))
         .addTo(S.clusterLayer);
     });
     S.markers.forEach((m, id) => {
       const p = S.byId.get(id);
-      if (!p || p.type !== "kopru" || !S.visible.includes(p)) return;
+      if (!p || p.type !== "kopru") return;
       const on = S.map.hasLayer(m);
       if (S.clustered.has(id) && on) m.remove();
       else if (!S.clustered.has(id) && !on) m.addTo(S.map);
     });
-  }
-
-  function fitTo(points, regionId) {
-    if (!S.map) return;
-    if (!points.length) {
-      const r = S.regionById[regionId];
-      S.map.fitBounds(r ? r.sinir : TR_BOUNDS);
-      return;
-    }
-    if (points.length === 1) {
-      S.map.setView([points[0].lat, points[0].lon], Math.max(S.map.getZoom(), 11));
-      return;
-    }
-    S.map.fitBounds(L.latLngBounds(points.map((p) => [p.lat, p.lon])), { padding: [40, 40], maxZoom: 11 });
   }
 
   // ------------------------------------------------------------ etiketler (çakışmasız)
@@ -453,53 +209,43 @@ window.RadarMap = (function () {
   function textWidth(text, font) {
     if (!S.measureCtx) S.measureCtx = document.createElement("canvas").getContext("2d");
     const key = font + "|" + text;
-    if (!S.widths.has(key)) {
-      S.measureCtx.font = font;
-      S.widths.set(key, S.measureCtx.measureText(text).width);
-    }
+    if (!S.widths.has(key)) { S.measureCtx.font = font; S.widths.set(key, S.measureCtx.measureText(text).width); }
     return S.widths.get(key);
   }
-
-  function labelSize(p) {
-    const main = p.type === "kopru" || p.type === "kume";
-    let w = textWidth(p.name, main ? LABEL_FONTS.main : LABEL_FONTS.gate) + 6;
-    if (main && p.status) w += textWidth(p.status.short, LABEL_FONTS.chip) + 16;
-    return { w, h: main ? 20 : 16 };
-  }
-
-  // Kutular: [x1, y1, x2, y2, sahibi]. Etiket kendi işaretiyle çakışmış sayılmaz.
   const overlaps = (a, boxes, owner) => boxes.some((b) => (owner === undefined || b[4] !== owner) &&
     !(a[2] <= b[0] || a[0] >= b[2] || a[3] <= b[1] || a[1] >= b[3]));
 
   function placeLabels() {
     if (!S.map) return;
     S.labelLayer.clearLayers();
-    S.regionLayer.clearLayers();
     const z = S.map.getZoom();
     const size = S.map.getSize();
     const view = S.map.getBounds().pad(0.02);
-    const inView = S.visible.filter((p) => !S.clustered.has(p.id) && view.contains([p.lat, p.lon]))
-      .concat(S.clusters.filter((c) => view.contains([c.lat, c.lon])));
-    // Ana etiketler (köprü, tünel, küme) yalnızca işaretlerden ve diğer etiketlerden kaçar; gişe etiketleri noktalardan da.
-    const boxes = [];      // ana işaretler + yerleşen etiketler
-    const dots = [];       // gişe noktaları
-    const pos = new Map();
-    inView.forEach((p) => {
+    const routeStops = S.route ? [S.route.entry, S.route.exit].filter((s) => s && typeof s.lat === "number")
+      .map((s, i) => ({ id: "rota:" + i, type: "rota", name: s.name, lat: s.lat, lon: s.lon })) : [];
+    const items = routeStops.concat(S.points.filter((p) => !S.clustered.has(p.id)), S.clusters)
+      .filter((p) => view.contains([p.lat, p.lon]));
+    const boxes = [], dots = [], pos = new Map();
+    // Yüzen panelin altına etiket konmaz.
+    const panel = $(".panel");
+    if (panel && !window.matchMedia("(max-width: 900px)").matches) boxes.push([0, 0, panel.offsetLeft + panel.offsetWidth + 8, size.y, "panel"]);
+    items.forEach((p) => {
       const pt = S.map.latLngToContainerPoint([p.lat, p.lon]);
       pos.set(p.id, pt);
-      const r = p.type === "kume" ? 16 : p.type === "kopru" ? 14 : 6;
-      (r > 6 ? boxes : dots).push([pt.x - r, pt.y - r, pt.x + r, pt.y + r, p.id]);
+      const r = p.type === "gise" ? 6 : p.type === "rota" ? 11 : 14;
+      (p.type === "gise" ? dots : boxes).push([pt.x - r, pt.y - r, pt.x + r, pt.y + r, p.id]);
     });
-    const main = (p) => (p.type === "kume" || p.type === "kopru" ? 0 : 1);
-    const cands = inView.filter((p) => main(p) === 0 || p.id === S.selected || (!p.unnamed && z >= 8));
-    cands.sort((a, b) => (b.id === S.selected) - (a.id === S.selected) || main(a) - main(b) ||
-      (b.n || 0) - (a.n || 0) || a.name.localeCompare(b.name, "tr"));
+    const rank = (p) => (p.type === "rota" ? 0 : p.type === "kopru" || p.type === "kume" ? 1 : 2);
+    const cands = items.filter((p) => rank(p) < 2 || p.id === S.selected || z >= 8.5);
+    cands.sort((a, b) => rank(a) - rank(b) || (b.id === S.selected) - (a.id === S.selected) || a.name.localeCompare(b.name, "tr"));
     let placed = 0;
     for (const p of cands) {
-      if (placed >= 150) break;
+      if (placed >= 160) break;
       const pt = pos.get(p.id);
-      const { w, h } = labelSize(p);
-      const off = p.type === "kume" ? 19 : p.type === "kopru" ? 19 : 9;
+      const kind = rank(p) === 0 ? "route" : rank(p) === 1 ? "main" : "gate";
+      const w = textWidth(p.name, LABEL_FONTS[kind]) + (kind === "route" ? 18 : 6);
+      const h = kind === "route" ? 22 : kind === "main" ? 20 : 16;
+      const off = kind === "route" ? 16 : kind === "main" ? 19 : 12;
       const options = [
         ["right", pt.x + off, pt.y - h / 2, pt.x + off + w, pt.y + h / 2],
         ["left", pt.x - off - w, pt.y - h / 2, pt.x - off, pt.y + h / 2],
@@ -509,195 +255,51 @@ window.RadarMap = (function () {
       for (const [where, x1, y1, x2, y2] of options) {
         if (x1 < 2 || y1 < 2 || x2 > size.x - 2 || y2 > size.y - 18) continue;
         const box = [x1 - 3, y1 - 1, x2 + 3, y2 + 1];
-        if (overlaps(box, boxes, p.id) || (main(p) === 1 && overlaps(box, dots, p.id))) continue;
+        if (overlaps(box, boxes, p.id) || (kind !== "route" && overlaps(box, dots, p.id))) continue;
         boxes.push(box);
-        addLabel(p, where);
+        L.marker([p.lat, p.lon], {
+          icon: L.divIcon({ className: `lbl-anchor pos-${where} is-${kind}`, iconSize: [0, 0], iconAnchor: [0, 0],
+            html: `<span class="lbl${p.id === S.selected ? " is-selected" : ""}">${S.h.esc(p.name)}</span>` }),
+          interactive: false, keyboard: false, pane: "labels",
+        }).addTo(S.labelLayer);
         placed++;
         break;
       }
     }
-    if (z <= 7.5) placeRegionLabels(boxes.concat(dots));
-  }
-
-  function addLabel(p, where) {
-    const esc = S.h.esc;
-    const main = p.type === "kopru" || p.type === "kume";
-    const chip = main && p.status ? `<span class="lbl-chip ${p.status.cls}">${esc(p.status.short)}</span>` : "";
-    L.marker([p.lat, p.lon], {
-      icon: L.divIcon({ className: `lbl-anchor pos-${where} ${main ? "is-main" : "is-gate"}${p.type === "kume" ? " is-cluster" : ""}`, iconSize: [0, 0], iconAnchor: [0, 0],
-        html: `<span class="lbl${p.id === S.selected ? " is-selected" : ""}">${esc(p.name)}${chip}</span>` }),
-      interactive: false, keyboard: false, pane: "labels",
-    }).addTo(S.labelLayer);
-  }
-
-  function placeRegionLabels(boxes) {
-    const size = S.map.getSize();
-    S.regions.forEach((r) => {
-      if (S.f.bolge && S.f.bolge !== r.id) return;
-      const pt = S.map.latLngToContainerPoint(r.etiket);
-      const up = r.ad.toLocaleUpperCase("tr");
-      const w = textWidth(up, LABEL_FONTS.region) + up.length * 3.9 + 4;   // harf aralığı 0.3em
-      const box = [pt.x - w / 2, pt.y - 8, pt.x + w / 2, pt.y + 8];
-      if (box[0] < 0 || box[1] < 0 || box[2] > size.x || box[3] > size.y || overlaps(box, boxes)) return;
-      boxes.push(box);
-      L.marker(r.etiket, {
-        icon: L.divIcon({ className: "rlbl-anchor", iconSize: [0, 0], iconAnchor: [0, 0],
-          html: `<span class="rlbl${S.f.bolge === r.id ? " is-active" : ""}">${S.h.esc(r.ad)}</span>` }),
-        interactive: false, keyboard: false, pane: "regions",
-      }).addTo(S.regionLayer);
-    });
   }
 
   // ------------------------------------------------------------ açılır pencere ve seçim
 
   function popupHtml(p) {
     const h = S.h, esc = h.esc;
-    const head = `<div class="pop-k">${esc(KIND_NAMES[p.kind] || "")}${p.operator && p.crossing ? " · " + esc(p.operator) : ""}</div>
-      <div class="pop-t">${esc(p.name)}</div>
-      <div class="pop-s">${esc([p.iller.join(" / "), regionName(p.bolge)].filter(Boolean).join(" · "))}</div>`;
+    const head = `<div class="pop-k">${esc(KIND_NAMES[p.kind] || "")}</div><div class="pop-t">${esc(p.name)}</div>
+      ${p.sub ? `<div class="pop-s">${esc(p.sub)}</div>` : ""}`;
     if (p.crossing) {
       const c = p.crossing;
       const cur = c.current && c.current.classes[S.cls];
       const rows = [`<div class="pop-row"><span>${esc(h.className(S.cls))}</span><b>${cur != null ? esc(h.money(cur)) : "—"}</b></div>`];
       if (c.free_now) rows.push(`<div class="pop-st free">Ücretsiz geçiş sürüyor · bitiş ${esc(h.dateTime(c.free_now.valid_to))}</div>`);
-      if (c.upcoming) rows.push(`<div class="pop-st change">${esc(h.date(c.upcoming.valid_from))} tarihinden itibaren <b>${esc(h.money(c.upcoming.classes[S.cls]))}</b></div>`);
-      (S.data.next_rules || []).filter((r) => (r.crossings || []).includes(c.id)).slice(0, 1).forEach((r) => rows.push(
-        `<div class="pop-st free">Ücretsiz geçiş kararı: ${esc(h.dateTime(r.valid_from))} – ${esc(h.dateTime(r.valid_to))}</div>`));
-      if (cur == null && c.id === "avrasya-tuneli") rows.push(`<div class="pop-n">Ücretler işletmecinin duyurularından izleniyor.</div>`);
-      return `<div class="pop">${head}${rows.join("")}
-        <div class="pop-a"><a href="#prices-title" data-show-crossing="${esc(c.id)}">Tüm sınıflar ve geçmiş</a></div></div>`;
+      if (c.upcoming) rows.push(`<div class="pop-st change">${esc(h.date(c.upcoming.valid_from))} itibarıyla ${esc(h.money(c.upcoming.classes[S.cls]))}</div>`);
+      return `${head}${rows.join("")}<div class="pop-a"><a href="#" data-show-crossing="${esc(c.id)}">Tüm sınıflar ve geçmiş</a></div>`;
     }
-    const rows = [];
-    if (p.yol) rows.push(`<div class="pop-row"><span>Yol</span><b>${esc(p.yol)}${p.yolAdi ? " · " + esc(p.yolAdi) : ""}</b></div>`);
-    if (p.operator) rows.push(`<div class="pop-row"><span>İşletmeci</span><b>${esc(p.operator)}</b></div>`);
     const extra = S.popupExtra ? S.popupExtra(p) : "";
-    rows.push(extra || `<div class="pop-n">KGM tarifelerinde eşleşmedi.</div>`);
-    const osm = /^(node|way|relation)\/\d+$/.test(p.osm || "")
-      ? `<div class="pop-a"><a href="https://www.openstreetmap.org/${esc(p.osm)}" target="_blank" rel="noopener noreferrer">OpenStreetMap'te aç</a></div>` : "";
-    return `<div class="pop">${head}${rows.join("")}${osm}</div>`;
+    return `${head}${p.roads && p.roads.length ? `<div class="pop-row"><span>Otoyol</span><b>${esc(p.roads.join(", "))}</b></div>` : ""}${extra}`;
   }
 
-  function markSelected(id, on) {
-    const m = S.markers.get(id);
-    if (!m) return;
-    if (m.options.isGate) {
-      m.setStyle(gateStyle(on));
-      if (on) m.bringToFront();
-    } else if (m.getElement && m.getElement()) {
-      m.getElement().classList.toggle("is-selected", on);
-    }
-  }
-
-  function select(id, scrollList) {
+  function select(id) {
     if (S.selected === id) return;
-    if (S.selected) markSelected(S.selected, false);
+    const prev = S.selected && S.markers.get(S.selected);
+    if (prev && prev.options.isGate) prev.setStyle(gateStyle(false));
+    else if (prev && prev.getElement && prev.getElement()) prev.getElement().classList.remove("is-selected");
     S.selected = id;
-    clusterMain();
-    markSelected(id, true);
-    const p = S.byId.get(id);
-    if (p && !S.expanded.has(p.bolge || "")) {
-      const group = S.visible.filter((q) => (q.bolge || "") === (p.bolge || ""));
-      if (group.indexOf(p) >= LIST_LIMIT) S.expanded.add(p.bolge || "");
-    }
-    renderList();
-    placeLabels();
-    if (scrollList !== false) {
-      const el = document.querySelector(`#map-list [data-id="${CSS.escape(id)}"]`);
-      const list = $("#map-list");
-      if (el && list && list.scrollHeight > list.clientHeight) {
-        list.scrollTop = el.offsetTop - list.clientHeight / 2 + el.offsetHeight / 2;
-      }
-    }
-  }
-
-  function deselect() {
-    if (!S.selected) return;
-    markSelected(S.selected, false);
-    S.selected = null;
-    document.querySelectorAll("#map-list .pt.is-selected").forEach((b) => b.classList.remove("is-selected"));
+    const m = id && S.markers.get(id);
+    if (m && m.options.isGate) { m.setStyle(gateStyle(true)); m.bringToFront(); }
+    else if (m && m.getElement && m.getElement()) m.getElement().classList.add("is-selected");
     clusterMain();
     placeLabels();
   }
 
-  function focusPoint(id, scrollToMap) {
-    const p = S.byId.get(id);
-    if (!p) return;
-    if (!S.visible.includes(p)) clearFilters();
-    select(id, true);
-    if (scrollToMap) $("#map").scrollIntoView({ behavior: "smooth", block: "center" });
-    if (!S.map) return;
-    const m = S.markers.get(id);
-    const zoom = Math.max(S.map.getZoom(), p.type === "kopru" ? 12 : 13);
-    const target = L.latLng(p.lat, p.lon);
-    if (S.map.getCenter().distanceTo(target) < 30 && S.map.getZoom() === zoom) {
-      m.openPopup();
-      return;
-    }
-    S.map.once("moveend", () => m.openPopup());
-    S.map.flyTo(target, zoom, { duration: 0.6 });
-  }
-
-  // ------------------------------------------------------------ olaylar
-
-  function bindEvents() {
-    $("#map-search").addEventListener("input", (e) => {
-      clearTimeout(S.searchTimer);
-      S.searchTimer = setTimeout(() => { S.f.q = fold(e.target.value); apply(); }, 120);
-    });
-    $("#map-search").addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        e.preventDefault();
-        clearTimeout(S.searchTimer);
-        S.f.q = fold(e.target.value);
-        apply();
-        const q = S.f.q;
-        const best = S.visible.find((p) => fold(p.name) === q) || S.visible.find((p) => fold(p.name).startsWith(q)) || S.visible[0];
-        if (best) focusPoint(best.id, false);
-      } else if (e.key === "Escape" && e.target.value) {
-        e.target.value = "";
-        S.f.q = "";
-        apply();
-      }
-    });
-    $("#map-types").addEventListener("click", (e) => {
-      const b = e.target.closest("[data-type]");
-      if (!b) return;
-      const t = b.dataset.type;
-      if (S.f.types.has(t)) S.f.types.delete(t); else S.f.types.add(t);
-      apply();
-    });
-    $("#map-regions").addEventListener("click", (e) => {
-      const b = e.target.closest("[data-region]");
-      if (!b || b.disabled) return;
-      const id = b.dataset.region;
-      S.f.bolge = S.f.bolge === id ? "" : id;
-      if (S.f.il && !S.points.some((p) => p.iller.includes(S.f.il) && (!S.f.bolge || p.bolge === S.f.bolge))) S.f.il = "";
-      apply({ fit: true, region: S.f.bolge });
-    });
-    $("#f-il").addEventListener("change", (e) => { S.f.il = e.target.value; apply({ fit: true }); });
-    $("#f-yol").addEventListener("change", (e) => { S.f.yol = e.target.value; apply({ fit: true }); });
-    $("#f-durum").addEventListener("change", (e) => { S.f.durum = e.target.value; apply({ fit: true }); });
-    $("#f-temizle").addEventListener("click", clearFilters);
-    $("#map-list").addEventListener("click", (e) => {
-      const item = e.target.closest("[data-id]");
-      if (item) { focusPoint(item.dataset.id, window.matchMedia("(max-width: 860px)").matches); return; }
-      const more = e.target.closest("[data-expand]");
-      if (more) { S.expanded.add(more.dataset.expand); renderList(); return; }
-      if (e.target.closest('[data-action="clear"]')) clearFilters();
-    });
-  }
-
-  // ------------------------------------------------------------ güzergâh (ücret hesabı)
-
-  function stopMarker(s) {
-    const esc = S.h.esc;
-    return L.marker([s.lat, s.lon], {
-      icon: L.divIcon({ className: "stop-wrap", html: `<span class="stop ${s.role}">${s.role === "in" ? "G" : "Ç"}</span>`,
-        iconSize: [30, 30], iconAnchor: [15, 15] }),
-      pane: "stops", keyboard: false, title: (s.role === "in" ? "Giriş: " : "Çıkış: ") + s.name,
-    }).bindTooltip(`<strong>${esc(s.role === "in" ? "Giriş" : "Çıkış")}</strong><br><span>${esc(s.name)}</span>`,
-      { direction: "top", offset: [0, -16], className: "radar-tip" });
-  }
+  // ------------------------------------------------------------ güzergâh
 
   function showRoute(r) {
     S.route = r;
@@ -706,22 +308,28 @@ window.RadarMap = (function () {
     S.routeLayer.clearLayers();
     const path = (r.path || []).filter((p) => Array.isArray(p) && p.length === 2);
     if (path.length >= 2) {
-      const opts = { pane: "route", interactive: false, lineCap: "round", lineJoin: "round" };
-      L.polyline(path, Object.assign({ color: S.colors.casing, weight: 11, opacity: 0.85 }, opts)).addTo(S.routeLayer);
-      L.polyline(path, Object.assign({ color: S.colors.route, weight: 6, opacity: 1 }, opts)).addTo(S.routeLayer);
-      L.polyline(path, Object.assign({ color: S.colors.casing, weight: 1.4, opacity: 0.7, dashArray: "6 9" }, opts)).addTo(S.routeLayer);
+      const o = { pane: "route", interactive: false, lineCap: "round", lineJoin: "round" };
+      L.polyline(path, Object.assign({ color: S.colors.casing, weight: 10, opacity: 1 }, o)).addTo(S.routeLayer);
+      L.polyline(path, Object.assign({ color: S.colors.route, weight: 5, opacity: 1 }, o)).addTo(S.routeLayer);
     }
     const stops = [r.entry, r.exit].filter((s) => s && typeof s.lat === "number");
-    stops.forEach((s) => stopMarker(s).addTo(S.routeLayer));
+    stops.forEach((s) => L.marker([s.lat, s.lon], {
+      icon: L.divIcon({ className: "stop-wrap", html: `<span class="stop ${s.role}"></span>`, iconSize: [18, 18], iconAnchor: [9, 9] }),
+      pane: "stops", keyboard: false, interactive: false,
+    }).addTo(S.routeLayer));
+    placeLabels();
     if (r.fit === false) return;
     const pts = path.concat(stops.map((s) => [s.lat, s.lon]));
-    if (pts.length >= 2) S.map.flyToBounds(L.latLngBounds(pts), { padding: [70, 70], maxZoom: 12, duration: 0.7 });
-    else if (pts.length === 1) S.map.flyTo(pts[0], Math.max(S.map.getZoom(), 11), { duration: 0.6 });
+    const narrow = window.matchMedia("(max-width: 900px)").matches;
+    const pad = { paddingTopLeft: [narrow ? 40 : ($(".panel").offsetWidth + 72), 70], paddingBottomRight: [60, 60], maxZoom: 12, duration: 0.6 };
+    if (pts.length >= 2) S.map.flyToBounds(L.latLngBounds(pts), pad);
+    else if (pts.length === 1) S.map.flyTo(pts[0], Math.max(S.map.getZoom(), 10), { duration: 0.5 });
   }
 
   function clearRoute() {
     S.route = null;
     if (S.routeLayer) S.routeLayer.clearLayers();
+    placeLabels();
   }
 
   // ------------------------------------------------------------ dışa açık
@@ -729,32 +337,30 @@ window.RadarMap = (function () {
   function init(opts) {
     S.h = opts.helpers;
     S.data = opts.data;
-    S.mapData = opts.mapData;
-    S.cls = opts.cls || "1";
-    S.onShowCrossing = opts.onShowCrossing;
-    S.popupExtra = opts.popupExtra || null;
-    S.onTrip = opts.onTrip || null;
     S.stations = opts.stations || [];
-    S.regions = S.data.bolgeler || [];
-    S.regions.forEach((r) => { S.regionById[r.id] = r; });
+    S.cls = opts.cls || "1";
+    S.onShowCrossing = opts.onShowCrossing || null;
+    S.onTrip = opts.onTrip || null;
+    S.popupExtra = opts.popupExtra || null;
     S.points = buildPoints();
-    // Nokta olmasa da harita açılır: ücret hesabının güzergâhı yine çizilir.
-    renderNote();
-    bindEvents();
     createMap();
-    apply({ fit: true });
+    if (S.map) placeLabels();
   }
 
-  function setClass(cls) {
-    S.cls = cls;
-    renderList();
+  function setClass(cls) { S.cls = cls; }
+
+  function focusCrossing(id) {
+    const p = S.byId.get("gecis:" + id);
+    if (!p || !S.map) return;
+    const m = S.markers.get(p.id);
+    select(p.id);
+    S.map.once("moveend", () => { if (!S.map.hasLayer(m)) m.addTo(S.map); m.openPopup(); });
+    S.map.flyTo([p.lat, p.lon], Math.max(S.map.getZoom(), 12), { duration: 0.6 });
   }
 
-  function focusCrossing(crossingId) {
-    focusPoint("gecis:" + crossingId, true);
+  function counts() {
+    return { gates: S.points.filter((p) => p.type === "gise").length, crossings: S.points.filter((p) => p.type === "kopru").length };
   }
 
-  function invalidate() { if (S.map) S.map.invalidateSize(); }
-
-  return { init, setClass, focusCrossing, fold, showRoute, clearRoute, invalidate };
+  return { init, setClass, focusCrossing, showRoute, clearRoute, counts, invalidate: () => S.map && S.map.invalidateSize() };
 })();

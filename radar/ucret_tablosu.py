@@ -15,17 +15,19 @@ girdim, Akyazı'dan çıktım, 1. sınıf ne kadar?" sorusunu bu dosyadan yanıt
 
 Yenileme günde bir (ya da radar tarife belgesinin değiştiğini görünce) yapılır. Bir PDF okunamazsa o
 otoyolun önceki verisi korunur ve hata state.json'a yazılır; iyi veri hiçbir zaman silinmez.
+
+Gişe konumları, illeri ve bölgeleri yalnızca bizim tuttuğumuz config/giseler.yaml kaydından gelir
+(otoyol kimliği + istasyon adıyla eşlenir). Radar çalışırken dışarıdan konum alınmaz. Kayıtta olmayan
+istasyon tabloda kalır ama konumsuzdur; state.json'a yazılır ve teknik gruba bir kez bildirilir.
 """
 
 from __future__ import annotations
 
+import copy
 import hashlib
 import io
 import logging
-import math
 import re
-import unicodedata
-from collections import Counter
 from dataclasses import dataclass, field
 from datetime import datetime
 from difflib import SequenceMatcher
@@ -61,7 +63,7 @@ SINIFLAR = {
 # Bilinen belgeler: düzgün ad ve yol numarası. Eşleşme, bağlantı metni + adresinin katlanmış hâlinde
 # anahtar kelimelerin hepsi geçerse yapılır (sıra önemli: ilk eşleşen alınır).
 _BILINEN: list[tuple[tuple[str, ...], str, str, str | None]] = [
-    (("cesmeli",), "cesmeli-kizkalesi", "Çeşmeli – Kızkalesi Otoyolu", None),
+    (("cesmeli",), "cesmeli-kizkalesi", "Çeşmeli – Kızkalesi Otoyolu", "O-51"),
     (("anadolu", "camlica"), "anadolu-camlica-akinci", "Anadolu Otoyolu (Çamlıca – Akıncı)", "O-4"),
     (("izmir", "cesme"), "izmir-cesme", "İzmir – Çeşme Otoyolu", "O-32"),
     (("izmir", "aydin"), "izmir-aydin", "İzmir – Aydın Otoyolu (Işıkkent – Aydın Batı)", "O-31"),
@@ -73,10 +75,10 @@ _BILINEN: list[tuple[tuple[str, ...], str, str, str | None]] = [
     (("kuzey", "cevre"), "yss-kuzey-cevre", "Yavuz Sultan Selim Köprüsü ve Kuzey Çevre Otoyolu", "O-7"),
     (("kinali", "odayeri"), "kmo-kinali-odayeri", "Kuzey Marmara Otoyolu (Kınalı – Odayeri)", "O-7"),
     (("kurtkoy", "akyazi"), "kmo-kurtkoy-akyazi", "Kuzey Marmara Otoyolu (Kurtköy – Akyazı)", "O-7"),
-    (("menemen", "candarli"), "menemen-aliaga-candarli", "Menemen – Aliağa – Çandarlı Otoyolu", None),
+    (("menemen", "candarli"), "menemen-aliaga-candarli", "Menemen – Aliağa – Çandarlı Otoyolu", "O-33"),
     (("ankara", "nigde"), "ankara-nigde", "Ankara – Niğde Otoyolu", "O-21"),
     (("malkara", "canakkale"), "malkara-canakkale", "Malkara – Çanakkale Otoyolu (1915 Çanakkale Köprüsü dahil)", "O-6"),
-    (("aydin", "denizli"), "aydin-denizli", "Aydın – Denizli Otoyolu", None),
+    (("aydin", "denizli"), "aydin-denizli", "Aydın – Denizli Otoyolu", "O-31"),
 ]
 
 
@@ -643,153 +645,85 @@ def parse_matrix_pdf(data: bytes, *, ref: datetime | None = None) -> list[dict]:
     return results
 
 
-# ============================================================================ konumlar
+# ============================================================================ gişe kaydı (konumlar)
 
-_GISE_KELIME = {
-    "giseleri", "gisesi", "giseler", "gise", "kavsagi", "kavsak", "otomatik", "gecis", "sistemi", "bolgesi",
-    "gisesiz", "ucret", "toplama", "noktasi", "cikis", "giris", "sgs", "alin", "istasyonu", "gate",
-}
-_KISA_AC = {"s.pinar": "sekerpinar", "k.burgaz": "kumburgaz"}
+class GiseKaydiHatasi(Exception):
+    pass
 
 
-def _norm(text: str | None) -> str:
-    t = fold(text)
-    t = unicodedata.normalize("NFKD", t)
-    t = "".join(ch for ch in t if not unicodedata.combining(ch))
-    for a, b in _KISA_AC.items():
-        t = t.replace(a, b)
-    t = re.sub(r"\borg\.?\s*san\.?(?:\s*bolgeleri|\s*bolgesi)?|\borganize\s*san(?:\.|ayi)?(?:\s*bolgesi)?", "osb", t)
-    t = re.sub(r"\bserbest\s*b\.", "serbest bolge", t)
-    t = re.sub(r"\(?\bg-?\d+\)?", " ", t)          # gişe kodu
-    t = re.sub(r"[^a-z0-9]+", " ", t)
-    words = [w for w in t.split() if w not in _GISE_KELIME]
-    return " ".join(words)
+def _ad_anahtari(name: str | None) -> str:
+    """Kayıt eşleşmesi için ad: büyük/küçük harf, Türkçe harf, boşluk ve noktalama farkı önemsiz."""
+    return re.sub(r"[^a-z0-9]+", "", fold(name))
 
 
-def _anahtarlar(name: str) -> list[tuple[str, str]]:
-    """Ad için öncelik sırasıyla karşılaştırma anahtarları: (sıralı kelimeler, bitişik yazım)."""
-    variants = [name]
-    base = re.sub(r"\s*\([^)]*\)\s*", " ", name).strip()
-    inner = re.findall(r"\(([^)]*)\)", name)
-    no_suffix = re.sub(r"(?:[-\s]+(?:[A-Za-z]|\d))$", "", base).strip()
-    # "Kulu-Kırıkkale" → "Kulu", "Kırıkkale" (en düşük öncelik)
-    parts = [p.strip() for p in re.split(r"\s*-\s*", no_suffix) if len(p.strip()) >= 4] if "-" in no_suffix else []
-    variants += [no_suffix, base] + inner + parts
-    out = []
-    for v in variants:
-        n = _norm(v)
-        if not n:
-            continue
-        key = (" ".join(sorted(n.split())), n.replace(" ", ""))
-        if key not in out:
-            out.append(key)
+def gise_kaydi_oku(path) -> dict[str, dict[str, dict]]:
+    """config/giseler.yaml → {otoyol kimliği: {ad anahtarı: {ad, lat, lon, il, bolge}}}.
+
+    Biçim hatası GiseKaydiHatasi verir; dosya yoksa boş kayıt döner (tüm gişeler "kayıtsız" sayılır).
+    """
+    import yaml
+
+    from . import bolgeler
+
+    try:
+        with open(path, encoding="utf-8") as fh:
+            raw = yaml.safe_load(fh) or {}
+    except FileNotFoundError:
+        return {}
+    except yaml.YAMLError as exc:
+        raise GiseKaydiHatasi(f"giseler.yaml okunamadı: {str(exc)[:200]}") from None
+    if not isinstance(raw, dict):
+        raise GiseKaydiHatasi("giseler.yaml: en üstte otoyol kimlikleri olmalı")
+    out: dict[str, dict[str, dict]] = {}
+    for oid, items in raw.items():
+        if not isinstance(items, list):
+            raise GiseKaydiHatasi(f"giseler.yaml: {oid} altında gişe listesi olmalı")
+        gises: dict[str, dict] = {}
+        for item in items:
+            ad = clean_spaces(str((item or {}).get("ad") or "")) if isinstance(item, dict) else ""
+            if not ad:
+                raise GiseKaydiHatasi(f"giseler.yaml: {oid} altında adı olmayan kayıt var")
+            yer = f"{oid} / {ad}"
+            key = _ad_anahtari(ad)
+            if key in gises:
+                raise GiseKaydiHatasi(f"giseler.yaml: {yer} iki kez yazılmış")
+            lat = lon = None
+            if item.get("konum") is not None:
+                try:
+                    lat, lon = (float(v) for v in item["konum"])
+                except (TypeError, ValueError):
+                    raise GiseKaydiHatasi(f"giseler.yaml: {yer}: konum [enlem, boylam] ya da null olmalı") from None
+                if not bolgeler.turkiye_icinde(lat, lon):
+                    raise GiseKaydiHatasi(f"giseler.yaml: {yer}: konum Türkiye dışında ({lat}, {lon})")
+            plaka = bolgeler.plaka_bul(item.get("il"))
+            if item.get("il") and plaka is None:
+                raise GiseKaydiHatasi(f"giseler.yaml: {yer}: bilinmeyen il '{item.get('il')}'")
+            gises[key] = {"ad": ad, "lat": lat, "lon": lon, "il": bolgeler.il_adi(plaka), "bolge": bolgeler.bolge(plaka)}
+        out[str(oid)] = gises
     return out
 
 
-def _uzaklik_km(a: tuple[float, float], b: tuple[float, float]) -> float:
-    r = 6371.0
-    p1, p2 = math.radians(a[0]), math.radians(b[0])
-    dp, dl = p2 - p1, math.radians(b[1] - a[1])
-    h = math.sin(dp / 2) ** 2 + math.cos(p1) * math.cos(p2) * math.sin(dl / 2) ** 2
-    return 2 * r * math.asin(math.sqrt(h))
+def konumlari_uygula(otoyollar: list[dict], kayit: dict[str, dict[str, dict]]) -> list[dict]:
+    """İstasyonlara gişe kaydındaki konumu, ili ve bölgeyi yazar. Kayıtta olmayanları döndürür.
 
-
-def _orta(points: list[dict]) -> tuple[float, float]:
-    return (sum(p["lat"] for p in points) / len(points), sum(p["lon"] for p in points) / len(points))
-
-
-def _medyan(coords: list[tuple[float, float]]) -> tuple[float, float]:
-    lats = sorted(c[0] for c in coords)
-    lons = sorted(c[1] for c in coords)
-    return lats[len(lats) // 2], lons[len(lons) // 2]
-
-
-def konumlari_esle(otoyol: dict, noktalar: list[dict]) -> dict:
-    """İstasyonları data/harita.json gişe noktalarıyla ada (ve yol numarasına) göre eşler.
-
-    Yalnızca güvenilir eşleşmelere konum yazılır: tek aday (ya da birbirine 3 km'den yakın adaylar),
-    otoyolun öteki istasyonlarından kopuk olmayan ve (km biliniyorsa) yol mesafesiyle çelişmeyen.
-    Dönen sözlük: {"eslesen": n, "toplam": n, "yol": tahmin edilen yol numarası}.
+    Kayıtta olmayan istasyon tabloda kalır (hesapta seçilebilir) ama konumu boştur, haritaya konmaz.
     """
-    index: dict[str, list[dict]] = {}
-    for p in noktalar:
-        if p.get("adsiz") or p.get("lat") is None:
-            continue
-        for k in _anahtarlar(p.get("ad") or "")[:1]:
-            index.setdefault("s:" + k[0], []).append(p)
-            index.setdefault("b:" + k[1], []).append(p)
-    ref = otoyol.get("yol")
-    istasyonlar = otoyol["istasyonlar"]
+    kayitsiz = []
+    for o in otoyollar:
+        gises = kayit.get(o["id"]) or {}
+        for s in o["istasyonlar"]:
+            g = gises.get(_ad_anahtari(s["ad"]))
+            lat, lon = (g["lat"], g["lon"]) if g else (None, None)
+            s.update(lat=round(lat, 5) if lat is not None else None, lon=round(lon, 5) if lon is not None else None,
+                     il=g["il"] if g else None, bolge=g["bolge"] if g else None)
+            if g is None:
+                kayitsiz.append({"otoyol": o["id"], "otoyol_adi": o.get("ad") or o["id"], "ad": s["ad"]})
+    return kayitsiz
 
-    def adaylar(name: str) -> list[dict]:
-        sgs = "sgs" in fold(name).split()
-        for k in _anahtarlar(name):
-            found = {p["id"]: p for p in index.get("s:" + k[0], []) + index.get("b:" + k[1], [])}
-            cands = list(found.values())
-            if ref:   # aynı yol numaralı noktalar önce; başka otoyola ait olduğu bilinenler elenir
-                same = [p for p in cands if p.get("yol") == ref]
-                cands = same or [p for p in cands if not (p.get("yol") or "").startswith("O-")]
-            # Adında SGS yoksa gişe, varsa serbest geçiş noktası tercih edilir
-            tur = [p for p in cands if (p.get("tur") == "serbest") == sgs]
-            cands = tur or cands
-            if cands:
-                return cands
-        return []
 
-    secim: dict[int, tuple[float, float]] = {}
-    belirsiz: dict[int, list[dict]] = {}
-    refs: list[str] = []
-    for i, s in enumerate(istasyonlar):
-        cands = adaylar(s["ad"])
-        if not cands:
-            continue
-        # Aynı gişenin şeritleri / giriş-çıkış noktaları birbirine çok yakındır; uzaksa ayrı gişelerdir
-        if all(_uzaklik_km((a["lat"], a["lon"]), (b["lat"], b["lon"])) <= 1.5 for a in cands for b in cands):
-            secim[i] = _orta(cands)
-            refs += [p["yol"] for p in cands if p.get("yol")]
-        else:
-            belirsiz[i] = cands
-    # Aynı adlı birden çok gişe: listede komşu istasyonlara belirgin biçimde en yakın olan seçilir
-    for i, cands in belirsiz.items():
-        before = [k for k in sorted(secim) if k < i][-1:]
-        after = [k for k in sorted(secim) if k > i][:1]
-        komsu = [secim[k] for k in before + after]
-        if not komsu:
-            continue
-        ds = sorted((sum(_uzaklik_km(n, (p["lat"], p["lon"])) for n in komsu) / len(komsu), k)
-                    for k, p in enumerate(cands))
-        if ds[0][0] < 60 and ds[0][0] * 2 < ds[1][0]:
-            p = cands[ds[0][1]]
-            secim[i] = (p["lat"], p["lon"])
-
-    # Kopuk eşleşmeleri at: öteki eşleşmelerin ortasından çok uzak olanlar
-    if len(secim) >= 3:
-        mid = _medyan(list(secim.values()))
-        limit = 120 + 0.6 * max((v for row in otoyol.get("km") or [] for v in row if v), default=200)
-        for i in [i for i, c in secim.items() if _uzaklik_km(mid, c) > limit]:
-            del secim[i]
-    # Yol mesafesiyle çelişenleri at (kuş uçuşu uzaklık yol uzunluğundan büyük olamaz)
-    km = otoyol.get("km") or []
-    while True:
-        bad = Counter()
-        for i in secim:
-            for j in secim:
-                if j < i and i < len(km) and j < len(km[i]) and km[i][j]:
-                    if _uzaklik_km(secim[i], secim[j]) > km[i][j] * 1.1 + 4:
-                        bad[i] += 1
-                        bad[j] += 1
-        if not bad:
-            break
-        worst, _ = bad.most_common(1)[0]
-        del secim[worst]
-
-    for i, s in enumerate(istasyonlar):
-        c = secim.get(i)
-        s["lat"] = round(c[0], 5) if c else None
-        s["lon"] = round(c[1], 5) if c else None
-    motorway = [r for r in refs if r.startswith("O-")]
-    tahmin = Counter(motorway).most_common(1)[0][0] if motorway else None
-    return {"eslesen": len(secim), "toplam": len(istasyonlar), "yol": tahmin}
+def _konum_ozeti(otoyollar: list[dict]) -> dict[str, str]:
+    return {o["id"]: f"{sum(1 for s in o['istasyonlar'] if s.get('lat') is not None)}/{len(o['istasyonlar'])}"
+            for o in otoyollar}
 
 
 # ============================================================================ belge → otoyol kaydı
@@ -829,7 +763,7 @@ def otoyol_kayitlari(tablolar: list[dict], url: str, link_text: str) -> list[dic
             "gecerlilik": t.get("gecerlilik"),
             "tur": t["tur"],
             "yonlu": t["yonlu"],
-            "istasyonlar": [{"ad": a, "lat": None, "lon": None} for a in t["istasyonlar"]],
+            "istasyonlar": [{"ad": a, "lat": None, "lon": None, "il": None, "bolge": None} for a in t["istasyonlar"]],
             "ucret": t["ucret"],
             "ucret_geri": t["ucret_geri"],
             "km": t["km"],
@@ -880,12 +814,13 @@ def refresh(cfg: Config, store: Store, state: dict, now: datetime, *, force: boo
         return None
     existing = store.read(DOSYA, None)
     if not force and not needs_refresh(cfg, state, existing, now):
-        return None
+        return konumlari_tazele(cfg, store, state, existing)
     st = state.setdefault(STATE_KEY, {})
     st["son_deneme"] = to_iso(now)
     st["imza"] = _imza(state, cfg)
     belgeler: dict = st.setdefault("belgeler", {})
-    old_by_id = {o["id"]: o for o in (existing or {}).get("otoyollar") or []}
+    # Kopya: önceki kayıtlar aşağıda güncellenir (konumlar), değişiklik karşılaştırması bozulmasın
+    old_by_id = {o["id"]: copy.deepcopy(o) for o in (existing or {}).get("otoyollar") or []}
 
     delay = 0 if transport is not None else cfg.settings.request_delay
     hatalar: list[str] = []
@@ -955,14 +890,17 @@ def refresh(cfg: Config, store: Store, state: dict, now: datetime, *, force: boo
         st["hata"] = "hiç ücret tablosu okunamadı" + (f" ({hatalar[0][:200]})" if hatalar else "")
         return f"Ücret tablosu alınamadı: {st['hata']}"
 
-    harita = store.read("harita.json", None) or {}
-    noktalar = harita.get("noktalar") or []
-    eslesme = {}
-    for o in otoyollar:
-        info = konumlari_esle(o, noktalar)
-        if not o.get("yol") and info["yol"] and info["eslesen"] >= 2:
-            o["yol"] = info["yol"]
-        eslesme[o["id"]] = f"{info['eslesen']}/{info['toplam']}"
+    for o in otoyollar:   # eski veride yol numarası boş kalmış olabilir
+        if not o.get("yol"):
+            o["yol"] = next((yol for _, oid, _, yol in _BILINEN if o["id"] == oid or o["id"].startswith(oid + "-")), None)
+
+    kayit_notu = None
+    try:
+        kayit = gise_kaydi_oku(cfg.gise_kaydi)
+    except GiseKaydiHatasi as exc:   # kayıt bozuksa ücretler yine güncellenir, konumlar öncekiler kalır
+        kayit = _kayit_tablodan(existing)
+        kayit_notu = f"gişe kaydı okunamadı, önceki konumlar kullanıldı: {exc}"
+    kayitsiz = konumlari_uygula(otoyollar, kayit)
 
     data = {
         "schema": SCHEMA,
@@ -972,11 +910,60 @@ def refresh(cfg: Config, store: Store, state: dict, now: datetime, *, force: boo
         "siniflar": dict(SINIFLAR),
         "otoyollar": otoyollar,
     }
-    st.update(hata=None, son_basari=to_iso(now), hatalar=hatalar, otoyol=len(otoyollar), konum=eslesme)
+    st.update(hata=None, son_basari=to_iso(now), hatalar=hatalar, otoyol=len(otoyollar),
+              konum=_konum_ozeti(otoyollar), kayitsiz=kayitsiz)
     if existing and _icerik(existing) == _icerik(data):
-        return None if not hatalar else f"Ücret tablosu: {len(hatalar)} belge okunamadı, önceki veri korundu"
+        if hatalar:
+            return f"Ücret tablosu: {len(hatalar)} belge okunamadı, önceki veri korundu"
+        return f"Ücret tablosu: {kayit_notu}" if kayit_notu else None
     store.write(DOSYA, data)
     note = f"Ücret tablosu: {len(otoyollar)} otoyol, {sum(len(o['istasyonlar']) for o in otoyollar)} istasyon güncellendi"
     if hatalar:
         note += f" ({len(hatalar)} belge okunamadı, önceki veri korundu)"
+    if kayitsiz:
+        note += f"; gişe kaydında olmayan {len(kayitsiz)} gişe: " + _kayitsiz_metni(kayitsiz)
+    if kayit_notu:
+        note += f"; {kayit_notu}"
+    return note
+
+
+def _kayit_tablodan(existing: dict | None) -> dict[str, dict[str, dict]]:
+    """Gişe kaydı okunamazsa yedek: mevcut tablodaki konumlar."""
+    out: dict[str, dict[str, dict]] = {}
+    for o in (existing or {}).get("otoyollar") or []:
+        out[o["id"]] = {_ad_anahtari(s["ad"]): {"ad": s["ad"], "lat": s.get("lat"), "lon": s.get("lon"),
+                                                "il": s.get("il"), "bolge": s.get("bolge")} for s in o["istasyonlar"]}
+    return out
+
+
+def _kayitsiz_metni(kayitsiz: list[dict], limit: int = 5) -> str:
+    adlar = [f"{k['ad']} ({k['otoyol']})" for k in kayitsiz]
+    return ", ".join(adlar[:limit]) + (f" ve {len(adlar) - limit} gişe daha" if len(adlar) > limit else "")
+
+
+def konumlari_tazele(cfg: Config, store: Store, state: dict, existing: dict | None) -> str | None:
+    """PDF'ler yeniden okunmadan, gişe kaydındaki değişikliği (config/giseler.yaml) tabloya yansıtır.
+
+    Her radar turunda çağrılır; kayıt değişmediyse hiçbir şey yazılmaz.
+    """
+    if not existing or not existing.get("otoyollar"):
+        return None
+    st = state.setdefault(STATE_KEY, {})
+    try:
+        kayit = gise_kaydi_oku(cfg.gise_kaydi)
+    except GiseKaydiHatasi as exc:
+        if st.get("kayit_hatasi") == str(exc):
+            return None
+        st["kayit_hatasi"] = str(exc)
+        return f"Gişe kaydı okunamadı, konumlar değiştirilmedi: {exc}"
+    st.pop("kayit_hatasi", None)
+    data = copy.deepcopy(existing)
+    kayitsiz = konumlari_uygula(data["otoyollar"], kayit)
+    st.update(konum=_konum_ozeti(data["otoyollar"]), kayitsiz=kayitsiz)
+    if data == existing:
+        return None
+    store.write(DOSYA, data)
+    note = "Ücret tablosu: gişe konumları güncellendi (config/giseler.yaml)"
+    if kayitsiz:
+        note += f"; gişe kaydında olmayan {len(kayitsiz)} gişe: " + _kayitsiz_metni(kayitsiz)
     return note
