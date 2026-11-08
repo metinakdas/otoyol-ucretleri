@@ -244,7 +244,7 @@ def test_yayin_guvenli_akis(project, capsys):
     assert "--public" in create and "--disable-issues" in create and "--disable-wiki" in create
     api = [(c["args"][2], c["args"][3], c["stdin"]) for c in log if c["args"][:1] == ["api"]]
     paths = [p for _, p, _ in api]
-    full = "repos/OrnekKullanici/tarife-radari"
+    full = "repos/OrnekKullanici/otoyol-ucretleri"
     for expected in (f"{full}/interaction-limits", f"{full}/actions/permissions/workflow", f"{full}/pages",
                      f"{full}/vulnerability-alerts", f"{full}/rulesets", f"{full}/actions/permissions/selected-actions"):
         assert expected in paths, expected
@@ -253,7 +253,7 @@ def test_yayin_guvenli_akis(project, capsys):
     perms = next(json.loads(b) for m, p, b in api if p.endswith("/actions/permissions/workflow"))
     assert perms["default_workflow_permissions"] == "read"
     variable = next(c["args"] for c in log if c["args"][:2] == ["variable", "set"])
-    assert "https://ornekkullanici.github.io/tarife-radari/" in variable
+    assert "https://ornekkullanici.github.io/otoyol-ucretleri/" in variable
     assert any(c["args"][:2] == ["workflow", "run"] for c in log)
 
 
