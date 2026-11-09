@@ -98,5 +98,36 @@
         "note": "Başlangıç kaydı (KGM tarifesi)"
       }
     ]
+  },
+  "avrasya-tuneli": {
+    "name": "Avrasya Tüneli",
+    "prices": [
+      {
+        "valid_from": "2026-11-09T20:03:51+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "330.00",
+          "2": "495.00",
+          "6": "257.40"
+        },
+        "source_url": "https://www.avrasyatuneli.com/ucretlendirme/",
+        "event_id": null,
+        "note": "Başlangıç kaydı (Avrasya Tüneli sitesi; yürürlük tarihi sitede yazmıyor, ilk görüldüğü an)",
+        "gunduz_saat": "05:00-23:59",
+        "sinif_adlari": {
+          "1": "Otomobil",
+          "2": "Minibüs",
+          "6": "Motosiklet"
+        },
+        "gece": {
+          "saat": "00:00-04:59",
+          "classes": {
+            "1": "165.00",
+            "2": "247.50",
+            "6": "128.70"
+          }
+        }
+      }
+    ]
   }
 }

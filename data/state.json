@@ -631,10 +631,6 @@
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/default.aspx"
       },
       {
-        "title": "Duyurular.aspx?utm_source=chatgpt",
-        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx?utm%255Fsource=chatgpt%2Ecom"
-      },
-      {
         "title": "Genel Müdür Yardımcılarımız",
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GenelMudYard.aspx"
       },
@@ -653,6 +649,10 @@
       {
         "title": "Kurumsal Mali Durum ve Beklentiler Raporu",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/MaliDurum/malidurum.pdf"
+      },
+      {
+        "title": "Uluslararası Karayolu Güzergahları",
+        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GlobalProjeler.aspx"
       }
     ]
   },
@@ -1165,5 +1165,24 @@
     },
     "kayitsiz": [],
     "baglanti_eksik": []
+  },
+  "avrasya-ucretler": {
+    "son": {
+      "gunduz": {
+        "1": "330.00",
+        "2": "495.00",
+        "6": "257.40"
+      },
+      "gece": {
+        "1": "165.00",
+        "2": "247.50",
+        "6": "128.70"
+      },
+      "saat": {
+        "gunduz": "05:00-23:59",
+        "gece": "00:00-04:59"
+      },
+      "yon_farkli": false
+    }
   }
 }

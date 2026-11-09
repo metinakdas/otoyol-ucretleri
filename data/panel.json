@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "ornek": false,
-  "last_run": "2026-11-09T12:32:34+03:00",
+  "last_run": "2026-11-09T20:03:51+03:00",
   "run_interval_minutes": 30,
   "panel_url": "https://metinakdas.github.io/otoyol-ucretleri/",
   "names": {
@@ -148,9 +148,40 @@
       "id": "avrasya-tuneli",
       "name": "Avrasya Tüneli",
       "operator": "YİD",
-      "current": null,
+      "current": {
+        "valid_from": "2026-11-09T20:03:51+03:00",
+        "valid_to": null,
+        "classes": {
+          "1": "330.00",
+          "2": "495.00",
+          "6": "257.40"
+        },
+        "source_url": "https://www.avrasyatuneli.com/ucretlendirme/",
+        "event_id": null,
+        "note": "Başlangıç kaydı (Avrasya Tüneli sitesi; yürürlük tarihi sitede yazmıyor, ilk görüldüğü an)",
+        "gunduz_saat": "05:00-23:59",
+        "sinif_adlari": {
+          "1": "Otomobil",
+          "2": "Minibüs",
+          "6": "Motosiklet"
+        },
+        "gece": {
+          "saat": "00:00-04:59",
+          "classes": {
+            "1": "165.00",
+            "2": "247.50",
+            "6": "128.70"
+          }
+        }
+      },
       "upcoming": null,
-      "history": [],
+      "history": [
+        {
+          "valid_from": "2026-11-09T20:03:51+03:00",
+          "valid_to": null,
+          "class1": "330.00"
+        }
+      ],
       "free_now": null,
       "tur": "tunel",
       "diger_adlar": [],
@@ -493,7 +524,7 @@
       "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T12:32:34+03:00",
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 tarife belgesi, 0 değişiklik"
@@ -506,10 +537,10 @@
       "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T12:32:34+03:00",
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
-      "info": "53 başlık, 1 yeni, 0 ilgili"
+      "info": "52 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "uab-haberler",
@@ -519,7 +550,7 @@
       "url": "https://www.uab.gov.tr/haberler/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T12:32:34+03:00",
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 başlık, 0 yeni, 0 ilgili"
@@ -532,7 +563,7 @@
       "url": "https://www.uab.gov.tr/duyurular/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T12:32:34+03:00",
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 başlık, 0 yeni, 0 ilgili"
@@ -545,7 +576,7 @@
       "url": "https://www.uab.gov.tr/basin-aciklamalari/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T12:32:34+03:00",
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 başlık, 0 yeni, 0 ilgili"
@@ -558,23 +589,23 @@
       "url": "https://www.avrasyatuneli.com/haberler-ve-duyurular/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T12:32:34+03:00",
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
       "info": "14 başlık, 0 yeni, 0 ilgili"
     },
     {
       "id": "avrasya-ucretler",
-      "name": "Avrasya Tüneli ücret sayfası",
+      "name": "Avrasya Tüneli ücret tablosu",
       "tier": "resmi",
-      "type": "sayfa",
-      "url": "https://www.avrasyatuneli.com/ucretlendirme/",
-      "enabled": false,
-      "ok": null,
-      "last_success": null,
+      "type": "avrasya_ucret",
+      "url": "https://www.avrasyatuneli.com/api/toll/priceHtml",
+      "enabled": true,
+      "ok": true,
+      "last_success": "2026-11-09T20:03:51+03:00",
       "failing_since": null,
       "error": null,
-      "info": null
+      "info": "başlangıç kaydı"
     },
     {
       "id": "haber-ucretsiz-gecis",
