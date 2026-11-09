@@ -15,7 +15,10 @@ window.RadarHesap = (function () {
     "6": { l: "Motosiklet", i: '<circle cx="7" cy="14.5" r="3"/><circle cx="23" cy="14.5" r="3"/><path d="M7 14.5l4.5-6h5l3 6M16.5 8.5l1.5-3h3M11.5 8.5 10 6H7.5M20 14.5h-3l-2-3"/>' },
   };
   const NEAR_M = 1500;
-  const S = { h: null, table: null, roads: [], stations: [], byKey: new Map(), entry: null, exit: null, cls: "1", onClass: null, map: null };
+  const S = {
+    h: null, table: null, roads: [], stations: [], byKey: new Map(), entry: null, exit: null, cls: "1", onClass: null, map: null,
+    links: new Map(), linkKeys: [], planCache: new Map(), alt: 0,
+  };
   const $ = (sel) => document.querySelector(sel);
 
   // ------------------------------------------------------------ yardımcılar
@@ -41,11 +44,42 @@ window.RadarHesap = (function () {
     S.stations = [];
     S.byKey.clear();
     S.roads.forEach((o, oi) => o.istasyonlar.forEach((st, i) => {
-      const s = { key: `${oi}:${i}`, oi, i, ad: st.ad, lat: st.lat, lon: st.lon, il: st.il || null, road: o,
+      const s = { key: `${oi}:${i}`, oi, i, ad: st.ad, lat: st.lat, lon: st.lon, il: st.il || null, bolge: st.bolge || null, road: o, serbest: !!st.serbest,
         search: fold([st.ad, st.il, o.ad, o.yol].join(" ")), nameKey: fold(st.ad) };
       S.stations.push(s);
       S.byKey.set(s.key, s);
     }));
+    // Tarifeler arası bağlantılar (aynı kavşakta bir ücret sisteminden diğerine geçiş): config/giseler.yaml → baglantilar
+    S.links.clear();
+    S.planCache.clear();
+    const find = (end) => {
+      const oi = S.roads.findIndex((o) => o.id === (end && end.otoyol));
+      if (oi < 0) return null;
+      let s = S.byKey.get(`${oi}:${end.i}`);
+      if (!s || (end.ad && s.nameKey !== fold(end.ad))) s = S.stations.find((x) => x.oi === oi && x.nameKey === fold(end.ad));
+      return s || null;
+    };
+    // Bağlantı arasında geçilen serbest geçiş noktalarının (ara_serbest) ücretleri toplama eklenir;
+    // tek_yon bağlantılar yalnızca a → b yönünde kullanılır.
+    const sgsRow = (r) => {
+      const o = S.roads.find((x) => x.id === (r && r.otoyol));
+      const row = o && (o.serbest_gecis || [])[r.j];
+      return row ? { road: o, ad: row.ad, yon: row.yon || r.yon || "", f: Array.isArray(row.ucret) ? row.ucret : null } : null;
+    };
+    (table.baglantilar || []).forEach((l) => {
+      const a = find(l.a), b = find(l.b);
+      if (!a || !b || a.oi === b.oi) return;
+      const ara = l.ara_serbest || {};
+      const dirs = [[a, b, ara.ab]];
+      if (!l.tek_yon) dirs.push([b, a, ara.ba]);
+      dirs.forEach(([x, y, rows]) => {
+        const sgs = (rows || []).map(sgsRow).filter(Boolean);
+        if (!S.links.has(x.key)) S.links.set(x.key, []);
+        if (!S.links.get(x.key).some((e) => e.to === y.key)) S.links.get(x.key).push({ to: y.key, sgs, km: typeof l.yol_km === "number" ? l.yol_km : null });
+      });
+      [a, b].forEach((s) => { if (!S.links.has(s.key)) S.links.set(s.key, []); });
+    });
+    S.linkKeys = [...S.links.keys()];
   }
 
   function cell(grid, a, b) {
@@ -71,29 +105,125 @@ window.RadarHesap = (function () {
     return typeof v === "number" ? v : null;
   }
 
+  // Güzergâh planı: aynı tarifedeyse tek kalem; değilse bağlantı noktalarından geçen en az aktarmalı,
+  // eşitlikte en ucuz yol (1. sınıf ücretine göre). Ücret, kalemlerin ayrı ayrı tarifelerinin toplamıdır.
+  function planWith(a, b, penalty) {
+    if (!a || !b || a.key === b.key) return null;
+    const id = a.key + ">" + b.key + "@" + penalty;
+    if (S.planCache.has(id)) return S.planCache.get(id);
+    let legs = null;
+    if (a.oi === b.oi) {
+      legs = fares(a, b) ? [{ a, b }] : null;
+    } else if (S.linkKeys.length) {
+      // İki durumlu en kısa yol: bir düğüme ya bir tarife yolculuğuyla ("|L") ya da başlangıç/bağlantı
+      // geçişiyle ("|T") varılır. Yolculuk yalnızca "|T" durumundan başlar; böylece aynı otoyoldan çıkıp
+      // yeniden girmek (iki ayrı kalem) yol sayılmaz. Maliyet: toplam 1. sınıf ücreti + kalem başına küçük ceza.
+      const nodes = [...new Set([a.key, b.key, ...S.linkKeys])].map((k) => S.byKey.get(k));
+      const LEG_PENALTY = penalty;
+      const dist = new Map(), prev = new Map(), done = new Set();
+      const set = (state, c, from) => { if (c < (dist.has(state) ? dist.get(state) : Infinity)) { dist.set(state, c); prev.set(state, from); } };
+      set(a.key + "|T", 0, null);
+      let goal = null;
+      while (true) {
+        let u = null, du = Infinity;
+        dist.forEach((c, st) => { if (!done.has(st) && c < du) { du = c; u = st; } });
+        if (u === null) break;
+        const [key, mode] = u.split("|");
+        if (key === b.key) { goal = u; break; }
+        done.add(u);
+        const su = S.byKey.get(key);
+        if (mode === "T") {
+          nodes.forEach((v) => {   // aynı tarifede yolculuk (kalem)
+            if (v.oi !== su.oi || v.key === su.key) return;
+            const f = fare(su, v, "1");
+            if (f != null) set(v.key + "|L", du + f + LEG_PENALTY, { from: u, leg: true });
+          });
+        } else {
+          (S.links.get(key) || []).forEach((e) => {   // bağlantıdan diğer tarifeye geçiş (+ ara serbest geçişler)
+            const c = du + e.sgs.reduce((t, g) => t + (g.f && typeof g.f[0] === "number" ? g.f[0] : 0), 0);
+            set(e.to + "|T", c, { from: u, leg: false, link: e });
+          });
+        }
+      }
+      if (goal) {
+        legs = [];
+        for (let st = goal; prev.get(st); st = prev.get(st).from) {
+          const p = prev.get(st);
+          const to = S.byKey.get(st.split("|")[0]), from = S.byKey.get(p.from.split("|")[0]);
+          if (p.leg) legs.unshift({ a: from, b: to });
+          else {
+            [...p.link.sgs].reverse().forEach((g) => legs.unshift({ sgs: true, road: g.road, ad: g.ad, yon: g.yon, f: g.f, km: null }));
+            if (p.link.km != null) legs.unshift({ link: true, km: p.link.km });
+          }
+        }
+        if (!legs.some((l) => !l.sgs && !l.link)) legs = null;
+      }
+    }
+    // Kalemler: tarife yolculukları (a→b), ara serbest geçiş ücretleri (sgs) ve bağlantı yolu (link, yalnızca km).
+    const result = legs && legs.length ? {
+      legs: legs.map((l) => (l.sgs || l.link ? l : Object.assign(l, { f: fares(l.a, l.b), km: km(l.a, l.b) }))),
+    } : null;
+    if (result) {
+      const paid = result.legs.filter((l) => !l.link);
+      result.trips = result.legs.filter((l) => !l.sgs && !l.link);
+      result.total = Object.keys(CLASSES).map((k) => {
+        const parts = paid.map((l) => (l.f ? l.f[k - 1] : null));
+        return parts.every((x) => typeof x === "number") ? parts.reduce((t, x) => t + x, 0) : null;
+      });
+      const kms = result.legs.filter((l) => !l.sgs).map((l) => l.km);
+      result.km = kms.every((x) => typeof x === "number") ? kms.reduce((t, x) => t + x, 0) : null;
+    }
+    S.planCache.set(id, result);
+    return result;
+  }
+  const planFare = (p, cls) => (p && typeof p.total[Number(cls) - 1] === "number" ? p.total[Number(cls) - 1] : null);
+
+  // Güzergâh seçenekleri: "doğrudan" (en az kalem, eşitlikte en ucuz) ve varsa farklı bir "en ucuz" yol.
+  // Ödenen ücret sürücünün gerçekte hangi yoldan gittiğine bağlıdır; ikisi de gösterilir, varsayılan doğrudandır.
+  const DIRECT = 1e5, CHEAP = 15;
+  const sig = (p) => p.legs.map((l) => (l.sgs ? "s:" + l.ad : l.link ? "" : l.a.key + ">" + l.b.key)).join(",");
+  function plan(a, b) { return planWith(a, b, DIRECT); }
+  function routes(a, b) {
+    const d = planWith(a, b, DIRECT), c = a && b && a.oi !== b.oi ? planWith(a, b, CHEAP) : null;
+    if (!d) return c ? [c] : [];
+    if (!c || sig(c) === sig(d) || !(planFare(c, "1") < planFare(d, "1"))) return [d];
+    return [d, c];
+  }
+  function chosen(a, b) {
+    const r = routes(a, b);
+    return r.length ? r[Math.min(S.alt, r.length - 1)] : null;
+  }
+
   // ------------------------------------------------------------ seçenekler
 
   function optionsFor(role, q) {
     const other = role === "giris" ? S.exit : S.entry;
-    let pool = other ? S.stations.filter((s) => s.oi === other.oi && s.i !== other.i) : S.stations;
     const tokens = fold(q).split(" ").filter(Boolean);
-    if (tokens.length) {
-      const field = other ? "nameKey" : "search";   // diğer uç seçiliyse otoyol belli: yalnızca gişe adı
-      pool = pool.filter((s) => tokens.every((t) => s[field].includes(t)));
-      const qk = fold(q);
-      const rank = (s) => (s.nameKey.startsWith(qk) ? 0 : s.nameKey.split(" ").some((w) => w.startsWith(tokens[0])) ? 1 : s.nameKey.includes(qk) ? 2 : 3);
-      pool = pool.slice().sort((a, b) => rank(a) - rank(b));
-    }
+    const qk = fold(q);
+    const rank = (s) => (s.nameKey === qk ? -1 : s.nameKey.startsWith(qk) ? 0 : s.nameKey.split(" ").some((w) => w.startsWith(tokens[0])) ? 1 : s.nameKey.includes(qk) ? 2 : 3);
     const items = [];
     if (other) {
-      items.push({ head: other.road.ad });
-      pool.forEach((s) => {
-        const f = role === "cikis" ? fare(other, s, S.cls) : fare(s, other, S.cls);
-        const d = km(other, s);
-        items.push({ key: s.key, name: s.ad, sub: [s.il, d != null ? fmtKm.format(d) + " km" : ""].filter(Boolean).join(" · "),
+      // Diğer uç seçiliyse: ona ulaşılabilen bütün gişeler (önce aynı otoyol, sonra bağlantılı otoyollar).
+      let pool = S.stations.filter((s) => s.key !== other.key && (!tokens.length || tokens.every((t) => s.search.includes(t))));
+      const rows = pool.map((s) => ({ s, p: role === "cikis" ? plan(other, s) : plan(s, other) })).filter((x) => x.p);
+      if (tokens.length) rows.sort((x, y) => rank(x.s) - rank(y.s) || (x.s.oi !== other.oi) - (y.s.oi !== other.oi));
+      else rows.sort((x, y) => (x.s.oi !== other.oi) - (y.s.oi !== other.oi) || x.s.oi - y.s.oi || x.s.i - y.s.i);
+      let last = -1;
+      rows.forEach(({ s, p }) => {
+        if (!tokens.length && s.oi !== last) { items.push({ head: (s.road.yol ? s.road.yol + " · " : "") + s.road.ad }); last = s.oi; }
+        const f = planFare(p, S.cls);
+        const via = p.trips.length > 1 ? `${p.trips.length} tarife` : "";
+        items.push({ key: s.key, name: s.ad,
+          sub: [tokens.length ? s.road.ad : s.il, p.km != null ? fmtKm.format(p.km) + " km" : "", via].filter(Boolean).join(" · "),
           price: f != null ? fmtNum.format(f) + " ₺" : "—" });
       });
+      if (tokens.length && !rows.length && pool.length) items.push({ note: `${other.ad} ile bu gişe arasında bağlantılı tarife yok` });
       return items;
+    }
+    let pool = S.stations;
+    if (tokens.length) {
+      pool = pool.filter((s) => tokens.every((t) => s.search.includes(t)));
+      pool = pool.slice().sort((a, b) => rank(a) - rank(b));
     }
     let last = -1;
     pool.slice(0, 400).forEach((s) => {
@@ -114,7 +244,8 @@ window.RadarHesap = (function () {
     function render() {
       const esc = S.h.esc;
       if (!picks().length) {
-        list.innerHTML = `<li class="o-empty" role="option" aria-disabled="true">Eşleşen gişe yok</li>`;
+        const note = items.find((x) => x.note);
+        list.innerHTML = `<li class="o-empty" role="option" aria-disabled="true">${esc(note ? note.note : "Eşleşen gişe yok")}</li>`;
       } else {
         let n = 0;
         list.innerHTML = items.map((x) => {
@@ -161,16 +292,16 @@ window.RadarHesap = (function () {
     const s = S.byKey.get(key);
     if (!s) return false;
     const other = role === "giris" ? S.exit : S.entry;
-    if (other && (other.oi !== s.oi || other.i === s.i)) {
-      // Diğer uç başka tarifedeyse aynı adlı gişeyi bu tarifede ara; yoksa temizle
-      const same = other.oi !== s.oi ? S.stations.find((x) => x.oi === s.oi && x.nameKey === other.nameKey && x.i !== s.i) : null;
-      if (role === "giris") S.exit = same || null; else S.entry = same || null;
+    // Aynı gişe ya da bağlantısı olmayan bir çift seçilirse diğer uç bırakılır.
+    if (other && (other.key === s.key || !(role === "giris" ? plan(s, other) : plan(other, s)))) {
+      if (role === "giris") S.exit = null; else S.entry = null;
     }
     if (role === "giris") S.entry = s; else S.exit = s;
+    S.alt = 0;
     update();
     return !!(S.entry && S.exit);
   }
-  function swap() { [S.entry, S.exit] = [S.exit, S.entry]; update(); }
+  function swap() { [S.entry, S.exit] = [S.exit, S.entry]; S.alt = 0; update(); }
   function setClass(cls, silent) {
     if (!CLASSES[cls]) return;
     S.cls = cls;
@@ -189,26 +320,49 @@ window.RadarHesap = (function () {
 
   function resultHtml(a, b) {
     const esc = S.h.esc;
-    const f = fares(a, b);
-    const d = km(a, b);
+    const all = routes(a, b);
+    const p = all.length ? all[Math.min(S.alt, all.length - 1)] : null;
+    if (!p) {
+      return `<div class="result-empty"><strong>${esc(a.ad)} → ${esc(b.ad)}</strong>${a.oi === b.oi
+        ? "KGM tarifesinde bu yönde bu iki gişe arasında ücret yazılmamış."
+        : "Bu iki gişe arasında bağlantılı bir tarife bulunamadı."}</div>`;
+    }
+    const sgsLegs = p.legs.filter((l) => l.sgs);
+    const multi = p.trips.length > 1 || sgsLegs.length > 0;
     const o = a.road;
-    const v = f ? f[Number(S.cls) - 1] : null;
+    const v = planFare(p, S.cls);
     const arrow = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9.5 4.5 13 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-    const rows = f ? Object.keys(CLASSES).map((k) => `<li class="${k === S.cls ? "is-on" : ""}">${icon(k)}<span>${k}. sınıf · ${CLASSES[k].l}</span>
-      <b>${typeof f[k - 1] === "number" ? esc(fmtNum.format(f[k - 1])) + " ₺" : "—"}</b></li>`).join("") : "";
-    const doc = o.belge && /^https?:\/\//i.test(o.belge) ? `<a href="${esc(o.belge)}" target="_blank" rel="noopener noreferrer">KGM tarifesi ↗</a>` : "KGM tarifesi";
+    const rows = Object.keys(CLASSES).map((k) => `<li class="${k === S.cls ? "is-on" : ""}">${icon(k)}<span>${k}. sınıf · ${CLASSES[k].l}</span>
+      <b>${typeof p.total[k - 1] === "number" ? esc(fmtNum.format(p.total[k - 1])) + " ₺" : "—"}</b></li>`).join("");
+    const docLink = (r) => (r.belge && /^https?:\/\//i.test(r.belge) ? `<a href="${esc(r.belge)}" target="_blank" rel="noopener noreferrer">${multi ? esc(r.yol || "KGM") : "KGM tarifesi"} ↗</a>` : "");
+    const roads = [...new Set(p.trips.map((l) => l.a.road).concat(sgsLegs.map((l) => l.road)))];
+    const price = (f) => { const x = f ? f[Number(S.cls) - 1] : null; return typeof x === "number" ? esc(fmtNum.format(x)) + " ₺" : "—"; };
+    const legsHtml = multi ? `<ol class="legs">${p.legs.filter((l) => !l.link).map((l) => (l.sgs
+      ? `<li class="is-sgs"><div class="leg-top"><span class="sw sw-serbest" aria-hidden="true"></span><span class="leg-road">Serbest geçiş · ${esc(l.ad)}</span><b>${price(l.f)}</b></div>
+          <div class="leg-trip">${esc(l.road.ad)}${l.yon ? " · " + esc(l.yon) : ""}</div></li>`
+      : `<li><div class="leg-top">${l.a.road.yol ? `<span class="ref">${esc(l.a.road.yol)}</span>` : ""}<span class="leg-road">${esc(l.a.road.ad)}</span><b>${price(l.f)}</b></div>
+          <div class="leg-trip">${esc(l.a.ad)} → ${esc(l.b.ad)}${l.km != null ? ` · ${esc(fmtKm.format(l.km))} km` : ""}</div></li>`)).join("")}</ol>` : "";
     const valid = o.gecerlilik ? `Geçerlilik ${esc(S.h.date(o.gecerlilik))}` : "KDV dahil";
-    return `<article class="fare" aria-label="Geçiş ücreti">
+    const noPos = [a, b].some((s) => !hasPos(s));
+    const roadsOf = (r) => [...new Set(r.trips.map((l) => l.a.road.ad.replace(/\s*\(.*\)\s*$/, "")))].join(" → ");
+    const chooser = all.length > 1 ? `<div class="route-choice" role="radiogroup" aria-label="Güzergâh">${all.map((r, i) => `
+      <button type="button" role="radio" data-route="${i}" aria-checked="${r === p}">
+        <span class="rc-k">${i === 0 ? "Doğrudan" : "En ucuz"}</span><span class="rc-v">${planFare(r, S.cls) != null ? esc(fmtNum.format(planFare(r, S.cls))) + " ₺" : "—"}</span>
+        <span class="rc-s">${esc(roadsOf(r))}</span></button>`).join("")}</div>` : "";
+    return `${chooser}<article class="fare" aria-label="Geçiş ücreti">
       <div class="fare-main">
-        <div class="fare-label">${S.cls}. sınıf · ${CLASSES[S.cls].l}</div>
+        <div class="fare-label">${S.cls}. sınıf · ${CLASSES[S.cls].l}${multi ? " · toplam" : ""}</div>
         <div class="fare-amount">${v != null ? esc(fmtNum.format(v)) + '<span class="cur">₺</span>' : "—"}</div>
         <div class="fare-trip"><span>${esc(a.ad)}</span>${arrow}<span>${esc(b.ad)}</span></div>
-        <div class="fare-meta">${o.yol ? `<span class="ref">${esc(o.yol)}</span>` : ""}<span>${esc(o.ad)}</span>${d != null ? `<span>· ${esc(fmtKm.format(d))} km</span>` : ""}</div>
+        <div class="fare-meta">${multi ? `<span>${p.trips.length} tarife${sgsLegs.length ? ` + ${sgsLegs.length} serbest geçiş` : ""}</span>`
+          : `${o.yol ? `<span class="ref">${esc(o.yol)}</span>` : ""}<span>${esc(o.ad)}</span>`}${p.km != null ? `<span>· ${esc(fmtKm.format(p.km))} km</span>` : ""}</div>
+        ${legsHtml}
         ${v == null ? `<p class="fare-note">Tarifede bu sınıf için ücret yok.</p>` : ""}
-        ${!hasPos(a) || !hasPos(b) ? `<p class="fare-note">Gişelerden birinin konumu kayıtlı değil; güzergâh çizilemedi.</p>` : ""}
+        ${noPos ? `<p class="fare-note">Gişelerden birinin konumu kayıtlı değil; güzergâh çizilemedi.</p>` : ""}
+        ${multi ? `<p class="fare-hint">Her bölüm kendi tarifesine göre ayrı ücretlendirilir; toplam, bölümlerin KGM tarifelerindeki ücretlerin toplamıdır.</p>` : ""}
       </div>
-      ${rows ? `<ul class="fare-classes">${rows}</ul>` : ""}
-      <div class="fare-foot"><span>${valid}${o.yonlu ? " · yöne göre değişir" : ""}</span>${doc}</div>
+      <ul class="fare-classes">${rows}</ul>
+      <div class="fare-foot"><span>${valid}${roads.some((r) => r.yonlu) ? " · yöne göre değişir" : ""}</span><span class="docs">${roads.map(docLink).filter(Boolean).join(" ")}</span></div>
     </article>
     <div class="actions">
       <button type="button" class="btn" data-trip-action="swap"><svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4v12M7 16l-3-3M7 16l3-3M13 16V4M13 4l-3 3M13 4l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>Ters yön</button>
@@ -257,28 +411,36 @@ window.RadarHesap = (function () {
     const a = S.entry, b = S.exit;
     const stop = (s, role) => (hasPos(s) ? { lat: s.lat, lon: s.lon, name: s.ad, role } : null);
     if (!a && !b) { S.map.clearRoute(); return; }
-    S.map.showRoute({ path: a && b && hasPos(a) && hasPos(b) ? routePath(a, b) : [],
-      entry: a ? stop(a, "in") : null, exit: b ? stop(b, "out") : null, fit: !keepView });
+    let path = [];
+    const p = a && b ? chosen(a, b) : null;
+    if (p) p.trips.forEach((l) => { if (hasPos(l.a) && hasPos(l.b)) path = path.concat(routePath(l.a, l.b)); });
+    S.map.showRoute({ path, entry: a ? stop(a, "in") : null, exit: b ? stop(b, "out") : null, fit: !keepView });
   }
 
   // ------------------------------------------------------------ adres çubuğu
 
   function writeHash() {
     try {
-      const a = S.entry, b = S.exit, o = (a || b) && (a || b).road;
-      const hash = o ? `#hesap=${encodeURIComponent(o.id || "")}/${a ? a.i : ""}/${b ? b.i : ""}/${S.cls}` : "";
+      // Biçim: #hesap=<giriş otoyolu>/<giriş sırası>/<çıkış otoyolu>/<çıkış sırası>/<sınıf>
+      const a = S.entry, b = S.exit;
+      const end = (s) => (s ? `${encodeURIComponent(s.road.id || "")}/${s.i}` : "/");
+      const hash = a || b ? `#hesap=${end(a)}/${end(b)}/${S.cls}` : "";
       if (location.hash !== hash) history.replaceState(null, "", location.pathname + location.search + hash);
     } catch (e) { /* önemli değil */ }
   }
   function readHash() {
     const m = /(?:^#|&)hesap=([^&]*)/.exec(location.hash || "");
     if (!m) return false;
-    const [id, gi, ci, cls] = decodeURIComponent(m[1]).split("/");
-    const oi = S.roads.findIndex((o) => o.id === id);
-    if (oi < 0) return false;
+    const parts = m[1].split("/").map((x) => decodeURIComponent(x));
+    // Eski biçim (tek otoyol): otoyol/giriş/çıkış/sınıf
+    const [ga, gi, ca, ci, cls] = parts.length === 4 ? [parts[0], parts[1], parts[0], parts[2], parts[3]] : parts;
+    const get = (id, i) => {
+      const oi = S.roads.findIndex((o) => o.id === id);
+      return oi >= 0 && i !== "" && i != null ? S.byKey.get(`${oi}:${i}`) || null : null;
+    };
     if (CLASSES[cls]) S.cls = cls;
-    if (gi !== "" && S.byKey.has(`${oi}:${gi}`)) S.entry = S.byKey.get(`${oi}:${gi}`);
-    if (ci !== "" && S.byKey.has(`${oi}:${ci}`)) S.exit = S.byKey.get(`${oi}:${ci}`);
+    S.entry = get(ga, gi);
+    S.exit = get(ca, ci);
     return !!(S.entry || S.exit);
   }
 
@@ -325,6 +487,8 @@ window.RadarHesap = (function () {
     $("#trip-swap").addEventListener("click", swap);
     $("#trip-classes").addEventListener("click", (e) => { const b = e.target.closest("[data-cls]"); if (b) setClass(b.dataset.cls); });
     $("#trip-result").addEventListener("click", (e) => {
+      const r = e.target.closest("[data-route]");
+      if (r) { S.alt = Number(r.dataset.route) || 0; update(); return; }
       const b = e.target.closest("[data-trip-action]");
       if (!b) return;
       if (b.dataset.tripAction === "swap") swap();
@@ -340,6 +504,8 @@ window.RadarHesap = (function () {
     init, pick, popupHtml, stationsNear, fold,
     setClass: (c) => setClass(c, true),
     allStations: () => S.stations,
+    roads: () => S.roads,
+    reload: () => { if (readHash()) update(); },
     redraw: () => drawRoute(false),
     classIcon: (k) => icon(k),
     className: (k) => (CLASSES[k] ? CLASSES[k].l : ""),

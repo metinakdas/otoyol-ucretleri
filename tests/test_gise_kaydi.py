@@ -6,6 +6,7 @@ Otoyol gişelerinin konumları yalnızca bizim kaydımızdan gelir; radar çalı
 from __future__ import annotations
 
 import json
+import re
 import shutil
 
 import pytest
@@ -171,3 +172,175 @@ def test_radar_dosyalari_haritaya_dis_kaynak_kullanmaz():
         text = path.read_text(encoding="utf-8").lower()
         assert "overpass" not in text, path.name
     assert not (ROOT / "radar" / "harita.py").exists()
+
+
+# ------------------------------------------------------------------ serbest geçiş noktaları ve bağlantılar
+
+def _tablo():
+    return json.loads((ROOT / "data" / "ucret-tablosu.json").read_text(encoding="utf-8"))
+
+
+def _km(a, b):
+    return ut._uzaklik((a["lat"], a["lon"]), (b["lat"], b["lon"]))
+
+
+def test_serbest_gecis_kaydi_tarifedeki_her_satiri_kapsar():
+    """Tablolardaki her serbest geçiş satırı kayıtta; SGS adlı istasyonlar serbest, 'Serbest Bölge' değil."""
+    kayit = ut.gise_kaydi_oku(KAYIT)
+    serbest = ut.serbest_kaydi_oku(KAYIT)
+    tablo = _tablo()
+    eksik = [f"{o['id']}/{r['ad']}" for o in tablo["otoyollar"] for r in o["serbest_gecis"]
+             if ut._ad_anahtari(r["ad"]) not in (serbest.get(o["id"]) or {})]
+    assert eksik == []
+    assert sum(len(o["serbest_gecis"]) for o in tablo["otoyollar"]) >= 40
+    for o in tablo["otoyollar"]:
+        for s in o["istasyonlar"]:
+            g = kayit[o["id"]][ut._ad_anahtari(s["ad"])]
+            if re.search(r"\bSGS\b", s["ad"]):
+                assert g["serbest"] and s.get("serbest") is True, s["ad"]
+            if "serbest b" in s["ad"].lower():          # Serbest Bölge çıkışı serbest geçiş değildir
+                assert not g["serbest"] and "serbest" not in s, s["ad"]
+        for r in o["serbest_gecis"]:                    # yayımlanan tabloda konum alanları var
+            assert {"lat", "lon", "il", "bolge"} <= set(r), (o["id"], r["ad"])
+    for oid, rows in serbest.items():
+        for p in rows.values():
+            assert p["il"] and p["bolge"], (oid, p["ad"])
+
+
+def test_serbest_noktalar_ayni_otoyolun_giselerine_yakin():
+    """Her serbest geçiş noktası aynı otoyolun en yakın gişesinden 40 km'den uzak olamaz (yanlış yer)."""
+    kayit = ut.gise_kaydi_oku(KAYIT)
+    for oid, rows in ut.serbest_kaydi_oku(KAYIT).items():
+        gises = [g for g in kayit[oid].values() if g["lat"] is not None]
+        for p in rows.values():
+            if p["lat"] is not None:
+                assert min(_km(p, g) for g in gises) < 40, (oid, p["ad"])
+
+
+def test_baglantilar_kayitta_gecerli_ve_yakin():
+    """Bağlantının iki ucu tarifede var, farklı tablolarda; kuş uçuşu uzaklık yol km'sini aşmaz.
+
+    Kavşak bağlantıları (yol_km ≤ 5) birkaç km içindedir; daha uzun olanlar ara kesimi gişesiz aynı
+    otoyoldur ve 60 km'yi geçmez.
+    """
+    kayit = ut.gise_kaydi_oku(KAYIT)
+    baglantilar = ut.baglanti_kaydi_oku(KAYIT)
+    tablo = {o["id"]: o for o in _tablo()["otoyollar"]}
+    assert len(baglantilar) >= 10
+    for b in baglantilar:
+        uclar = []
+        for u in (b["a"], b["b"]):
+            assert u["otoyol"] in tablo, u
+            adlar = [ut._ad_anahtari(s["ad"]) for s in tablo[u["otoyol"]]["istasyonlar"]]
+            assert ut._ad_anahtari(u["ad"]) in adlar, u
+            uclar.append(kayit[u["otoyol"]][ut._ad_anahtari(u["ad"])])
+        assert b["a"]["otoyol"] != b["b"]["otoyol"]
+        assert b["not"] and 0 < b["yol_km"] <= 60
+        assert uclar[0]["lat"] is not None and uclar[1]["lat"] is not None, b
+        d = _km(*uclar)
+        assert d <= b["yol_km"] + 1, (b["a"]["ad"], b["b"]["ad"], d)
+        if b["yol_km"] <= 5:
+            assert d <= 5, (b["a"]["ad"], b["b"]["ad"], d)
+        for yon in ("ab", "ba"):
+            for r in b["ara_serbest"][yon]:
+                rows = tablo[r["otoyol"]]["serbest_gecis"]
+                assert any(ut._ad_anahtari(x["ad"]) == ut._ad_anahtari(r["ad"]) and x["yon"] == r["yon"]
+                           for x in rows), r
+
+
+def test_yayimlanan_baglantilar_tabloyla_tutarli():
+    """data/ucret-tablosu.json'daki bağlantılar: indeksler doğru istasyonu ve serbest geçiş satırını gösterir."""
+    data = _tablo()
+    tablo = {o["id"]: o for o in data["otoyollar"]}
+    assert len(data["baglantilar"]) == len(ut.baglanti_kaydi_oku(KAYIT))
+    for b in data["baglantilar"]:
+        assert set(b) == {"a", "b", "tek_yon", "yol_km", "uzaklik_km", "ara_serbest", "ucretlendirme", "not"}
+        for u in (b["a"], b["b"]):
+            assert tablo[u["otoyol"]]["istasyonlar"][u["i"]]["ad"] == u["ad"]
+        assert b["ucretlendirme"] == "ayri" and b["uzaklik_km"] is not None
+        for yon in ("ab", "ba"):
+            for r in b["ara_serbest"][yon]:
+                x = tablo[r["otoyol"]]["serbest_gecis"][r["j"]]
+                assert (x["ad"], x["yon"]) == (r["ad"], r["yon"])
+    # İzmit Kuzey (KMO) → Paşaköy (YSS) sorusu Kurnaköy bağlantısıyla yanıtlanabilir
+    assert any({b["a"]["ad"], b["b"]["ad"]} == {"Kurnaköy", "Kurnaköy 2"} for b in data["baglantilar"])
+    assert tablo["yss-kuzey-cevre"]["dahil_gecisler"] == ["yavuz-sultan-selim"]
+    assert tablo["izmir-aydin"]["dahil_gecisler"] == []
+
+
+_BAG = "baglantilar:\n  - {a: {otoyol: x, ad: A}, b: {otoyol: y, ad: B}, yol_km: 1, not: n"
+
+
+@pytest.mark.parametrize("text, hata", [
+    ("baglantilar:\n  - {a: {otoyol: x, ad: A}, b: {otoyol: x, ad: B}, yol_km: 1, not: n}\n", "aynı tabloda"),
+    ("baglantilar:\n  - {a: {otoyol: x, ad: A}, b: {otoyol: y, ad: B}, yol_km: 1}\n", "not yazılmalı"),
+    ("baglantilar:\n  - {a: {otoyol: x, ad: A}, b: {otoyol: y, ad: B}, not: n}\n", "yol_km"),
+    ("baglantilar:\n  - {a: {otoyol: x}, b: {otoyol: y, ad: B}, yol_km: 1, not: n}\n", "otoyol, ad"),
+    (_BAG + "}\n  - {a: {otoyol: y, ad: b}, b: {otoyol: x, ad: a}, yol_km: 1, not: n}\n", "iki kez"),
+    (_BAG + ", ara_serbest: {ileri: []}}\n", "ab ve ba"),
+    (_BAG + ", tek_yon: evet}\n", "tek_yon"),
+    ("baglantilar: {a: 1}\n", "liste"),
+])
+def test_bozuk_baglanti_kaydi_yakalanir(tmp_path, text, hata):
+    with pytest.raises(ut.GiseKaydiHatasi, match=hata):
+        ut.baglanti_kaydi_oku(_yaz(tmp_path, text))
+
+
+@pytest.mark.parametrize("text, hata", [
+    ("serbest_gecis:\n  x:\n    - {ad: A, satirlar: B}\n", "satirlar"),
+    ("serbest_gecis:\n  x:\n    - {ad: A, satirlar: [B]}\n    - {ad: C, satirlar: [b]}\n", "iki kez"),
+    ("serbest_gecis:\n  x:\n    - {ad: A, konum: [48.8, 2.3]}\n", "Türkiye dışında"),
+    ("serbest_gecis: [1]\n", "otoyol kimlikleri"),
+    ("x:\n  - {ad: A, serbest: evet}\n", "serbest true ya da false"),
+])
+def test_bozuk_serbest_kaydi_yakalanir(tmp_path, text, hata):
+    with pytest.raises(ut.GiseKaydiHatasi, match=hata):
+        path = _yaz(tmp_path, text)
+        ut.gise_kaydi_oku(path)
+        ut.serbest_kaydi_oku(path)
+
+
+def test_serbest_bayragi_satir_konumlari_ve_baglanti_cozumu(tmp_path):
+    path = _yaz(tmp_path, """
+serbest_gecis:
+  kmo:
+    - {ad: Kargo, satirlar: [24 (Kargo A), 24 (Kargo B)], konum: [41.23771, 28.81599], il: İstanbul}
+baglantilar:
+  - a: {otoyol: kmo, ad: Fatih}
+    b: {otoyol: yss, ad: Odayeri}
+    yol_km: 9
+    not: O-7
+    ara_serbest:
+      ab: [{otoyol: kmo, ad: 24 (Kargo A), yon: Kuzey - Güney}]
+      ba: [{otoyol: kmo, ad: 24 (Kargo B)}]
+  - {a: {otoyol: kmo, ad: Fatih}, b: {otoyol: yss, ad: Yok}, yol_km: 1, not: n}
+kmo:
+  - {ad: Fatih, konum: [41.24345, 28.71436], il: İstanbul, serbest: true}
+yss:
+  - {ad: Odayeri, konum: [41.23794, 28.82095], il: İstanbul}
+""")
+    otoyollar = [
+        {"id": "kmo", "ad": "KMO", "istasyonlar": [{"ad": "Fatih"}],
+         "serbest_gecis": [{"ad": "24 (Kargo A)", "yon": "Kuzey - Güney", "ucret": [12] * 6},
+                           {"ad": "24 (Kargo B)", "yon": "Güney - Kuzey", "ucret": [12] * 6},
+                           {"ad": "21 (Terminal A)", "yon": "Kuzey - Güney", "ucret": [19.5] * 6},
+                           {"ad": "21 (Terminal A)", "yon": "Güney - Kuzey", "ucret": [19.5] * 6}]},
+        {"id": "yss", "ad": "YSS", "istasyonlar": [{"ad": "Odayeri", "serbest": True}], "serbest_gecis": []},
+    ]
+    kayitsiz = ut.konumlari_uygula(otoyollar, ut.gise_kaydi_oku(path), ut.serbest_kaydi_oku(path))
+    assert otoyollar[0]["istasyonlar"][0]["serbest"] is True
+    assert "serbest" not in otoyollar[1]["istasyonlar"][0]           # kayıtta yoksa eski bayrak silinir
+    rows = otoyollar[0]["serbest_gecis"]
+    assert (rows[0]["lat"], rows[0]["lon"], rows[0]["il"], rows[0]["bolge"]) == (41.23771, 28.81599, "İstanbul", "marmara")
+    assert rows[1]["lat"] == 41.23771 and rows[2]["lat"] is None
+    # Kayıtta olmayan satır bir kez (iki yönü olsa da) bildirilir
+    assert kayitsiz == [{"otoyol": "kmo", "otoyol_adi": "KMO", "ad": "21 (Terminal A)", "tur": "serbest"}]
+
+    baglantilar, eksik = ut.baglantilari_coz(otoyollar, ut.baglanti_kaydi_oku(path))
+    assert baglantilar == [{
+        "a": {"otoyol": "kmo", "i": 0, "ad": "Fatih"}, "b": {"otoyol": "yss", "i": 0, "ad": "Odayeri"},
+        "tek_yon": False, "yol_km": 9.0, "uzaklik_km": 8.9, "ucretlendirme": "ayri", "not": "O-7",
+        "ara_serbest": {"ab": [{"otoyol": "kmo", "j": 0, "ad": "24 (Kargo A)", "yon": "Kuzey - Güney"}],
+                        "ba": [{"otoyol": "kmo", "j": 1, "ad": "24 (Kargo B)", "yon": "Güney - Kuzey"}]},
+    }]
+    assert eksik == ["Fatih ↔ Yok: tabloda yok: yss / Yok"]

@@ -19,6 +19,7 @@ FLAG_NOTES = {
     "saat_kontrol": "Başlangıç ve bitiş saatleri okunamadı; bayram günleri varsayıldı.",
     "olagan_disi": "Ücret değişimi olağan dışı (düşüş ya da çok yüksek artış).",
     "kontrol_et": "Okunan değerleri kaynakla karşılaştırın.",
+    "gorulme_tarihi": "Kaynakta yürürlük tarihi yazmıyor; değişikliğin radarca ilk görüldüğü an esas alındı.",
 }
 
 
@@ -207,12 +208,15 @@ def gise_kaydi_eksik(cfg: Config, giseler: list[dict]) -> tuple[str, str, str]:
     t = Text().line(f"<b>[{head}] {len(giseler)} gişe</b>", f"[{head}] {len(giseler)} gişe")
     t.line("KGM tarifesinde olup gişe kaydında (config/giseler.yaml) olmayan gişeler:")
     for g in giseler[:40]:
-        t.line(f"• {esc(g['ad'])} · {esc(g.get('otoyol_adi') or g['otoyol'])}",
-               f"- {g['ad']} · {g.get('otoyol_adi') or g['otoyol']}")
+        tur = " (serbest geçiş)" if g.get("tur") == "serbest" else ""
+        t.line(f"• {esc(g['ad'])}{tur} · {esc(g.get('otoyol_adi') or g['otoyol'])}",
+               f"- {g['ad']}{tur} · {g.get('otoyol_adi') or g['otoyol']}")
     if len(giseler) > 40:
         t.line(f"… ve {len(giseler) - 40} gişe daha")
     t.line("Ücret hesabında seçilebilirler ama haritada görünmezler. Kayda tarifedeki adıyla ekleyin; "
            "konum bilinmiyorsa \"konum: null\" yazın.")
+    if any(g.get("tur") == "serbest" for g in giseler):
+        t.line("Serbest geçiş satırları kayıtta \"serbest_gecis\" bölümüne, \"satirlar\" listesiyle yazılır.")
     h, p = t.render()
     return f"[Tarife Radarı] {head}: {len(giseler)} gişe", h, p
 

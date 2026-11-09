@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "olusturma": "2026-11-09T02:40:22+03:00",
+  "olusturma": "2026-11-09T03:19:30+03:00",
   "kaynak": "KGM geçiş ücreti tarifeleri",
   "kaynak_adres": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx",
   "siniflar": {
@@ -45,8 +45,8 @@
         },
         {
           "ad": "Mecidiye",
-          "lat": 40.95307,
-          "lon": 29.31489,
+          "lat": 40.95165,
+          "lon": 29.31395,
           "il": "İstanbul",
           "bolge": "marmara"
         },
@@ -136,10 +136,11 @@
         },
         {
           "ad": "Kartepe",
-          "lat": 40.76343,
-          "lon": 30.03226,
+          "lat": 40.76851,
+          "lon": 30.04253,
           "il": "Kocaeli",
-          "bolge": "marmara"
+          "bolge": "marmara",
+          "serbest": true
         },
         {
           "ad": "Doğu İzmit",
@@ -178,10 +179,11 @@
         },
         {
           "ad": "Topağaç",
-          "lat": 40.73817,
-          "lon": 30.65029,
+          "lat": 40.73898,
+          "lon": 30.63177,
           "il": "Sakarya",
-          "bolge": "marmara"
+          "bolge": "marmara",
+          "serbest": true
         },
         {
           "ad": "Hendek",
@@ -6047,7 +6049,8 @@
         "Gebze Org. San. Bölgeleri: tabloda kendi sütunu yok; yalnızca önceki istasyonlardan gelen ücretler var (sonraki istasyonlarla ücret yazılmamış)",
         "Batı Hereke: sütun başlığında 'Doğu Hereke' yazıyor; satırdaki ad kullanıldı",
         "Batı İzmit: tabloda kendi sütunu yok; yalnızca önceki istasyonlardan gelen ücretler var (sonraki istasyonlarla ücret yazılmamış)"
-      ]
+      ],
+      "dahil_gecisler": []
     },
     {
       "id": "izmir-cesme",
@@ -6318,7 +6321,8 @@
       "notlar": [
         "Ücretlere KDV Dahildir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "izmir-aydin",
@@ -6589,7 +6593,8 @@
       "notlar": [
         "Ücretlere KDV Dahildir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "cukurova-adana-gaziantep",
@@ -8158,7 +8163,8 @@
       "notlar": [
         "Ücretlere KDV dahildir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "cukurova-gaziantep-sanliurfa",
@@ -8365,7 +8371,8 @@
       "notlar": [
         "Ücretlere KDV dahildir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "cukurova-nigde-mersin-adana",
@@ -9564,7 +9571,8 @@
       "uyarilar": [
         "Niğde Güney: tabloda satırı yok; yalnızca sonraki istasyonlardan gelen ücretler var",
         "Pozantı (Güney): tabloda satırı yok; yalnızca sonraki istasyonlardan gelen ücretler var"
-      ]
+      ],
+      "dahil_gecisler": []
     },
     {
       "id": "avrupa-mahmutbey-edirne",
@@ -11305,7 +11313,8 @@
       "notlar": [
         "Ücretlere KDV dahildir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "gebze-orhangazi-izmir-gebze-bursa",
@@ -11874,6 +11883,9 @@
       "uyarilar": [
         "Osmangazi Köprüsü (İstanbul Yönü): tabloda giriş satırı yok; bu gişeden girişin ücreti yazılmamış",
         "Ücretler yöne göre değişiyor: 'ucret' önceki istasyondan girip sonrakinden çıkışı, 'ucret_geri' ters yönü verir"
+      ],
+      "dahil_gecisler": [
+        "osmangazi"
       ]
     },
     {
@@ -13737,7 +13749,8 @@
       "notlar": [],
       "uyarilar": [
         "Ücretler yöne göre değişiyor: 'ucret' önceki istasyondan girip sonrakinden çıkışı, 'ucret_geri' ters yönü verir"
-      ]
+      ],
+      "dahil_gecisler": []
     },
     {
       "id": "yss-kuzey-cevre",
@@ -13821,8 +13834,8 @@
         },
         {
           "ad": "Mecidiye",
-          "lat": 40.95307,
-          "lon": 29.31489,
+          "lat": 40.95405,
+          "lon": 29.31544,
           "il": "İstanbul",
           "bolge": "marmara"
         },
@@ -14588,7 +14601,11 @@
             41,
             49,
             12
-          ]
+          ],
+          "lat": 41.07112,
+          "lon": 28.81544,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "İkitelli",
@@ -14600,7 +14617,11 @@
             43,
             56,
             12
-          ]
+          ],
+          "lat": 41.07939,
+          "lon": 28.81375,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Başakşehir Güney",
@@ -14612,7 +14633,11 @@
             49,
             63,
             16.5
-          ]
+          ],
+          "lat": 41.09177,
+          "lon": 28.8134,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Başakşehir",
@@ -14624,7 +14649,11 @@
             63,
             78.5,
             19.5
-          ]
+          ],
+          "lat": 41.10788,
+          "lon": 28.81477,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Fenertepe",
@@ -14636,7 +14665,11 @@
             97.5,
             121,
             29.5
-          ]
+          ],
+          "lat": 41.12762,
+          "lon": 28.80751,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çekmeköy",
@@ -14648,7 +14681,11 @@
             48,
             60,
             12
-          ]
+          ],
+          "lat": 41.03843,
+          "lon": 29.19419,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çamlık",
@@ -14660,7 +14697,11 @@
             127.5,
             161.5,
             34.5
-          ]
+          ],
+          "lat": 41.0521,
+          "lon": 29.16684,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Sarıgazi",
@@ -14672,7 +14713,11 @@
             41,
             49,
             12
-          ]
+          ],
+          "lat": 41.02347,
+          "lon": 29.1962,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Kömürlük",
@@ -14684,7 +14729,11 @@
             183.5,
             229,
             49
-          ]
+          ],
+          "lat": 41.1215,
+          "lon": 29.3341,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "İstoç",
@@ -14696,7 +14745,11 @@
             41,
             49,
             12
-          ]
+          ],
+          "lat": 41.07112,
+          "lon": 28.81544,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "İkitelli",
@@ -14708,7 +14761,11 @@
             0,
             0,
             0
-          ]
+          ],
+          "lat": 41.07939,
+          "lon": 28.81375,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Başakşehir Güney",
@@ -14720,7 +14777,11 @@
             92,
             119,
             28.5
-          ]
+          ],
+          "lat": 41.09177,
+          "lon": 28.8134,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Başakşehir",
@@ -14732,7 +14793,11 @@
             63,
             78.5,
             19.5
-          ]
+          ],
+          "lat": 41.10788,
+          "lon": 28.81477,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Fenertepe",
@@ -14744,7 +14809,11 @@
             97.5,
             121,
             29.5
-          ]
+          ],
+          "lat": 41.12762,
+          "lon": 28.80751,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çekmeköy",
@@ -14756,7 +14825,11 @@
             48,
             60,
             12
-          ]
+          ],
+          "lat": 41.03843,
+          "lon": 29.19419,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Çamlık",
@@ -14768,7 +14841,11 @@
             127.5,
             161.5,
             34.5
-          ]
+          ],
+          "lat": 41.0521,
+          "lon": 29.16684,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Sarıgazi",
@@ -14780,7 +14857,11 @@
             41,
             49,
             12
-          ]
+          ],
+          "lat": 41.02347,
+          "lon": 29.1962,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "Kömürlük",
@@ -14792,7 +14873,11 @@
             183.5,
             229,
             49
-          ]
+          ],
+          "lat": 41.1215,
+          "lon": 29.3341,
+          "il": "İstanbul",
+          "bolge": "marmara"
         }
       ],
       "notlar": [
@@ -14801,7 +14886,10 @@
         "Ücretlere KDV dahildir.",
         "İkitelli Kavşağı'nda (Kuzey - Güney) yönünde çıkış bulunmadığı için, bu kısma ait ücretlendirme, Başakşehir Güney (Kuzey - Güney) istasyonunda yapılmaktadır."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": [
+        "yavuz-sultan-selim"
+      ]
     },
     {
       "id": "kmo-kinali-odayeri",
@@ -15334,7 +15422,11 @@
             48,
             60,
             12
-          ]
+          ],
+          "lat": 41.24248,
+          "lon": 28.75831,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "22 (Terminal 2 Yanyol A)",
@@ -15346,7 +15438,11 @@
             31,
             41,
             10.5
-          ]
+          ],
+          "lat": 41.24251,
+          "lon": 28.75833,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "23 (Terminal 1 Yanyol A)",
@@ -15358,7 +15454,11 @@
             31,
             41,
             10.5
-          ]
+          ],
+          "lat": 41.24142,
+          "lon": 28.77536,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "24 (Kargo A)",
@@ -15370,7 +15470,11 @@
             31,
             41,
             10.5
-          ]
+          ],
+          "lat": 41.23771,
+          "lon": 28.81599,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "72 A (Cebeci)",
@@ -15382,7 +15486,11 @@
             19.5,
             26,
             4.5
-          ]
+          ],
+          "lat": 41.12209,
+          "lon": 28.8487,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "73 A (Hasdal A)",
@@ -15394,7 +15502,11 @@
             97.5,
             124,
             29.5
-          ]
+          ],
+          "lat": 41.11594,
+          "lon": 28.87016,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "21 (Terminal B)",
@@ -15406,7 +15518,11 @@
             48,
             60,
             12
-          ]
+          ],
+          "lat": 41.24248,
+          "lon": 28.75831,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "22 (Terminal 2 Yanyol B)",
@@ -15418,7 +15534,11 @@
             26,
             29.5,
             10.5
-          ]
+          ],
+          "lat": 41.24251,
+          "lon": 28.75833,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "23 (Terminal 1 Yanyol B)",
@@ -15430,7 +15550,11 @@
             19.5,
             29.5,
             10.5
-          ]
+          ],
+          "lat": 41.24142,
+          "lon": 28.77536,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "24 (Kargo B)",
@@ -15442,7 +15566,11 @@
             29.5,
             34.5,
             10.5
-          ]
+          ],
+          "lat": 41.23771,
+          "lon": 28.81599,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "72 B (Cebeci)",
@@ -15454,7 +15582,11 @@
             26,
             29.5,
             10.5
-          ]
+          ],
+          "lat": 41.12209,
+          "lon": 28.8487,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "73 B (Hasdal B)",
@@ -15466,7 +15598,11 @@
             98.5,
             124,
             29.5
-          ]
+          ],
+          "lat": 41.11594,
+          "lon": 28.87016,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "71 A1 (Habipler A)",
@@ -15478,7 +15614,11 @@
             16.5,
             19.5,
             4.5
-          ]
+          ],
+          "lat": 41.1205,
+          "lon": 28.83187,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "71 A2 (Habipler Yanyol A )",
@@ -15490,7 +15630,11 @@
             16.5,
             19.5,
             4.5
-          ]
+          ],
+          "lat": 41.1205,
+          "lon": 28.83187,
+          "il": "İstanbul",
+          "bolge": "marmara"
         },
         {
           "ad": "71 B2 (Habipler Yanyol B)",
@@ -15502,7 +15646,11 @@
             16.5,
             26,
             4.5
-          ]
+          ],
+          "lat": 41.1205,
+          "lon": 28.83187,
+          "il": "İstanbul",
+          "bolge": "marmara"
         }
       ],
       "notlar": [
@@ -15510,7 +15658,8 @@
       ],
       "uyarilar": [
         "Ücretler yöne göre değişiyor: 'ucret' önceki istasyondan girip sonrakinden çıkışı, 'ucret_geri' ters yönü verir"
-      ]
+      ],
+      "dahil_gecisler": []
     },
     {
       "id": "kmo-kurtkoy-akyazi",
@@ -17380,7 +17529,11 @@
             63,
             78.5,
             16.5
-          ]
+          ],
+          "lat": 40.86276,
+          "lon": 29.54002,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Demirciler A",
@@ -17392,7 +17545,11 @@
             43,
             56,
             12
-          ]
+          ],
+          "lat": 40.81836,
+          "lon": 29.53155,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "D100 A",
@@ -17404,7 +17561,11 @@
             34.5,
             43,
             12
-          ]
+          ],
+          "lat": 40.80468,
+          "lon": 29.52014,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "İzmit OSB A",
@@ -17416,7 +17577,11 @@
             48,
             60,
             12
-          ]
+          ],
+          "lat": 40.76853,
+          "lon": 30.0449,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Mermerciler B",
@@ -17428,7 +17593,11 @@
             56,
             72.5,
             16.5
-          ]
+          ],
+          "lat": 40.86276,
+          "lon": 29.54002,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "Demirciler B",
@@ -17440,7 +17609,11 @@
             41,
             48,
             12
-          ]
+          ],
+          "lat": 40.81836,
+          "lon": 29.53155,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "D100 B",
@@ -17452,7 +17625,11 @@
             31,
             41,
             10.5
-          ]
+          ],
+          "lat": 40.80468,
+          "lon": 29.52014,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         },
         {
           "ad": "İzmit OSB B",
@@ -17464,7 +17641,11 @@
             48,
             60,
             12
-          ]
+          ],
+          "lat": 40.76853,
+          "lon": 30.0449,
+          "il": "Kocaeli",
+          "bolge": "marmara"
         }
       ],
       "notlar": [
@@ -17474,7 +17655,8 @@
       ],
       "uyarilar": [
         "Ücretler yöne göre değişiyor: 'ucret' önceki istasyondan girip sonrakinden çıkışı, 'ucret_geri' ters yönü verir"
-      ]
+      ],
+      "dahil_gecisler": []
     },
     {
       "id": "menemen-aliaga-candarli",
@@ -17820,7 +18002,8 @@
         "Giriş bilgisi bulunamaması halinde; en uzak mesafe ücreti uygulanır.",
         "Ücretler 01/07/2026 saat 00:00 'dan itibaren geçerlidir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "ankara-nigde",
@@ -18929,7 +19112,8 @@
         "Giriş bilgisi bulunamaması halinde; en uzak mesafe ücreti uygulanır.",
         "Ücretler 01/07/2026 saat 00:00 'dan itibaren geçerlidir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
     },
     {
       "id": "malkara-canakkale",
@@ -19139,7 +19323,10 @@
         "U dönüşü yapılması halinde en uzak mesafe ücreti alınacaktır.",
         "Ücretler 01/07/2026 saat 00:00 'dan itibaren geçerlidir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": [
+        "1915-canakkale"
+      ]
     },
     {
       "id": "aydin-denizli",
@@ -20331,7 +20518,8 @@
       ],
       "uyarilar": [
         "Ücretler yöne göre değişiyor: 'ucret' önceki istasyondan girip sonrakinden çıkışı, 'ucret_geri' ters yönü verir"
-      ]
+      ],
+      "dahil_gecisler": []
     },
     {
       "id": "cesmeli-kizkalesi",
@@ -20369,14 +20557,16 @@
           "lat": 36.57856,
           "lon": 34.24727,
           "il": "Mersin",
-          "bolge": "akdeniz"
+          "bolge": "akdeniz",
+          "serbest": true
         },
         {
           "ad": "Kumkuyu SGS",
           "lat": 36.54911,
           "lon": 34.21804,
           "il": "Mersin",
-          "bolge": "akdeniz"
+          "bolge": "akdeniz",
+          "serbest": true
         },
         {
           "ad": "Kızkalesi",
@@ -20604,7 +20794,459 @@
         "Giriş bilgisi bulunamaması halinde; en uzak mesafe ücreti uygulanır.",
         "Ücretler 19/10/2026 saat 00:00 'dan itibaren geçerlidir."
       ],
-      "uyarilar": []
+      "uyarilar": [],
+      "dahil_gecisler": []
+    }
+  ],
+  "baglantilar": [
+    {
+      "a": {
+        "otoyol": "yss-kuzey-cevre",
+        "i": 11,
+        "ad": "Kurnaköy"
+      },
+      "b": {
+        "otoyol": "kmo-kurtkoy-akyazi",
+        "i": 0,
+        "ad": "Kurnaköy 2"
+      },
+      "tek_yon": false,
+      "yol_km": 2.7,
+      "uzaklik_km": 2.7,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-7 ana hattı; Kuzey Çevre'nin Kurnaköy gişesi ile KMO'nun Kurnaköy-2 gişesi arasında başka gişe yok."
+    },
+    {
+      "a": {
+        "otoyol": "anadolu-camlica-akinci",
+        "i": 3,
+        "ad": "Mecidiye"
+      },
+      "b": {
+        "otoyol": "yss-kuzey-cevre",
+        "i": 10,
+        "ad": "Mecidiye"
+      },
+      "tek_yon": false,
+      "yol_km": 0.3,
+      "uzaklik_km": 0.3,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-4 ile O-7 arasındaki Mecidiye kavşak kolu; KGM'nin ve YSS'nin Mecidiye gişeleri aynı kolda arka arkaya."
+    },
+    {
+      "a": {
+        "otoyol": "kmo-kinali-odayeri",
+        "i": 6,
+        "ad": "Fatih"
+      },
+      "b": {
+        "otoyol": "yss-kuzey-cevre",
+        "i": 3,
+        "ad": "Odayeri"
+      },
+      "tek_yon": false,
+      "yol_km": 9.0,
+      "uzaklik_km": 8.9,
+      "ara_serbest": {
+        "ab": [
+          {
+            "otoyol": "kmo-kinali-odayeri",
+            "j": 0,
+            "ad": "21 (Terminal A)",
+            "yon": "Kuzey - Güney"
+          },
+          {
+            "otoyol": "kmo-kinali-odayeri",
+            "j": 3,
+            "ad": "24 (Kargo A)",
+            "yon": "Kuzey - Güney"
+          }
+        ],
+        "ba": [
+          {
+            "otoyol": "kmo-kinali-odayeri",
+            "j": 9,
+            "ad": "24 (Kargo B)",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "kmo-kinali-odayeri",
+            "j": 6,
+            "ad": "21 (Terminal B)",
+            "yon": "Güney - Kuzey"
+          }
+        ]
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-7 ana hattı (havalimanı önü). KMO tablosu Fatih'te biter; Odayeri gişesi YSS tablosunun. Aradaki Terminal ve Kargo serbest geçiş noktaları ana hatta."
+    },
+    {
+      "a": {
+        "otoyol": "avrupa-mahmutbey-edirne",
+        "i": 9,
+        "ad": "Kınalı"
+      },
+      "b": {
+        "otoyol": "kmo-kinali-odayeri",
+        "i": 0,
+        "ad": "Kınalı"
+      },
+      "tek_yon": false,
+      "yol_km": 4.2,
+      "uzaklik_km": 4.1,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "Kınalı kavşağı (O-3, O-6, O-7). Avrupa Otoyolu tarifesinde Kınalı ile Küçükılıçlı 0 km ve aynı ücretli."
+    },
+    {
+      "a": {
+        "otoyol": "avrupa-mahmutbey-edirne",
+        "i": 0,
+        "ad": "Mahmutbey"
+      },
+      "b": {
+        "otoyol": "yss-kuzey-cevre",
+        "i": 0,
+        "ad": "Fenertepe"
+      },
+      "tek_yon": false,
+      "yol_km": 17.5,
+      "uzaklik_km": 14.9,
+      "ara_serbest": {
+        "ab": [
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 0,
+            "ad": "İstoç",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 1,
+            "ad": "İkitelli",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 2,
+            "ad": "Başakşehir Güney",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 3,
+            "ad": "Başakşehir",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 4,
+            "ad": "Fenertepe",
+            "yon": "Güney - Kuzey"
+          }
+        ],
+        "ba": [
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 13,
+            "ad": "Fenertepe",
+            "yon": "Kuzey - Güney"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 12,
+            "ad": "Başakşehir",
+            "yon": "Kuzey - Güney"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 11,
+            "ad": "Başakşehir Güney",
+            "yon": "Kuzey - Güney"
+          },
+          {
+            "otoyol": "yss-kuzey-cevre",
+            "j": 9,
+            "ad": "İstoç",
+            "yon": "Kuzey - Güney"
+          }
+        ]
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-3 Mahmutbey serbest geçiş noktası → Mahmutbey Batı kavşağı → O-7 güney kolu → Fenertepe gişesi. Kolda beş serbest geçiş noktası var (güneye giderken İkitelli'de gişe yok)."
+    },
+    {
+      "a": {
+        "otoyol": "anadolu-camlica-akinci",
+        "i": 16,
+        "ad": "Kartepe"
+      },
+      "b": {
+        "otoyol": "kmo-kurtkoy-akyazi",
+        "i": 7,
+        "ad": "İzmit Doğu"
+      },
+      "tek_yon": false,
+      "yol_km": 2.7,
+      "uzaklik_km": 2.0,
+      "ara_serbest": {
+        "ab": [
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 7,
+            "ad": "İzmit OSB B",
+            "yon": "Güney - Kuzey"
+          }
+        ],
+        "ba": [
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 3,
+            "ad": "İzmit OSB A",
+            "yon": "Kuzey - Güney"
+          }
+        ]
+      },
+      "ucretlendirme": "ayri",
+      "not": "TEM İzmit 1 kavşağı – KMO bağlantı yolu. KGM'nin Kartepe ve KMO'nun İzmit OSB serbest geçiş noktaları arka arkaya."
+    },
+    {
+      "a": {
+        "otoyol": "kmo-kurtkoy-akyazi",
+        "i": 13,
+        "ad": "TEM Akyazı"
+      },
+      "b": {
+        "otoyol": "anadolu-camlica-akinci",
+        "i": 22,
+        "ad": "Topağaç"
+      },
+      "tek_yon": false,
+      "yol_km": 0.7,
+      "uzaklik_km": 0.7,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "KMO'nun doğu ucu. Bağlantı yalnızca TEM'in doğu (Hendek–Ankara) yönüne iner; TEM'in batısına (Adapazarı) buradan geçilmez."
+    },
+    {
+      "a": {
+        "otoyol": "anadolu-camlica-akinci",
+        "i": 9,
+        "ad": "Muallimköy"
+      },
+      "b": {
+        "otoyol": "kmo-kurtkoy-akyazi",
+        "i": 3,
+        "ad": "Mermerciler"
+      },
+      "tek_yon": false,
+      "yol_km": 10.8,
+      "uzaklik_km": 10.1,
+      "ara_serbest": {
+        "ab": [
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 6,
+            "ad": "D100 B",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 5,
+            "ad": "Demirciler B",
+            "yon": "Güney - Kuzey"
+          },
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 4,
+            "ad": "Mermerciler B",
+            "yon": "Güney - Kuzey"
+          }
+        ],
+        "ba": [
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 0,
+            "ad": "Mermerciler A",
+            "yon": "Kuzey - Güney"
+          },
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 1,
+            "ad": "Demirciler A",
+            "yon": "Kuzey - Güney"
+          },
+          {
+            "otoyol": "kmo-kurtkoy-akyazi",
+            "j": 2,
+            "ad": "D100 A",
+            "yon": "Kuzey - Güney"
+          }
+        ]
+      },
+      "ucretlendirme": "ayri",
+      "not": "Muallimköy kavşağı (O-4/O-5) ile KMO Mermerciler arasındaki bağlantı yolu (O-7); yolda üç serbest geçiş noktası. Muallimköy'den O-5'e de geçilir (aşağıdaki iki bağlantı); KMO'dan O-5'e giderken TEM'e girilmez."
+    },
+    {
+      "a": {
+        "otoyol": "anadolu-camlica-akinci",
+        "i": 9,
+        "ad": "Muallimköy"
+      },
+      "b": {
+        "otoyol": "gebze-orhangazi-izmir-gebze-bursa",
+        "i": 0,
+        "ad": "Osmangazi Köprüsü (İzmir Yönü)"
+      },
+      "tek_yon": true,
+      "yol_km": 9.3,
+      "uzaklik_km": 8.9,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "Muallimköy kavşağından O-5 ile Osmangazi Köprüsü'nün Hersek gişelerine (güneye). Köprü ücreti bu tablodadır: 'İzmir Yönü' istasyonunun köşegen (azami) değeri. O-5'te kavşağın hemen güneyinde OSM'de adsız bir serbest geçiş noktası var; hiçbir tarifede karşılığı bulunamadı."
+    },
+    {
+      "a": {
+        "otoyol": "gebze-orhangazi-izmir-gebze-bursa",
+        "i": 1,
+        "ad": "Osmangazi Köprüsü (İstanbul Yönü)"
+      },
+      "b": {
+        "otoyol": "anadolu-camlica-akinci",
+        "i": 9,
+        "ad": "Muallimköy"
+      },
+      "tek_yon": true,
+      "yol_km": 9.3,
+      "uzaklik_km": 8.9,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "Osmangazi Köprüsü'nden kuzeye, O-5 ile Muallimköy kavşağına. Kuzeye giderken köprü ücreti 'İstanbul Yönü' çıkışının ücretine dahildir. O-5'teki adsız serbest geçiş noktası için yukarıdaki nota bakın."
+    },
+    {
+      "a": {
+        "otoyol": "gebze-orhangazi-izmir-gebze-bursa",
+        "i": 7,
+        "ad": "Bursa Kuzey"
+      },
+      "b": {
+        "otoyol": "gebze-orhangazi-izmir-bursa-izmir",
+        "i": 0,
+        "ad": "Bursa Batı"
+      },
+      "tek_yon": false,
+      "yol_km": 34.9,
+      "uzaklik_km": 32.7,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-5 Bursa geçişi; iki tablo aynı belgede, aradaki 35 km'de gişe yok."
+    },
+    {
+      "a": {
+        "otoyol": "ankara-nigde",
+        "i": 13,
+        "ad": "Niğde Alın"
+      },
+      "b": {
+        "otoyol": "cukurova-nigde-mersin-adana",
+        "i": 2,
+        "ad": "Gölcük Alın"
+      },
+      "tek_yon": false,
+      "yol_km": 3.3,
+      "uzaklik_km": 3.3,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-21 ana hattı; Ankara–Niğde Otoyolu'nun bittiği yerden Çukurova Otoyolu'nun Gölcük alın gişesine."
+    },
+    {
+      "a": {
+        "otoyol": "izmir-aydin",
+        "i": 5,
+        "ad": "Aydın Batı"
+      },
+      "b": {
+        "otoyol": "aydin-denizli",
+        "i": 0,
+        "ad": "Aydın Alın"
+      },
+      "tek_yon": false,
+      "yol_km": 11.1,
+      "uzaklik_km": 9.8,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-31 ana hattı (Aydın kuzeyi); aradaki 11 km'de gişe yok."
+    },
+    {
+      "a": {
+        "otoyol": "cukurova-nigde-mersin-adana",
+        "i": 10,
+        "ad": "Adana Batı Alın"
+      },
+      "b": {
+        "otoyol": "cukurova-adana-gaziantep",
+        "i": 0,
+        "ad": "Adana Doğu Alın"
+      },
+      "tek_yon": false,
+      "yol_km": 59.2,
+      "uzaklik_km": 56.6,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-51/O-52 Adana geçişi; iki alın gişesi arasındaki 59 km'de gişe yok."
+    },
+    {
+      "a": {
+        "otoyol": "cukurova-nigde-mersin-adana",
+        "i": 14,
+        "ad": "Mersin Alın"
+      },
+      "b": {
+        "otoyol": "cesmeli-kizkalesi",
+        "i": 0,
+        "ad": "Çeşmeli"
+      },
+      "tek_yon": false,
+      "yol_km": 29.6,
+      "uzaklik_km": 27.8,
+      "ara_serbest": {
+        "ab": [],
+        "ba": []
+      },
+      "ucretlendirme": "ayri",
+      "not": "O-51 Mersin geçişi; Mersin alın gişesinden Çeşmeli gişesine 30 km'de gişe yok."
     }
   ]
 }

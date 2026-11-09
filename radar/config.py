@@ -11,7 +11,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parent.parent
 
-SOURCE_TYPES = {"tarife_listesi", "liste", "rss", "sayfa"}
+SOURCE_TYPES = {"tarife_listesi", "liste", "rss", "sayfa", "avrasya_ucret"}
 TIERS = {"resmi", "haber"}
 CROSSING_KINDS = {"kopru", "tunel", "otoyol"}
 

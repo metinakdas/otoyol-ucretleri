@@ -71,7 +71,7 @@ GitHub Actions (30 dk'da bir, cron)
 | `kgm-duyurular` | `liste` | KGM duyuruları |
 | `uab-haberler`, `uab-duyurular`, `uab-basin` | `liste` | Ulaştırma ve Altyapı Bakanlığı |
 | `avrasya-haberler` | `liste` | Avrasya Tüneli haber/duyuru sayfası |
-| `avrasya-ucretler` | `sayfa` (kapalı) | Ücretler JavaScript ile yükleniyor, düz okunamıyor |
+| `avrasya-ucretler` | `avrasya_ucret` | Sitenin ücret sayfasının kullandığı JSON (`/api/toll/priceHtml`); `radar/avrasya.py` |
 | `haber-*` | `rss` (kapalı) | Google News RSS; kullanım koşulları kontrol edilince açılabilir |
 
 `tier: resmi` kaynak tek başına "karar" sayılır; `tier: haber` için aynı tarihi veren iki bağımsız yayın gerekir.
@@ -215,7 +215,11 @@ girdiden verilir.
 
 ## 8. Bilinen sınırlar
 
-- Avrasya Tüneli ücretleri okunamıyor (JavaScript); yalnızca duyurular izleniyor.
+- Avrasya Tüneli ücretleri artık sitenin JSON adresinden okunuyor; sitede yürürlük tarihi yok (görüldüğü an esas).
+- Tarifeler arası hesap `config/giseler.yaml` → `baglantilar` (15 doğrulanmış bağlantı, tek yönlüler ve aradaki
+  serbest geçişler dahil) ile yapılır; toplam, bölümlerin ayrı tarifelerinin toplamıdır. İki yol varsa panel
+  "Doğrudan" (en az kalem) ve "En ucuz" seçeneklerini gösterir; aynı otoyoldan çıkıp yeniden girme yol sayılmaz.
+- Serbest geçiş (SGS) noktalarının konumları da kayıtta (`serbest_gecis`); 41 satır, 23 nokta.
 - Otoyol gişe-gişe matrisleri hesap için okunuyor (16 PDF, 17 tablo, 201 gişe); otoyol zam bildirimi hâlâ "belge değişti" düzeyinde.
 - 3 gişenin (Liman, Küçükılıçlı, Ağaçlı) konumu belirlenemedi; haritada görünmezler. Bazı gişeler (ör. Kartepe,
   Topağaç, Muallimköy, SGS noktaları) gişe binası yerine kavşak konumuyla kayıtlı (`not` alanında yazar).

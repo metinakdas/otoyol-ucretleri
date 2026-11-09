@@ -16,6 +16,23 @@ def _classes(classes: dict) -> dict[str, str]:
     return {str(k): str(Decimal(str(v)).quantize(Decimal("0.01"))) for k, v in sorted(classes.items(), key=lambda kv: int(kv[0]))}
 
 
+def _ek(ek: dict | None) -> dict:
+    """Ek tarife alanları; içindeki sınıf ücretleri de aynı biçime getirilir."""
+    out = {}
+    for k, v in (ek or {}).items():
+        if k in {"valid_from", "valid_to", "classes", "source_url", "event_id", "note"}:
+            raise ValueError(f"ek alan ana alanın yerine geçemez: {k}")
+        if isinstance(v, dict) and isinstance(v.get("classes"), dict):
+            v = {**v, "classes": _classes(v["classes"])}
+        out[k] = v
+    return out
+
+
+def same_extra(entry: dict | None, ek: dict | None) -> bool:
+    """Kayıttaki ek alanlar verilenlerle aynı mı."""
+    return bool(entry) and all(entry.get(k) == v for k, v in _ek(ek).items())
+
+
 def entries(data: dict, crossing_id: str) -> list[dict]:
     return data.get(crossing_id, {}).get("prices", [])
 
@@ -55,11 +72,16 @@ def add_entry(
     source_url: str = "",
     event_id: str | None = None,
     note: str = "",
+    ek: dict | None = None,
 ) -> bool:
-    """Yeni ücret kaydı ekler. Aynı başlangıçlı kayıt varsa günceller. Değişiklik olduysa True."""
+    """Yeni ücret kaydı ekler. Aynı başlangıçlı kayıt varsa günceller. Değişiklik olduysa True.
+
+    ek: kayda eklenecek tarife ayrıntıları (ör. Avrasya Tüneli'nin gece ücreti: {"gece": {"saat", "classes"}}).
+    """
     record = data.setdefault(crossing_id, {"name": name, "prices": []})
     record["name"] = name
     items: list[dict] = record["prices"]
+    extra = _ek(ek)
     new = {
         "valid_from": to_iso(valid_from),
         "valid_to": None,
@@ -67,10 +89,11 @@ def add_entry(
         "source_url": source_url,
         "event_id": event_id,
         "note": note,
+        **extra,
     }
     for e in items:
         if from_iso(e["valid_from"]) == valid_from:
-            if e["classes"] == new["classes"]:
+            if e["classes"] == new["classes"] and all(e.get(k) == v for k, v in extra.items()):
                 return False
             new["valid_to"] = e.get("valid_to")
             e.update(new)

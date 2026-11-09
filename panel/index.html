@@ -26,6 +26,32 @@
   <div class="app" id="app">
     <div class="map-area">
       <div id="map" class="map" aria-label="Otoyol gişeleri ve köprüler haritası"></div>
+      <div class="map-tools">
+        <div class="map-search">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12.6 12.6 17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          <input id="map-q" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="map-q-list"
+                 placeholder="Gişe, köprü ya da serbest geçiş ara" autocomplete="off" spellcheck="false" aria-label="Haritada ara">
+          <ul id="map-q-list" class="combo-list" role="listbox" hidden></ul>
+        </div>
+        <div class="layer-chips" id="layer-chips" role="group" aria-label="Haritada göster"></div>
+        <button type="button" class="layer-chip filter-btn" id="filter-btn" aria-expanded="false" aria-controls="filter-pop">
+          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M6 10h8M8.5 15h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+          Filtreler<span class="badge" id="filter-count" hidden></span>
+        </button>
+        <div class="active-filters" id="active-filters"></div>
+        <div class="filter-pop" id="filter-pop" role="dialog" aria-label="Filtreler" hidden>
+          <div class="fp-sec"><div class="fp-h">Bölge</div><div class="fp-chips" id="fp-bolge"></div></div>
+          <div class="fp-sec"><div class="fp-h">Durum</div><div class="fp-chips" id="fp-durum"></div></div>
+          <div class="fp-row">
+            <label class="fp-field"><span>İl</span><select id="f-il"></select></label>
+            <label class="fp-field"><span>Otoyol</span><select id="f-road"></select></label>
+          </div>
+          <div class="fp-foot">
+            <button type="button" class="btn" id="fp-clear">Temizle</button>
+            <button type="button" class="btn primary" id="fp-close">Tamam</button>
+          </div>
+        </div>
+      </div>
       <button type="button" id="notice" class="notice" hidden></button>
     </div>
 
@@ -75,6 +101,8 @@
 
       <section class="tab-panel" id="tab-duyuru" role="tabpanel" aria-labelledby="tab-btn-duyuru" hidden>
         <div id="announcements"></div>
+        <div class="section-head" id="calendar-head"><h2>Takvim</h2></div>
+        <ul id="calendar" class="calendar"></ul>
         <div class="section-head"><h2>Bayramda ücretsiz geçiş</h2></div>
         <div id="free" class="free"></div>
         <div class="section-head" id="events-head"><h2>Son kayıtlar</h2></div>

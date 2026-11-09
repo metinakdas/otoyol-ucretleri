@@ -33,6 +33,7 @@ FLAG_LABELS = {
     "iptal_iddiasi": "İptal haberi var",
     "takvim": "Takvim uyarısı",
     "sona_erdi": "Sona erdi",
+    "gorulme_tarihi": "Tarih: görüldüğü an",
 }
 
 
@@ -50,6 +51,7 @@ class Candidate:
     quote: str = ""
     published: str | None = None
     prices: dict[str, dict[str, str]] = field(default_factory=dict)   # geçiş → {"1": "59.00"}
+    price_extras: dict[str, dict] = field(default_factory=dict)       # geçiş → ek tarife bilgisi (ör. gece ücreti)
     effective_from: datetime | None = None
     effective_to: datetime | None = None
     excluded: list[str] = field(default_factory=list)

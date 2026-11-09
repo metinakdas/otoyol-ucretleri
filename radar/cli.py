@@ -200,8 +200,13 @@ def cmd_ucret_tablosu(args, cfg) -> int:
     if kayitsiz:
         print(f"\nGişe kaydında (config/giseler.yaml) olmayan {len(kayitsiz)} gişe; haritada görünmezler:")
         for k in kayitsiz:
-            print(f"  - {k['ad']}  [{k['otoyol']}]")
+            tur = " (serbest geçiş)" if k.get("tur") == "serbest" else ""
+            print(f"  - {k['ad']}{tur}  [{k['otoyol']}]")
         print("  Kayda tarifedeki adıyla ekleyin (konum bilinmiyorsa 'konum: null').")
+    for b in st.get("baglanti_eksik") or []:
+        print(f"  BAĞLANTI ÇÖZÜLEMEDİ: {b}")
+    if data and data.get("baglantilar") is not None:
+        print(f"\nTablolar arası bağlantı: {len(data['baglantilar'])}")
     if not data:
         return 1
     return 1 if (note or "").startswith("Ücret tablosu alınamadı") else 0

@@ -152,6 +152,19 @@ def test_turkce_baslik_harfi():
 
 # Testlerin gişe kaydı (config/giseler.yaml biçiminde). KMO'nun "Fatih" gişesi bilerek yazılmadı.
 KAYIT = """
+serbest_gecis:
+  kmo-kinali-odayeri:
+    - ad: Terminal
+      satirlar: [21 (Terminal A), 21 (Terminal B), 22 (Terminal 2 Yanyol A), 22 (Terminal 2 Yanyol B),
+                 23 (Terminal 1 Yanyol A), 23 (Terminal 1 Yanyol B)]
+      konum: [41.24, 28.76]
+      il: İstanbul
+    - {ad: 24 (Kargo), satirlar: [24 (Kargo A), 24 (Kargo B)], konum: [41.24, 28.82], il: İstanbul}
+    - ad: Hasdal bağlantısı
+      satirlar: [71 A1 (Habipler A), 71 A2 (Habipler Yanyol A ), 71 B2 (Habipler Yanyol B), 72 A (Cebeci),
+                 72 B (Cebeci), 73 A (Hasdal A), 73 B (Hasdal B)]
+      konum: null
+      il: İstanbul
 izmir-aydin:
   - {ad: Işıkkent, konum: [38.33, 27.21], il: İzmir}
   - {ad: Tahtalıçay (Havalimanı), konum: [38.27, 27.22], il: İzmir}
@@ -271,6 +284,57 @@ def test_kayitsiz_gise_teknik_gruba_bir_kez_bildirilir(cfg, web, telegram):
     msgs = [m for m in telegram.sent if "GİŞE KAYDI EKSİK" in m["text"]]
     assert len(msgs) == 1 and msgs[0]["chat_id"] == "-200"
     assert "Fatih · Kuzey Marmara Otoyolu (Kınalı – Odayeri)" in msgs[0]["text"]
+    telegram.take()
+    run_once(cfg, now=T0 + timedelta(hours=1), notify_client=telegram.client, transport=web.transport)
+    assert not any("GİŞE KAYDI EKSİK" in t for t in telegram.texts())
+
+
+def test_yenileme_serbest_gecis_konumlarini_ve_baglantilari_yazar(cfg, web):
+    store, state = _setup(cfg, web)
+    cfg.gise_kaydi.write_text(KAYIT + """  - {ad: Fatih, konum: [41.24345, 28.71436], il: İstanbul}
+baglantilar:
+  - a: {otoyol: kmo-kinali-odayeri, ad: Kınalı}
+    b: {otoyol: izmir-aydin, ad: Işıkkent}
+    yol_km: 1000
+    not: deneme (gerçek bağlantı değil)
+    ara_serbest: {ab: [{otoyol: kmo-kinali-odayeri, ad: 24 (Kargo A), yon: Kuzey - Güney}]}
+""", encoding="utf-8")
+    ut.refresh(cfg, store, state, T0, transport=web.transport)
+    data = store.read("ucret-tablosu.json", None)
+    kmo = data["otoyollar"][1]
+    kargo = next(r for r in kmo["serbest_gecis"] if r["ad"] == "24 (Kargo A)")
+    assert (kargo["lat"], kargo["lon"], kargo["il"], kargo["bolge"]) == (41.24, 28.82, "İstanbul", "marmara")
+    hasdal = next(r for r in kmo["serbest_gecis"] if r["ad"] == "73 A (Hasdal A)")
+    assert (hasdal["lat"], hasdal["il"]) == (None, "İstanbul")         # kayıtlı ama konumu bilinmiyor
+    assert data["baglantilar"] == [{
+        "a": {"otoyol": "kmo-kinali-odayeri", "i": 0, "ad": "Kınalı"},
+        "b": {"otoyol": "izmir-aydin", "i": 0, "ad": "Işıkkent"},
+        "tek_yon": False, "yol_km": 1000.0, "uzaklik_km": data["baglantilar"][0]["uzaklik_km"],
+        "ara_serbest": {"ab": [{"otoyol": "kmo-kinali-odayeri", "j": 3, "ad": "24 (Kargo A)", "yon": "Kuzey - Güney"}],
+                        "ba": []},
+        "ucretlendirme": "ayri", "not": "deneme (gerçek bağlantı değil)",
+    }]
+    assert data["otoyollar"][0]["dahil_gecisler"] == [] and state["_ucret_tablosu"]["baglanti_eksik"] == []
+
+    # Bağlantının ucu tablodan kalkarsa yayımlanmaz, not düşülür (PDF indirilmeden)
+    cfg.gise_kaydi.write_text(cfg.gise_kaydi.read_text(encoding="utf-8").replace("ad: Işıkkent}", "ad: Yok}"),
+                              encoding="utf-8")
+    note = ut.refresh(cfg, store, state, T0 + timedelta(hours=1), transport=web.transport)
+    assert "tabloda bulunamayan 1 bağlantı: Kınalı ↔ Yok" in note
+    assert store.read("ucret-tablosu.json", None)["baglantilar"] == []
+
+
+def test_kayitsiz_serbest_gecis_teknik_gruba_bir_kez_bildirilir(cfg, web, telegram):
+    _setup(cfg, web)
+    # Serbest geçiş bölümü olmayan kayıt: KMO'nun serbest geçiş satırları "kayıt eksik" sayılır
+    cfg.gise_kaydi.write_text("izmir-aydin:" + KAYIT.split("izmir-aydin:", 1)[1], encoding="utf-8")
+    run_once(cfg, now=T0, notify_client=telegram.client, transport=web.transport)
+    telegram.take()
+    run_once(cfg, now=T0 + timedelta(minutes=30), notify_client=telegram.client, transport=web.transport)
+    [msg] = [m for m in telegram.sent if "GİŞE KAYDI EKSİK" in m["text"]]
+    assert msg["chat_id"] == "-200"
+    assert "21 (Terminal A) (serbest geçiş) · Kuzey Marmara Otoyolu (Kınalı – Odayeri)" in msg["text"]
+    assert "Fatih · Kuzey Marmara" in msg["text"] and "serbest_gecis" in msg["text"]
     telegram.take()
     run_once(cfg, now=T0 + timedelta(hours=1), notify_client=telegram.client, transport=web.transport)
     assert not any("GİŞE KAYDI EKSİK" in t for t in telegram.texts())

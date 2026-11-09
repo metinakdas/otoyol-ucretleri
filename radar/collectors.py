@@ -9,6 +9,7 @@ from __future__ import annotations
 import hashlib
 import logging
 import re
+from decimal import Decimal
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
@@ -73,6 +74,7 @@ def collect(src: Source, st: dict, ctx: Context) -> CollectResult:
         "liste": collect_liste,
         "rss": collect_rss,
         "sayfa": collect_sayfa,
+        "avrasya_ucret": collect_avrasya_ucret,
     }[src.type]
     return handler(src, st, ctx)
 
@@ -450,3 +452,83 @@ def collect_sayfa(src: Source, st: dict, ctx: Context) -> CollectResult:
         flags=["kontrol_et", "degerler_okunamadi", "tarih_belirsiz"],
     )
     return CollectResult([cand], "sayfa değişti")
+
+
+# ---------------------------------------------------------------------------
+# Avrasya Tüneli ücret tablosu (işletmecinin sitesindeki JSON)
+# ---------------------------------------------------------------------------
+
+AVRASYA_SAYFA = "https://www.avrasyatuneli.com/ucretlendirme/"
+
+
+def _avrasya_ozeti(c: dict) -> str:
+    def para(v: str) -> str:
+        return f"{Decimal(v):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".") + " TL"
+
+    from .avrasya import SINIF_ADLARI
+    parts = [f"{SINIF_ADLARI[s]} {para(v)}" for s, v in c["gunduz"].items()]
+    text = "Gündüz: " + ", ".join(parts)
+    if c.get("gece"):
+        text += "; gece (" + (c["saat"].get("gece") or "") + "): " + ", ".join(
+            f"{SINIF_ADLARI[s]} {para(v)}" for s, v in c["gece"].items())
+    return text
+
+
+def collect_avrasya_ucret(src: Source, st: dict, ctx: Context) -> CollectResult:
+    """Avrasya Tüneli ücretlerini sitenin kendi ücret tablosundan (JSON) okur.
+
+    İlk görüşte ücret defterinde kayıt yoksa ücretler başlangıç olarak yazılır (bildirimsiz). Sonra
+    defterdeki güncel kayıttan farklı bir tablo görülürse resmi bir ücret değişikliği adayı üretilir.
+    Sitede yürürlük tarihi yazmadığından değişikliğin ilk görüldüğü an esas alınır ("kontrol_et");
+    Avrasya duyurularından gelen tarih aynı kayda eklenince o tarih geçerli olur.
+    """
+    from .avrasya import DIL_BASLIGI, AvrasyaHatasi, defter_eki, ucretleri_coz
+
+    if not src.crossings:
+        raise CollectError("Kaynağa geçiş bağlanmamış (crossings: [avrasya-tuneli])")
+    cid = src.crossings[0]
+    res = ctx.fetcher.get(src.url, headers=DIL_BASLIGI)
+    try:
+        c = ucretleri_coz(res.text)
+    except AvrasyaHatasi as exc:
+        raise CollectError(f"Ücret tablosu okunamadı: {exc}") from None
+    classes, ek = c["gunduz"], defter_eki(c)
+    st["son"] = {"gunduz": classes, "gece": c.get("gece"), "saat": c["saat"], "yon_farkli": c["yon_farkli"]}
+    name = ctx.cfg.crossing_name(cid)
+
+    latest = ledger.latest_entry(ctx.crossings_data, cid)
+    if latest is None:
+        ledger.add_entry(ctx.crossings_data, cid, name, ctx.now, classes, source_url=AVRASYA_SAYFA, ek=ek,
+                         note="Başlangıç kaydı (Avrasya Tüneli sitesi; yürürlük tarihi sitede yazmıyor, "
+                              "ilk görüldüğü an)")
+        ctx.notes.append(f"Başlangıç ücreti kaydedildi: {name}")
+        return CollectResult([], "başlangıç kaydı")
+    if ledger.same_classes(latest["classes"], classes) and ledger.same_extra(latest, ek):
+        return CollectResult([], "değişiklik yok")
+
+    digest = short_hash(json_dumps_sorted(st["son"]), 10)
+    ozet = _avrasya_ozeti(c)
+    if c["yon_farkli"]:
+        ozet += ". İki yönün ücreti farklı; Avrupa→Asya yönü kaydedildi."
+    cand = Candidate(
+        kind=KIND_PRICE,
+        title=f"{name} ücretleri değişti",
+        source_id=src.id,
+        tier=src.tier,
+        url=f"{AVRASYA_SAYFA}#ucret-{digest}",
+        publisher=domain_of(AVRASYA_SAYFA),
+        crossings=[cid],
+        quote=shorten(ozet, 280),
+        prices={cid: dict(classes)},
+        price_extras={cid: ek},
+        # Sitede yürürlük tarihi yok: değişikliğin görüldüğü an (duyurudan tarih gelirse o geçerli olur)
+        effective_from=ctx.now,
+        flags=["kontrol_et", "gorulme_tarihi"],
+    )
+    return CollectResult([cand], "ücretler değişti")
+
+
+def json_dumps_sorted(data) -> str:
+    import json
+
+    return json.dumps(data, sort_keys=True, ensure_ascii=False)

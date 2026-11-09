@@ -265,6 +265,115 @@
       : `<li class="empty">Henüz belge okunmadı.</li>`;
   }
 
+  // Takvim: yılbaşı ücret dönemi ve bayramlar (config/calendar.yaml). Kararlar çıktığında yukarıda duyuru olur.
+  function renderCalendar(data, now) {
+    const KIND = { yilbasi: "Ücret güncellemesi dönemi", bayram: "Bayram · ücretsiz geçiş kararı beklenir" };
+    const list = (data.calendar || []).filter((p) => dayDiff(p.end || p.start, now) >= 0).slice(0, 4);
+    $("#calendar-head").hidden = !list.length;
+    $("#calendar").innerHTML = list.map((p) => `<li>
+      <div><strong>${esc(p.name)}</strong><span>${esc(KIND[p.kind] || "")}</span></div>
+      <div class="when"><b>${esc(inDays(p.start, now))}</b><span>${esc(date(p.start))}</span></div></li>`).join("");
+  }
+
+  // ---------------------------------------------------------------- harita araçları
+
+  function bindMapTools(hesap) {
+    const M = window.RadarMap;
+    if (!M || !M.countsBy) return;
+    const chips = $("#layer-chips");
+    const renderChips = () => {
+      const c = M.countsBy(), on = new Set(M.filter().types);
+      chips.innerHTML = M.types().map(([t, label]) => `<button type="button" class="layer-chip" data-type="${t}" aria-pressed="${on.has(t)}">
+        <span class="sw sw-${t}" aria-hidden="true"></span>${esc(label)}<span class="n">${c[t]}</span></button>`).join("");
+    };
+    chips.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-type]");
+      if (!b) return;
+      const on = new Set(M.filter().types);
+      if (on.has(b.dataset.type)) on.delete(b.dataset.type); else on.add(b.dataset.type);
+      M.setFilter({ types: [...on] });
+      renderFilters();   // tıklama anında tanımlıdır
+    });
+    // Filtre penceresi: bölge, durum, il, otoyol. Seçenek sayıları diğer filtrelere göre hesaplanır.
+    const roads = hesap ? hesap.roads() : [];
+    const roadName = (id) => { const o = roads.find((r) => r.id === id); return o ? (o.yol ? o.yol + " · " : "") + o.ad : id; };
+    const DURUM = [["change", "Zammı yaklaşan"], ["free", "Ücretsiz geçiş"]];
+    const pop = $("#filter-pop"), btn = $("#filter-btn");
+    const renderFilters = () => {
+      const f = M.filter(), o = M.options();
+      $("#fp-bolge").innerHTML = o.regions.map((r) => {
+        const n = o.bolge.get(r.id) || 0;
+        return `<button type="button" class="fp-chip" data-bolge="${esc(r.id)}" aria-pressed="${f.bolge === r.id}" ${n || f.bolge === r.id ? "" : "disabled"}>${esc(r.ad)}<span class="n">${n}</span></button>`;
+      }).join("");
+      $("#fp-durum").innerHTML = DURUM.map(([id, label]) => {
+        const n = o.durum.get(id) || 0;
+        return `<button type="button" class="fp-chip" data-durum="${id}" aria-pressed="${f.durum === id}" ${n || f.durum === id ? "" : "disabled"}>${esc(label)}<span class="n">${n}</span></button>`;
+      }).join("");
+      const iller = [...o.il.keys()].concat(f.il && !o.il.has(f.il) ? [f.il] : []).sort((a, b) => a.localeCompare(b, "tr"));
+      $("#f-il").innerHTML = `<option value="">Tüm iller</option>` + iller.map((il) => `<option value="${esc(il)}" ${il === f.il ? "selected" : ""}>${esc(il)} (${o.il.get(il) || 0})</option>`).join("");
+      const rids = roads.map((r) => r.id).filter((id) => o.road.has(id) || id === f.road);
+      $("#f-road").innerHTML = `<option value="">Tüm otoyollar</option>` + rids.map((id) => `<option value="${esc(id)}" ${id === f.road ? "selected" : ""}>${esc(roadName(id))} (${o.road.get(id) || 0})</option>`).join("");
+      // Seçili filtreler araç çubuğunda kaldırılabilir etiket olarak görünür.
+      const active = [];
+      if (f.bolge) active.push(["bolge", (o.regions.find((r) => r.id === f.bolge) || {}).ad || f.bolge]);
+      if (f.il) active.push(["il", f.il]);
+      if (f.road) active.push(["road", roadName(f.road)]);
+      if (f.durum) active.push(["durum", (DURUM.find((d) => d[0] === f.durum) || [])[1]]);
+      $("#active-filters").innerHTML = active.map(([k, label]) => `<button type="button" class="af-chip" data-clear="${k}" title="Filtreyi kaldır">${esc(label)}
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`).join("");
+      $("#filter-count").hidden = !active.length;
+      $("#filter-count").textContent = active.length;
+      btn.classList.toggle("is-on", active.length > 0);
+      renderChips();
+    };
+    const apply = (f) => { M.setFilter(f); renderFilters(); };
+    const openPop = (open) => { pop.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if (open) renderFilters(); };
+    btn.addEventListener("click", () => openPop(pop.hidden));
+    $("#fp-close").addEventListener("click", () => openPop(false));
+    $("#fp-clear").addEventListener("click", () => apply({ bolge: "", il: "", road: "", durum: "", reset: true }));
+    pop.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-bolge]");
+      if (b && !b.disabled) { const f = M.filter(); apply({ bolge: f.bolge === b.dataset.bolge ? "" : b.dataset.bolge, il: "", reset: true }); return; }
+      const d = e.target.closest("[data-durum]");
+      if (d && !d.disabled) { const f = M.filter(); apply({ durum: f.durum === d.dataset.durum ? "" : d.dataset.durum, reset: true }); }
+    });
+    $("#f-il").addEventListener("change", (e) => apply({ il: e.target.value, reset: true }));
+    $("#f-road").addEventListener("change", (e) => apply({ road: e.target.value, reset: true }));
+    $("#active-filters").addEventListener("click", (e) => {
+      const c = e.target.closest("[data-clear]");
+      if (c) apply({ [c.dataset.clear]: "", reset: true });
+    });
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) openPop(false); });
+    // Dışarı tıklanınca kapanır. (Çip tıklanınca liste yeniden çizildiği için hedef sayfadan çıkmış olabilir; o tıklama içeridedir.)
+    document.addEventListener("click", (e) => { if (!pop.hidden && e.target.isConnected && !pop.contains(e.target) && !btn.contains(e.target)) openPop(false); });
+    renderFilters();
+
+    // Arama: yazdıkça en fazla 8 sonuç; seçilen noktaya gidilir ve açılır pencere açılır.
+    const q = $("#map-q"), list = $("#map-q-list");
+    let items = [], active = -1;
+    const TYPE_LABEL = { kopru: "Köprü / tünel", gise: "Gişe", serbest: "Serbest geçiş" };
+    const close = () => { list.hidden = true; q.setAttribute("aria-expanded", "false"); };
+    const render = () => {
+      if (!q.value.trim()) { close(); return; }
+      list.innerHTML = items.length ? items.map((x, i) => `<li role="option" id="mq-${i}" data-id="${esc(x.id)}" aria-selected="${i === active}">
+        <span class="o-name">${esc(x.name)}</span><span class="o-sub">${esc(TYPE_LABEL[x.type] || "")}${x.sub ? " · " + esc(x.sub) : ""}</span></li>`).join("")
+        : `<li class="o-empty">Sonuç yok</li>`;
+      list.hidden = false;
+      q.setAttribute("aria-expanded", "true");
+    };
+    const go = (id) => { close(); q.blur(); M.focusPoint(id); renderFilters(); };
+    q.addEventListener("input", () => { items = M.search(q.value); active = -1; render(); });
+    q.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowDown") { e.preventDefault(); active = Math.min(items.length - 1, active + 1); render(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); active = Math.max(0, active - 1); render(); }
+      else if (e.key === "Enter") { e.preventDefault(); const x = items[active >= 0 ? active : 0]; if (x) go(x.id); }
+      else if (e.key === "Escape") { q.value = ""; close(); }
+    });
+    q.addEventListener("blur", () => setTimeout(close, 120));
+    list.addEventListener("mousedown", (e) => e.preventDefault());
+    list.addEventListener("click", (e) => { const li = e.target.closest("[data-id]"); if (li) go(li.dataset.id); });
+  }
+
   // ---------------------------------------------------------------- başlatma
 
   async function main() {
@@ -285,6 +394,7 @@
     renderStatus(data, now_);
     renderAnnouncements(data, now_);
     renderFree(data);
+    renderCalendar(data, now_);
     renderEvents(data, now_);
     renderSources(data, now_);
     renderDocuments(data);
@@ -304,6 +414,7 @@
         window.RadarMap.init({
           data, cls: cls_, helpers,
           stations: hesap ? hesap.allStations() : [],
+          roads: hesap ? hesap.roads() : [],
           onShowCrossing: openCrossing,
           popupExtra: (p) => (hesap ? hesap.popupHtml(p) : ""),
           onTrip: (role, key) => {
@@ -313,8 +424,11 @@
           },
         });
         if (hesap) hesap.redraw();
+        bindMapTools(hesap);
       } catch (e) { console.error("Harita açılamadı", e); }
     }
+    // Paylaşılan bir hesap bağlantısı aynı sekmede açılırsa (yalnızca # değişir) hesap yenilenir.
+    window.addEventListener("hashchange", () => { if (hesap) { hesap.reload(); selectTab("rota"); } });
   }
 
   main();

@@ -131,10 +131,17 @@ def merge(ev: dict, cand: Candidate, now: datetime) -> bool:
     ev["crossings"] = [c for c in ev["crossings"] if c not in ev["excluded"]]
     ev["documents"] = list(dict.fromkeys(ev.get("documents", []) + cand.documents))
     for cid, classes in cand.prices.items():
-        ev["prices"].setdefault(cid, {})["new"] = classes
+        change = ev["prices"].setdefault(cid, {})
+        if ev.get("applied") and (change.get("new") != classes or change.get("new_ek") != cand.price_extras.get(cid)):
+            ev["applied"] = False  # uygulanmış karara yeni ücret geldi: deftere yeniden işlenir
+        change["new"] = classes
+        if cid in cand.price_extras:
+            change["new_ek"] = cand.price_extras[cid]
 
     old_from = from_iso(ev.get("effective_from"))
-    if cand.effective_from and (old_from is None or cand.tier == "resmi"):
+    # "gorulme_tarihi": tarih kaynakta yazmıyor, radarın gördüğü an; bilinen bir tarihin yerine geçmez
+    observed = "gorulme_tarihi" in cand.flags
+    if cand.effective_from and (old_from is None or (cand.tier == "resmi" and not observed)):
         if old_from and abs(old_from - cand.effective_from) > timedelta(minutes=1) and ev["status"] in DECIDED:
             _add_flag(ev, "tarih_degisti")
             _history(ev, now, f"Yürürlük tarihi güncellendi: {to_iso(cand.effective_from)}")
@@ -144,6 +151,8 @@ def merge(ev: dict, cand: Candidate, now: datetime) -> bool:
         ev["effective_to"] = to_iso(cand.effective_to)
 
     for flag in cand.flags:
+        if flag == "gorulme_tarihi" and old_from is not None:
+            continue  # kayıtta bilinen tarih var; görülme anı kullanılmadı
         _add_flag(ev, flag)
     if ev.get("effective_from"):
         _drop_flag(ev, "tarih_belirsiz")
@@ -227,7 +236,7 @@ def apply_decision(ev: dict, cfg: Config, crossings_data: dict, rules: dict, now
                     _add_flag(ev, "kontrol_et")
             if ledger.add_entry(crossings_data, cid, cfg.crossing_name(cid), valid_from, new,
                                 source_url=ev["evidence"][-1]["url"] if ev["evidence"] else "",
-                                event_id=ev["id"], note=ev["title"]):
+                                event_id=ev["id"], note=ev["title"], ek=change.get("new_ek")):
                 notes.append(f"Ücret kaydı eklendi: {cfg.crossing_name(cid)}")
         if valid_from < now - timedelta(hours=1):
             _add_flag(ev, "kacirildi")

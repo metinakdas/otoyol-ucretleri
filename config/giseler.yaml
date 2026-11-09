@@ -11,6 +11,11 @@
 #       konum: [40.7133, 30.3846] # [enlem, boylam]; bilinmiyorsa null (haritaya konmaz, hesapta seçilir)
 #       il: Sakarya              # il adı; bölge buradan bulunur
 #       not: ...                 # isteğe bağlı açıklama
+#       serbest: true            # isteğe bağlı: istasyon bir serbest geçiş (SGS) noktasıdır
+#
+# Dosyanın sonunda iki bölüm daha var (ayrıntı başlıklarında):
+#   serbest_gecis: tarifelerin sabit ücretli serbest geçiş (SGS) satırlarının noktaları
+#   baglantilar  : farklı tarife tabloları arasında otoyoldan çıkmadan geçilen gişe çiftleri
 #
 # Eşleşme otoyol kimliği + istasyon adıyla yapılır; büyük/küçük harf ve Türkçe harf farkı (ı/i, ş/s…)
 # önemsizdir, ama başka bir yazım (ör. "Adapazari Gişeleri") eşleşmez.
@@ -44,8 +49,9 @@ anadolu-camlica-akinci:
     il: İstanbul
     not: Kavşak kolundaki serbest geçiş noktası (OSM'de adsız).
   - ad: Mecidiye
-    konum: [40.95307, 29.31489]
+    konum: [40.95165, 29.31395]
     il: İstanbul
+    not: "O-4 Mecidiye 1 kavşağından Kuzey Çevre'ye (O-7) giden koldaki gişe (OSM'de adsız). YSS'nin Mecidiye gişesi aynı kolda 300 m kuzeyde."
   - ad: Kurtköy
     konum: [40.93243, 29.32995]
     il: İstanbul
@@ -87,9 +93,10 @@ anadolu-camlica-akinci:
     konum: [40.77823, 29.97335]
     il: Kocaeli
   - ad: Kartepe
-    konum: [40.76343, 30.03226]
+    konum: [40.76851, 30.04253]
     il: Kocaeli
-    not: Gişe noktası haritalanmamış; Kandıra ile Doğu İzmit arasındaki tek kavşak (OSM 'TEM İzmit 1').
+    serbest: true
+    not: "Serbest geçiş noktası (OSM ref 'Kartepe (SGS)'): TEM İzmit 1 kavşağından Kuzey Marmara'nın İzmit Doğu gişesine giden bağlantı yolunda; KMO'nun İzmit OSB SGS noktasının 200 m batısı. Önceki kayıt kavşak konumuydu."
   - ad: Doğu İzmit
     konum: [40.74905, 30.03683]
     il: Kocaeli
@@ -108,9 +115,10 @@ anadolu-camlica-akinci:
     il: Sakarya
     not: O-4 Akyazı kavşağının gişesi. 'D-100 Akyazı' ve 'TEM Akyazı' gişeleri Kuzey Marmara Otoyolu'na aittir.
   - ad: Topağaç
-    konum: [40.73817, 30.65029]
+    konum: [40.73898, 30.63177]
     il: Sakarya
-    not: TEM–KMO bağlantı kavşağı (OSM 'TEM Akyazı'); gişe noktası haritalanmamış.
+    serbest: true
+    not: "Serbest geçiş noktası (OSM ref 'TopAğaç (SGS)'): Kuzey Marmara'nın TEM Akyazı gişesinden O-4'e (Hendek yönü) inen bağlantıda. Önceki kayıt kavşak konumuydu."
   - ad: Hendek
     konum: [40.75884, 30.71797]
     il: Sakarya
@@ -233,7 +241,7 @@ cukurova-adana-gaziantep:
   - ad: Yumurtalık Serbest B.
     konum: [36.96908, 36.01839]
     il: Hatay
-    not: Serbest Bölge kavşağı gişesi (OSM'de adsız).
+    not: Yumurtalık Serbest Bölge kavşağı gişesi (OSM'de adsız gişe binası). 'Serbest B.' serbest bölge demektir; serbest geçiş noktası değildir.
   - ad: Dörtyol
     konum: [36.85502, 36.22576]
     il: Hatay
@@ -516,8 +524,9 @@ yss-kuzey-cevre:
     konum: [41.00518, 29.26883]
     il: İstanbul
   - ad: Mecidiye
-    konum: [40.95307, 29.31489]
+    konum: [40.95405, 29.31544]
     il: İstanbul
+    not: OSM'de 'Mecidiye Gişeleri'; O-7 ile O-4 arasındaki Mecidiye kolunda, KGM'nin Mecidiye gişesinin 300 m kuzeyi.
   - ad: Kurnaköy
     konum: [40.95762, 29.32984]
     il: İstanbul
@@ -741,12 +750,224 @@ cesmeli-kizkalesi:
   - ad: Erdemli Batı SGS
     konum: [36.57856, 34.24727]
     il: Mersin
-    not: Serbest geçiş; kavşak konumu.
+    serbest: true
+    not: Serbest geçiş (tarifede 'SGS'); gişe noktası haritalanmamış, kavşak konumu.
   - ad: Kumkuyu SGS
     konum: [36.54911, 34.21804]
     il: Mersin
-    not: Serbest geçiş; kavşak konumu.
+    serbest: true
+    not: Serbest geçiş (tarifede 'SGS'); gişe noktası haritalanmamış, kavşak konumu.
   - ad: Kızkalesi
     konum: [36.46336, 34.11962]
     il: Mersin
     not: Gişe noktası haritalanmamış; kavşak konumu.
+
+
+# =====================================================================================================
+# Serbest geçiş (SGS) noktaları
+#
+# KGM tarifelerinin bazılarında ana tablodan ayrı, sabit ücretli "Serbest Geçiş Sistemi Alanı" satırları
+# vardır (13 YSS ve Kuzey Çevre, 14 KMO Kınalı–Odayeri, 15 KMO Kurtköy–Akyazı). Her öğe bir fiziksel
+# serbest geçiş noktasıdır; "satirlar" o noktanın tarifedeki satır adlarıdır (iki yönün A/B satırı ya da
+# aynı adla iki yön). "satirlar" yazılmazsa satır adı öğenin adıdır. Kayıtta olmayan satır haritada
+# görünmez ve teknik gruba bir kez "GİŞE KAYDI EKSİK" olarak bildirilir.
+#
+# Kasım 2026'da bir kez belirlendi (kaynak: OpenStreetMap katkıcıları, ODbL; highway=toll_gantry
+# noktaları). Her nokta yolun yönü ve iki yanındaki kavşaklarla denetlendi; A/B gişeleri birkaç yüz metre
+# arayla durduğundan iki yönün ortası alındı. Adı OSM'de yazmayan ya da yanlış yazan noktalar "not"ta belirtilir.
+serbest_gecis:
+  yss-kuzey-cevre:
+    - ad: İstoç
+      konum: [41.07112, 28.81544]
+      il: İstanbul
+      not: OSM'de 'İstoç Gişesiz Otomatik Geçiş Bölgesi' (İCA, O-7 güney kolu, Mahmutbey Batı kavşağının kuzeyi).
+    - ad: İkitelli
+      konum: [41.07939, 28.81375]
+      il: İstanbul
+      not: "OSM'de 'İkitelli Gişesiz Otomatik Geçiş Bölgesi'; yalnızca kuzey yönünde gişe var (tarife: Kuzey-Güney ücreti Başakşehir Güney'de alınır)."
+    - ad: Başakşehir Güney
+      konum: [41.09177, 28.81340]
+      il: İstanbul
+      not: OSM'de iki yönün gişesi 1,1 km arayla (41.0868 kuzeye, 41.0967 güneye); ortası alındı.
+    - ad: Başakşehir
+      konum: [41.10788, 28.81477]
+      il: İstanbul
+      not: OSM'de 'Başakşehir Kuzey Gişesiz Otomatik Geçiş Bölgesi'.
+    - ad: Fenertepe
+      konum: [41.12762, 28.80751]
+      il: İstanbul
+      not: OSM'de 'Fenertepe Gişesiz Otomatik Geçiş Bölgesi'. Tablodaki Fenertepe istasyonu (gişe binası) 7,5 km kuzeydedir; ayrı yerlerdir.
+    - ad: Çekmeköy
+      konum: [41.03843, 29.19419]
+      il: İstanbul
+      not: OSM'de adsız; KMO Çekmeköy kavşağı bağlantı yolunda, Çekmeköy kavşağının hemen güneyindeki gişe.
+    - ad: Çamlık
+      konum: [41.05210, 29.16684]
+      il: İstanbul
+      not: OSM'de adsız; O-7'de Çamlık (O-2) ile Çekmeköy kavşakları arasındaki tek gişe.
+    - ad: Sarıgazi
+      konum: [41.02347, 29.19620]
+      il: İstanbul
+      not: OSM'de adsız; aynı bağlantı yolunda Sarıgazi kavşağının hemen kuzeyindeki gişe (Çekmeköy noktasının 1,7 km güneyi).
+    - ad: Kömürlük
+      konum: [41.12150, 29.33410]
+      il: İstanbul
+      not: OSM'de 'Kömürlük Gişeleri' (O-7, Ömerli kavşağının doğusu).
+  kmo-kinali-odayeri:
+    - ad: 21 (Terminal)
+      satirlar: [21 (Terminal A), 21 (Terminal B)]
+      konum: [41.24248, 28.75831]
+      il: İstanbul
+      not: OSM'de 'Terminal A' / 'Terminal B'; O-7 ana hattında, havalimanı önünde. Fatih–Odayeri arasında ana hattan geçen herkes geçer.
+    - ad: 22 (Terminal 2 Yanyol)
+      satirlar: [22 (Terminal 2 Yanyol A), 22 (Terminal 2 Yanyol B)]
+      konum: [41.24251, 28.75833]
+      il: İstanbul
+      not: OSM'de 'Terminal 2 Yanyol A/B'; Terminal kavşak kollarında, 21 numaralı noktanın yanında.
+    - ad: 23 (Terminal 1 Yanyol)
+      satirlar: [23 (Terminal 1 Yanyol A), 23 (Terminal 1 Yanyol B)]
+      konum: [41.24142, 28.77536]
+      il: İstanbul
+      not: OSM'de 'Terminal 1 Yanyol A/B' (Terminal 1 / Kargo kavşak kolları).
+    - ad: 24 (Kargo)
+      satirlar: [24 (Kargo A), 24 (Kargo B)]
+      konum: [41.23771, 28.81599]
+      il: İstanbul
+      not: OSM'de 'Kargo A' / 'Kargo B'; O-7 ana hattında, YSS'nin Odayeri gişesinin 400 m batısı.
+    - ad: 71 (Habipler)
+      satirlar: [71 A1 (Habipler A), 71 A2 (Habipler Yanyol A ), 71 B2 (Habipler Yanyol B)]
+      konum: [41.12050, 28.83187]
+      il: İstanbul
+      not: OSM'de 'Habibler A/B' ve 'Habibler Yanyol A/B' (Hasdal–Habipler bağlantısı); ana hat ve yan yol gişeleri yan yana.
+    - ad: 72 (Cebeci)
+      satirlar: [72 A (Cebeci), 72 B (Cebeci)]
+      konum: [41.12209, 28.84870]
+      il: İstanbul
+      not: OSM'de 'Cebeci Kuzey A' / 'Cebeci Güney B'.
+    - ad: 73 (Hasdal)
+      satirlar: [73 A (Hasdal A), 73 B (Hasdal B)]
+      konum: [41.11594, 28.87016]
+      il: İstanbul
+      not: OSM'de 'Hasdal A' / 'Hasdal B'.
+  kmo-kurtkoy-akyazi:
+    - ad: Mermerciler
+      satirlar: [Mermerciler A, Mermerciler B]
+      konum: [40.86276, 29.54002]
+      il: Kocaeli
+      not: "KMO Mermerciler kavşağından Muallimköy kavşağına (O-4/O-5) inen bağlantı yolundaki (O-7) en kuzeydeki gişe. OSM'de 'Demirciler B (SGS)' yazıyor; ancak Mermerciler ile Demirciler OSB kavşakları arasında ve en yüksek ücret bu noktada olduğundan Mermerciler sayıldı."
+    - ad: Demirciler
+      satirlar: [Demirciler A, Demirciler B]
+      konum: [40.81836, 29.53155]
+      il: Kocaeli
+      not: OSM'de 'Demirciler B (SGS)'; aynı bağlantı yolunda Demirciler OSB ile D-100 kavşakları arası.
+    - ad: D100
+      satirlar: [D100 A, D100 B]
+      konum: [40.80468, 29.52014]
+      il: Kocaeli
+      not: OSM'de 'D100A (SGS)'; aynı bağlantı yolunda D-100 ile Muallimköy kavşakları arası.
+    - ad: İzmit OSB
+      satirlar: [İzmit OSB A, İzmit OSB B]
+      konum: [40.76853, 30.04490]
+      il: Kocaeli
+      not: OSM ref 'Izmit OSB (SGS)'; TEM İzmit 1 kavşağı ile KMO İzmit Doğu gişesi arasındaki bağlantı yolu (Anadolu Otoyolu'nun Kartepe SGS noktasının 200 m doğusu).
+
+
+# =====================================================================================================
+# Tablolar arası bağlantılar
+#
+# Farklı tarife tablolarının, sürücünün otoyoldan çıkmadan bir sistemden ötekine geçtiği gişe çiftleri.
+# Panel bunlarla tablolar arası yolculuğu hesaplar: a tablosunda girişten a gişesine + (varsa) aradaki
+# serbest geçiş satırları + b tablosunda b gişesinden çıkışa. KGM belgelerinde aktarma indirimi ya da
+# birleşik ücret yoktur; her işletme kendi tablosunun ücretini ayrı alır.
+#
+#   a, b        : {otoyol, ad}: tarifedeki istasyon adıyla
+#   yol_km      : iki nokta arasındaki yol uzunluğu (yaklaşık; OSM yol ağıyla bir kez ölçüldü). Ara kesim
+#                 ücretsizse (ör. şehir geçişi) bu uzunlukta ücret alınmaz.
+#   tek_yon     : true ise yalnızca a'dan b'ye geçilir (yöne göre ayrı istasyonlu tablolar için)
+#   ara_serbest : a→b (ab) ve b→a (ba) yönünde arada geçilen serbest geçiş satırları {otoyol, ad, yon}
+#   not         : neden bağlantı olduğu
+#
+# Kasım 2026'da bir kez denetlendi: iki noktanın kayıttaki konumları, OSM yol ağında aradaki otoyol
+# (motorway) bağlantısı ve yol üzerindeki bütün gişe/serbest geçiş noktaları. Aynı adlı ama farklı yerdeki
+# gişeler bağlanmadı (Avrupa ve KMO'nun Silivri/Çatalca gişeleri; TEM Akyazı – KMO Akyazı arası D-140
+# devlet yoludur). Doğrulanamayanlar eklenmedi (Gaziantep Batı – Gaziantep Doğu: OSM'de Gaziantep Batı
+# gişesi ana hatta değil, kolda görünüyor; şehir çevre yolları üzerinden geçişler).
+baglantilar:
+  # --- İstanbul Anadolu yakası
+  - a: {otoyol: yss-kuzey-cevre, ad: Kurnaköy}
+    b: {otoyol: kmo-kurtkoy-akyazi, ad: Kurnaköy 2}
+    yol_km: 2.7
+    not: O-7 ana hattı; Kuzey Çevre'nin Kurnaköy gişesi ile KMO'nun Kurnaköy-2 gişesi arasında başka gişe yok.
+  - a: {otoyol: anadolu-camlica-akinci, ad: Mecidiye}
+    b: {otoyol: yss-kuzey-cevre, ad: Mecidiye}
+    yol_km: 0.3
+    not: O-4 ile O-7 arasındaki Mecidiye kavşak kolu; KGM'nin ve YSS'nin Mecidiye gişeleri aynı kolda arka arkaya.
+  # --- İstanbul Avrupa yakası
+  - a: {otoyol: kmo-kinali-odayeri, ad: Fatih}
+    b: {otoyol: yss-kuzey-cevre, ad: Odayeri}
+    yol_km: 9.0
+    ara_serbest:
+      ab: [{otoyol: kmo-kinali-odayeri, ad: 21 (Terminal A), yon: Kuzey - Güney}, {otoyol: kmo-kinali-odayeri, ad: 24 (Kargo A), yon: Kuzey - Güney}]
+      ba: [{otoyol: kmo-kinali-odayeri, ad: 24 (Kargo B), yon: Güney - Kuzey}, {otoyol: kmo-kinali-odayeri, ad: 21 (Terminal B), yon: Güney - Kuzey}]
+    not: O-7 ana hattı (havalimanı önü). KMO tablosu Fatih'te biter; Odayeri gişesi YSS tablosunun. Aradaki Terminal ve Kargo serbest geçiş noktaları ana hatta.
+  - a: {otoyol: avrupa-mahmutbey-edirne, ad: Kınalı}
+    b: {otoyol: kmo-kinali-odayeri, ad: Kınalı}
+    yol_km: 4.2
+    not: Kınalı kavşağı (O-3, O-6, O-7). Avrupa Otoyolu tarifesinde Kınalı ile Küçükılıçlı 0 km ve aynı ücretli.
+  - a: {otoyol: avrupa-mahmutbey-edirne, ad: Mahmutbey}
+    b: {otoyol: yss-kuzey-cevre, ad: Fenertepe}
+    yol_km: 17.5
+    ara_serbest:
+      ab: [{otoyol: yss-kuzey-cevre, ad: İstoç, yon: Güney - Kuzey}, {otoyol: yss-kuzey-cevre, ad: İkitelli, yon: Güney - Kuzey}, {otoyol: yss-kuzey-cevre, ad: Başakşehir Güney, yon: Güney - Kuzey}, {otoyol: yss-kuzey-cevre, ad: Başakşehir, yon: Güney - Kuzey}, {otoyol: yss-kuzey-cevre, ad: Fenertepe, yon: Güney - Kuzey}]
+      ba: [{otoyol: yss-kuzey-cevre, ad: Fenertepe, yon: Kuzey - Güney}, {otoyol: yss-kuzey-cevre, ad: Başakşehir, yon: Kuzey - Güney}, {otoyol: yss-kuzey-cevre, ad: Başakşehir Güney, yon: Kuzey - Güney}, {otoyol: yss-kuzey-cevre, ad: İstoç, yon: Kuzey - Güney}]
+    not: O-3 Mahmutbey serbest geçiş noktası → Mahmutbey Batı kavşağı → O-7 güney kolu → Fenertepe gişesi. Kolda beş serbest geçiş noktası var (güneye giderken İkitelli'de gişe yok).
+  # --- Kocaeli / Sakarya
+  - a: {otoyol: anadolu-camlica-akinci, ad: Kartepe}
+    b: {otoyol: kmo-kurtkoy-akyazi, ad: İzmit Doğu}
+    yol_km: 2.7
+    ara_serbest:
+      ab: [{otoyol: kmo-kurtkoy-akyazi, ad: İzmit OSB B, yon: Güney - Kuzey}]
+      ba: [{otoyol: kmo-kurtkoy-akyazi, ad: İzmit OSB A, yon: Kuzey - Güney}]
+    not: TEM İzmit 1 kavşağı – KMO bağlantı yolu. KGM'nin Kartepe ve KMO'nun İzmit OSB serbest geçiş noktaları arka arkaya.
+  - a: {otoyol: kmo-kurtkoy-akyazi, ad: TEM Akyazı}
+    b: {otoyol: anadolu-camlica-akinci, ad: Topağaç}
+    yol_km: 0.7
+    not: KMO'nun doğu ucu. Bağlantı yalnızca TEM'in doğu (Hendek–Ankara) yönüne iner; TEM'in batısına (Adapazarı) buradan geçilmez.
+  - a: {otoyol: anadolu-camlica-akinci, ad: Muallimköy}
+    b: {otoyol: kmo-kurtkoy-akyazi, ad: Mermerciler}
+    yol_km: 10.8
+    ara_serbest:
+      ab: [{otoyol: kmo-kurtkoy-akyazi, ad: D100 B, yon: Güney - Kuzey}, {otoyol: kmo-kurtkoy-akyazi, ad: Demirciler B, yon: Güney - Kuzey}, {otoyol: kmo-kurtkoy-akyazi, ad: Mermerciler B, yon: Güney - Kuzey}]
+      ba: [{otoyol: kmo-kurtkoy-akyazi, ad: Mermerciler A, yon: Kuzey - Güney}, {otoyol: kmo-kurtkoy-akyazi, ad: Demirciler A, yon: Kuzey - Güney}, {otoyol: kmo-kurtkoy-akyazi, ad: D100 A, yon: Kuzey - Güney}]
+    not: Muallimköy kavşağı (O-4/O-5) ile KMO Mermerciler arasındaki bağlantı yolu (O-7); yolda üç serbest geçiş noktası. Muallimköy'den O-5'e de geçilir (aşağıdaki iki bağlantı); KMO'dan O-5'e giderken TEM'e girilmez.
+  - a: {otoyol: anadolu-camlica-akinci, ad: Muallimköy}
+    b: {otoyol: gebze-orhangazi-izmir-gebze-bursa, ad: Osmangazi Köprüsü (İzmir Yönü)}
+    yol_km: 9.3
+    tek_yon: true
+    not: "Muallimköy kavşağından O-5 ile Osmangazi Köprüsü'nün Hersek gişelerine (güneye). Köprü ücreti bu tablodadır: 'İzmir Yönü' istasyonunun köşegen (azami) değeri. O-5'te kavşağın hemen güneyinde OSM'de adsız bir serbest geçiş noktası var; hiçbir tarifede karşılığı bulunamadı."
+  - a: {otoyol: gebze-orhangazi-izmir-gebze-bursa, ad: Osmangazi Köprüsü (İstanbul Yönü)}
+    b: {otoyol: anadolu-camlica-akinci, ad: Muallimköy}
+    yol_km: 9.3
+    tek_yon: true
+    not: "Osmangazi Köprüsü'nden kuzeye, O-5 ile Muallimköy kavşağına. Kuzeye giderken köprü ücreti 'İstanbul Yönü' çıkışının ücretine dahildir. O-5'teki adsız serbest geçiş noktası için yukarıdaki nota bakın."
+  # --- Ara kesimi ücretsiz aynı otoyol
+  - a: {otoyol: gebze-orhangazi-izmir-gebze-bursa, ad: Bursa Kuzey}
+    b: {otoyol: gebze-orhangazi-izmir-bursa-izmir, ad: Bursa Batı}
+    yol_km: 34.9
+    not: O-5 Bursa geçişi; iki tablo aynı belgede, aradaki 35 km'de gişe yok.
+  - a: {otoyol: ankara-nigde, ad: Niğde Alın}
+    b: {otoyol: cukurova-nigde-mersin-adana, ad: Gölcük Alın}
+    yol_km: 3.3
+    not: O-21 ana hattı; Ankara–Niğde Otoyolu'nun bittiği yerden Çukurova Otoyolu'nun Gölcük alın gişesine.
+  - a: {otoyol: izmir-aydin, ad: Aydın Batı}
+    b: {otoyol: aydin-denizli, ad: Aydın Alın}
+    yol_km: 11.1
+    not: O-31 ana hattı (Aydın kuzeyi); aradaki 11 km'de gişe yok.
+  - a: {otoyol: cukurova-nigde-mersin-adana, ad: Adana Batı Alın}
+    b: {otoyol: cukurova-adana-gaziantep, ad: Adana Doğu Alın}
+    yol_km: 59.2
+    not: O-51/O-52 Adana geçişi; iki alın gişesi arasındaki 59 km'de gişe yok.
+  - a: {otoyol: cukurova-nigde-mersin-adana, ad: Mersin Alın}
+    b: {otoyol: cesmeli-kizkalesi, ad: Çeşmeli}
+    yol_km: 29.6
+    not: O-51 Mersin geçişi; Mersin alın gişesinden Çeşmeli gişesine 30 km'de gişe yok.

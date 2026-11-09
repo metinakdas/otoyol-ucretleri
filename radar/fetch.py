@@ -118,10 +118,11 @@ class Fetcher:
 
     # -- ana işlev ----------------------------------------------------------
 
-    def get(self, url: str, *, etag: str | None = None, last_modified: str | None = None) -> FetchResult:
+    def get(self, url: str, *, etag: str | None = None, last_modified: str | None = None,
+            headers: dict | None = None) -> FetchResult:
         if not self.allowed(url):
             raise FetchError(f"robots.txt bu adrese erişime izin vermiyor: {url}")
-        headers = {}
+        headers = dict(headers or {})
         if etag:
             headers["If-None-Match"] = etag
         if last_modified:

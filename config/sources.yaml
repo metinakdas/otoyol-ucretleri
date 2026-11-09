@@ -65,14 +65,14 @@ sources:
     enabled: true
 
   - id: avrasya-ucretler
-    name: Avrasya Tüneli ücret sayfası
-    type: sayfa
+    name: Avrasya Tüneli ücret tablosu
+    type: avrasya_ucret
     tier: resmi
-    url: https://www.avrasyatuneli.com/ucretlendirme/
+    # Ücret sayfası (https://www.avrasyatuneli.com/ucretlendirme/) tabloyu kendi betiğiyle bu adresten
+    # JSON olarak alır; radar da aynı adresi okur (robots.txt izin veriyor). Ayrıntı: radar/avrasya.py
+    url: https://www.avrasyatuneli.com/api/toll/priceHtml
     crossings: [avrasya-tuneli]
-    # Ücretler sayfaya JavaScript ile yükleniyor; düz okumada görünmüyor. Bu yüzden kapalı.
-    # Avrasya Tüneli ücret değişiklikleri haber ve duyurular sayfasından izlenir.
-    enabled: false
+    enabled: true
 
   # --- Haber akışları (isteğe bağlı) ---
   # Google News RSS ücretsizdir; kullanım koşullarını kontrol ettikten sonra "enabled: true" yapın.

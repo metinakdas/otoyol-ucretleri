@@ -22,12 +22,18 @@ GitHub Pages (panel), Telegram ve e-posta (bildirim). Yapay zekâ ya da ücretli
 - **Ücret hesabı:** Giriş ve çıkış gişesi ile araç sınıfı seçilir; KGM tarifesindeki ücret ve mesafe bir
   "geçiş fişi" olarak gösterilir, güzergâh haritada çizilir. Gişe haritadan da seçilebilir; hesap adres
   çubuğunda tutulduğu için bağlantıyla paylaşılabilir. Veri: KGM tarife PDF'lerindeki gişe-gişe tablolar
-  (`data/ucret-tablosu.json`; 17 otoyol tablosu, yöne göre değişen tarifeler dahil).
+  (`data/ucret-tablosu.json`; 17 otoyol tablosu, yöne göre değişen tarifeler dahil). Giriş ve çıkış farklı
+  tarifelerdeyse (ör. İzmit Kuzey → Paşaköy: KMO + YSS) hesap, `config/giseler.yaml` içindeki doğrulanmış
+  `baglantilar` üzerinden yapılır; aradaki serbest geçiş ücretleri eklenir ve kalemler tek tek gösterilir.
+  İki farklı yol varsa "Doğrudan" ve "En ucuz" seçenek olarak sunulur (ödenen ücret gidilen yola bağlıdır).
 - **Harita:** Sayfanın merkezindedir. Köprü, tünel ve **yalnızca KGM tarifesinde bulunan** otoyol gişeleri
   gösterilir. Gişe konumları bizim tuttuğumuz `config/giseler.yaml` kaydından gelir; radar dışarıdan
-  gişe verisi almaz, harita karoları yalnızca arka plandır. Arama, il/otoyol/durum filtreleri ve 7 bölge vardır.
-- **Panel:** Köprü ve tünel ücretleri (sınıf seçerek), bayramda ücretsiz geçişler, kayıtlar; kaynakların
-  durumu ve KGM belgeleri en altta. Hepsi ücretsizdir, API anahtarı gerekmez.
+  gişe verisi almaz, harita karoları yalnızca arka plandır. Serbest geçiş (SGS) noktaları ayrı katmandadır.
+  Arama; Köprü-tünel / Gişe / Serbest geçiş katmanları; bölge (7 bölge), il, otoyol ve durum ("zammı yaklaşan",
+  "ücretsiz geçiş") filtreleri vardır.
+- **Panel:** Köprü ve tünel ücretleri (sınıf seçerek; Avrasya Tüneli dahil), takvim (yılbaşı ücret dönemi,
+  bayramlar), bayramda ücretsiz geçişler, kayıtlar; kaynakların durumu ve KGM belgeleri. Hepsi ücretsizdir,
+  API anahtarı gerekmez.
 
 ## Nasıl çalışır
 
@@ -366,8 +372,10 @@ GitHub'a her gönderimde de otomatik çalışır.
 
 ## Bilinen sınırlar
 
-- **Avrasya Tüneli** ücretleri sayfaya JavaScript ile yüklendiği için okunamıyor; değişiklikler tünelin
-  duyurularından yakalanır, ücretleri panelde elle doğrulamak gerekebilir.
+- **Avrasya Tüneli** ücretleri, sitenin ücret sayfasının kendi kullandığı JSON adresinden okunur
+  (`radar/avrasya.py`). Tünelin sınıfları KGM'den farklıdır: otomobil 1., minibüs 2., motosiklet 6. sınıf;
+  3–5. sınıf araçlar tünelden geçemez. Gece tarifesi (00:00–04:59) ayrıca kaydedilir. Sitede yürürlük
+  tarihi yazmadığından değişiklik, görüldüğü an "kontrol et" etiketiyle bildirilir.
 - **Otoyol gişe tabloları** ücret hesabı için okunur, ancak otoyol ücret değişikliği bildirimi yine
   "belge değişti" düzeyindedir. Tablolardaki tuhaflıklar (ör. sütunu olmayan gişe) `uyarilar` alanına yazılır.
 - Gerçek dosyada doğrulanan PDF biçimi **15 Temmuz ve FSM** tarifesidir. YSS, Osmangazi ve 1915 Çanakkale

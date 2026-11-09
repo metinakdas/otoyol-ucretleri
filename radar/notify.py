@@ -140,7 +140,8 @@ def plan(
 
 
 def gise_anahtari(g: dict) -> str:
-    return f"gise-kaydi:{g['otoyol']}:{slugify(g['ad'], 60)}"
+    on = "sgs-" if g.get("tur") == "serbest" else ""   # aynı adlı gişe ile serbest geçiş noktası ayrı bildirilir
+    return f"gise-kaydi:{g['otoyol']}:{on}{slugify(g['ad'], 60)}"
 
 
 def _problems(cfg: Config, health: dict, now: datetime) -> list[str]:
