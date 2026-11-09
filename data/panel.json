@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "ornek": false,
-  "last_run": "2026-11-09T02:45:19+03:00",
+  "last_run": "2026-11-09T12:32:34+03:00",
   "run_interval_minutes": 30,
   "panel_url": "https://metinakdas.github.io/otoyol-ucretleri/",
   "names": {
@@ -493,7 +493,7 @@
       "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T02:45:19+03:00",
+      "last_success": "2026-11-09T12:32:34+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 tarife belgesi, 0 değişiklik"
@@ -506,10 +506,10 @@
       "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T02:45:19+03:00",
+      "last_success": "2026-11-09T12:32:34+03:00",
       "failing_since": null,
       "error": null,
-      "info": "52 başlık, 0 yeni, 0 ilgili"
+      "info": "53 başlık, 1 yeni, 0 ilgili"
     },
     {
       "id": "uab-haberler",
@@ -519,7 +519,7 @@
       "url": "https://www.uab.gov.tr/haberler/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T02:45:19+03:00",
+      "last_success": "2026-11-09T12:32:34+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 başlık, 0 yeni, 0 ilgili"
@@ -532,7 +532,7 @@
       "url": "https://www.uab.gov.tr/duyurular/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T02:45:19+03:00",
+      "last_success": "2026-11-09T12:32:34+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 başlık, 0 yeni, 0 ilgili"
@@ -545,7 +545,7 @@
       "url": "https://www.uab.gov.tr/basin-aciklamalari/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T02:45:19+03:00",
+      "last_success": "2026-11-09T12:32:34+03:00",
       "failing_since": null,
       "error": null,
       "info": "20 başlık, 0 yeni, 0 ilgili"
@@ -558,7 +558,7 @@
       "url": "https://www.avrasyatuneli.com/haberler-ve-duyurular/",
       "enabled": true,
       "ok": true,
-      "last_success": "2026-11-09T02:45:19+03:00",
+      "last_success": "2026-11-09T12:32:34+03:00",
       "failing_since": null,
       "error": null,
       "info": "14 başlık, 0 yeni, 0 ilgili"

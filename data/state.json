@@ -618,7 +618,8 @@
       "0bce661bc8a2",
       "f467bcc1c7ff",
       "eed1e434652f",
-      "e08d33be72a0"
+      "e08d33be72a0",
+      "c0627e63eb2b"
     ],
     "last_items": [
       {
@@ -628,6 +629,10 @@
       {
         "title": "Karayolları Genel Müdürlüğü Şu anda seçili",
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/default.aspx"
+      },
+      {
+        "title": "Duyurular.aspx?utm_source=chatgpt",
+        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx?utm%255Fsource=chatgpt%2Ecom"
       },
       {
         "title": "Genel Müdür Yardımcılarımız",
@@ -648,10 +653,6 @@
       {
         "title": "Kurumsal Mali Durum ve Beklentiler Raporu",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/MaliDurum/malidurum.pdf"
-      },
-      {
-        "title": "Uluslararası Karayolu Güzergahları",
-        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GlobalProjeler.aspx"
       }
     ]
   },
