@@ -406,7 +406,9 @@ window.RadarMap = (function () {
     if (p.crossing) {
       const c = p.crossing;
       const cur = c.current && c.current.classes[S.cls];
-      const rows = [`<div class="pop-row"><span>${esc(h.className(S.cls))}</span><b>${cur != null ? esc(h.money(cur)) : "—"}</b></div>`];
+      const night = c.current && c.current.gece && c.current.gece.classes ? c.current.gece : null;
+      const rows = [`<div class="pop-row"><span>${esc(h.className(S.cls))}${night ? " · gündüz" : ""}</span><b>${cur != null ? esc(h.money(cur)) : c.current ? "Geçemez" : "—"}</b></div>`];
+      if (night && night.classes[S.cls] != null) rows.push(`<div class="pop-row"><span>Gece ${esc(night.saat || "")}</span><b>${esc(h.money(night.classes[S.cls]))}</b></div>`);
       if (c.free_now) rows.push(`<div class="pop-st free">Ücretsiz geçiş sürüyor · bitiş ${esc(h.dateTime(c.free_now.valid_to))}</div>`);
       if (c.upcoming) rows.push(`<div class="pop-st change">${esc(h.date(c.upcoming.valid_from))} itibarıyla ${esc(h.money(c.upcoming.classes[S.cls]))}</div>`);
       return `${head}${rows.join("")}<div class="pop-a"><a href="#" data-show-crossing="${esc(c.id)}">Tüm sınıflar ve geçmiş</a></div>`;

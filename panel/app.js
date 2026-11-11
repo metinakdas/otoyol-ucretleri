@@ -162,12 +162,18 @@
   }
 
   function crossingDetail(c, now) {
-    const rows = CLASSES.map((k) => `<tr><td>${esc(className(k))}</td><td>${esc(money(c.current && c.current.classes[k]))}</td>
+    const gece = c.current && c.current.gece && c.current.gece.classes ? c.current.gece : null;
+    // Sınıf tablosu yalnızca bazı sınıfları içeriyorsa (Avrasya: 3–5. sınıf giremez) boş hücre "Geçemez" olur.
+    const partial = c.current && c.current.classes && CLASSES.some((k) => c.current.classes[k] == null);
+    const cellOf = (classes, k) => (classes && classes[k] != null ? esc(money(classes[k])) : partial ? `<span class="muted">Geçemez</span>` : "—");
+    const rows = CLASSES.map((k) => `<tr><td>${esc(className(k))}</td><td>${cellOf(c.current && c.current.classes, k)}</td>
+      ${gece ? `<td>${gece.classes[k] != null ? esc(money(gece.classes[k])) : "—"}</td>` : ""}
       ${c.upcoming ? `<td>${esc(money(c.upcoming.classes[k]))}</td>` : ""}</tr>`).join("");
     const links = [c.konum ? `<a href="#" data-map-focus="${esc(c.id)}">Haritada göster</a>` : "",
       c.current && c.current.source_url ? link(c.current.source_url, "Tarife belgesi") : ""].filter(Boolean).join("");
+    const head = gece ? `<th>Gündüz${c.current.gunduz_saat ? `<br><small>${esc(c.current.gunduz_saat)}</small>` : ""}</th><th>Gece${gece.saat ? `<br><small>${esc(gece.saat)}</small>` : ""}</th>` : "<th>Şimdi</th>";
     return `<div class="crossing-detail">
-      <table class="mini"><thead><tr><th>Sınıf</th><th>Şimdi</th>${c.upcoming ? `<th>${esc(fmtShort.format(new Date(c.upcoming.valid_from)))}</th>` : ""}</tr></thead>
+      <table class="mini"><thead><tr><th>Sınıf</th>${head}${c.upcoming ? `<th>${esc(fmtShort.format(new Date(c.upcoming.valid_from)))}</th>` : ""}</tr></thead>
       <tbody>${rows}</tbody></table>
       ${historyChart(c.history, now)}
       ${links ? `<div class="detail-links">${links}</div>` : ""}</div>`;
@@ -188,7 +194,7 @@
       return `<li><button type="button" class="crossing-row" data-id="${esc(c.id)}" aria-expanded="${open === c.id}">
           <span class="ic">${ICON[c.tur] || ICON.kopru}</span>
           <span><span class="nm">${esc(c.name)}</span><span class="sub">${esc(sub)}</span></span>
-          <span class="pr">${v != null ? esc(money(v)) : c.id === "avrasya-tuneli" ? `<small class="tag neutral">Duyurular izleniyor</small>` : "—"}${tag}</span>
+          <span class="pr">${v != null ? esc(money(v)) : c.current ? `<small class="tag neutral">Bu sınıf geçemez</small>` : "—"}${tag}</span>
         </button>${open === c.id ? crossingDetail(c, now) : ""}</li>`;
     }).join("");
   }
@@ -404,7 +410,7 @@
     const hesap = window.RadarHesap;
     if (hesap) {
       try {
-        const r = hesap.init({ table, helpers, cls: cls_, map: window.RadarMap, onClass: (c) => setClassEverywhere(c, "hesap") });
+        const r = hesap.init({ table, crossings: data.crossings, helpers, cls: cls_, map: window.RadarMap, onClass: (c) => setClassEverywhere(c, "hesap") });
         if (r.fromHash) selectTab("rota");
       } catch (e) { console.error("Ücret hesabı açılamadı", e); }
     }

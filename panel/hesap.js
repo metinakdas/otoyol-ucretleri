@@ -18,6 +18,7 @@ window.RadarHesap = (function () {
   const S = {
     h: null, table: null, roads: [], stations: [], byKey: new Map(), entry: null, exit: null, cls: "1", onClass: null, map: null,
     links: new Map(), linkKeys: [], planCache: new Map(), alt: 0,
+    extras: [], extra: new Set(),
   };
   const $ = (sel) => document.querySelector(sel);
 
@@ -286,6 +287,70 @@ window.RadarHesap = (function () {
     if (document.activeElement !== ci) ci.value = S.exit ? S.exit.ad : "";
   }
 
+  // ------------------------------------------------------------ köprü ve tüneller
+  // KGM gişe tablolarına dahil olmayan geçişler (Avrasya Tüneli, Boğaz köprüleri) rotaya ayrıca eklenir.
+  // Tabloya dahil olanlar (YSS, Osmangazi, 1915 Çanakkale) gişe ücretinin içindedir, iki kez sayılmaz.
+  const XNOTE = {
+    "15-temmuz-sehitler": "Yalnızca Avrupa → Asya yönünde ücretlidir",
+    "fatih-sultan-mehmet": "Yalnızca Avrupa → Asya yönünde ücretlidir",
+  };
+  const CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 5 8.5l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  function indexExtras(crossings, table) {
+    const inTable = new Set();
+    ((table && table.otoyollar) || []).forEach((o) => (o.dahil_gecisler || []).forEach((id) => inTable.add(id)));
+    S.extras = (crossings || []).filter((c) => !inTable.has(c.id) && c.current && c.current.classes);
+  }
+  function xFare(c, cls) {
+    const v = c.current.classes[cls];
+    return v != null && v !== "" && !Number.isNaN(Number(v)) ? Number(v) : null;
+  }
+  const picked = () => S.extras.filter((c) => S.extra.has(c.id));
+  // Seçili köprü/tünellerin sınıf başına toplamı; geçemeyen sınıf için null.
+  function xTotal(cls) {
+    let t = 0;
+    for (const c of picked()) { const v = xFare(c, cls); if (v == null) return null; t += v; }
+    return t;
+  }
+  const addFare = (base, cls) => { const x = xTotal(cls); return base == null || x == null ? null : Math.round((base + x) * 100) / 100; };
+  function renderExtras() {
+    const box = $("#trip-extras");
+    if (!box) return;
+    box.closest("fieldset").hidden = !S.extras.length;
+    box.innerHTML = S.extras.map((c) => {
+      const v = xFare(c, S.cls);
+      return `<button type="button" data-extra="${S.h.esc(c.id)}" aria-pressed="${S.extra.has(c.id)}">
+        <span class="x-box">${CHECK}</span><span class="x-n">${S.h.esc(c.name)}</span>
+        <span class="x-v${v == null ? " no" : ""}">${v != null ? S.h.esc(fmtNum.format(v)) + " ₺" : "Bu sınıf geçemez"}</span></button>`;
+    }).join("");
+  }
+  function xLegsHtml(cls) {
+    const esc = S.h.esc;
+    return picked().map((c) => {
+      const v = xFare(c, cls), g = c.current.gece, gv = g && g.classes ? g.classes[cls] : null;
+      const sub = [XNOTE[c.id], gv != null ? `Gece ${g.saat || ""}: ${fmtNum.format(Number(gv))} ₺` : ""].filter(Boolean).join(" · ");
+      return `<li class="is-x"><div class="leg-top"><span class="leg-road">${esc(c.name)}</span><b>${v != null ? esc(fmtNum.format(v)) + " ₺" : "Geçemez"}</b></div>
+        ${sub ? `<div class="leg-trip">${esc(sub)}</div>` : ""}</li>`;
+    }).join("");
+  }
+  function extrasOnlyHtml() {
+    const esc = S.h.esc, xs = picked(), v = xTotal(S.cls);
+    const rows = Object.keys(CLASSES).map((k) => {
+      const t = xTotal(k);
+      return `<li class="${k === S.cls ? "is-on" : ""}">${icon(k)}<span>${k}. sınıf · ${CLASSES[k].l}</span>
+      <b>${t != null ? esc(fmtNum.format(t)) + " ₺" : "Geçemez"}</b></li>`;
+    }).join("");
+    return `<article class="fare" aria-label="Geçiş ücreti">
+      <div class="fare-main">
+        <div class="fare-label">${S.cls}. sınıf · ${CLASSES[S.cls].l}${xs.length > 1 ? " · toplam" : ""}</div>
+        <div class="fare-amount">${v != null ? esc(fmtNum.format(v)) + '<span class="cur">₺</span>' : "—"}</div>
+        <ol class="legs">${xLegsHtml(S.cls)}</ol>
+        ${v == null ? `<p class="fare-note">Seçili araç sınıfı bu geçişlerden en az birini kullanamaz.</p>` : ""}
+        <p class="fare-hint">Otoyol ücretini de eklemek için giriş ve çıkış gişesini seçin.</p>
+      </div>
+      <ul class="fare-classes">${rows}</ul>
+    </article>`;
+  }
+
   // ------------------------------------------------------------ seçim
 
   function pick(role, key) {
@@ -306,6 +371,7 @@ window.RadarHesap = (function () {
     if (!CLASSES[cls]) return;
     S.cls = cls;
     renderClasses();
+    renderExtras();
     if (!silent && S.onClass) S.onClass(cls);
     update(true);
   }
@@ -328,12 +394,18 @@ window.RadarHesap = (function () {
         : "Bu iki gişe arasında bağlantılı bir tarife bulunamadı."}</div>`;
     }
     const sgsLegs = p.legs.filter((l) => l.sgs);
-    const multi = p.trips.length > 1 || sgsLegs.length > 0;
+    const xs = picked();
+    const multi = p.trips.length > 1 || sgsLegs.length > 0 || xs.length > 0;
     const o = a.road;
-    const v = planFare(p, S.cls);
+    const v = addFare(planFare(p, S.cls), S.cls);
     const arrow = '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 8h11M9.5 4.5 13 8l-3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     const rows = Object.keys(CLASSES).map((k) => `<li class="${k === S.cls ? "is-on" : ""}">${icon(k)}<span>${k}. sınıf · ${CLASSES[k].l}</span>
-      <b>${typeof p.total[k - 1] === "number" ? esc(fmtNum.format(p.total[k - 1])) + " ₺" : "—"}</b></li>`).join("");
+      <b>${clsTotal(p, k)}</b></li>`).join("");
+    function clsTotal(r, k) {
+      const t = typeof r.total[k - 1] === "number" ? addFare(r.total[k - 1], k) : null;
+      if (t != null) return esc(fmtNum.format(t)) + " ₺";
+      return xs.length && xTotal(k) == null ? "Geçemez" : "—";
+    }
     const docLink = (r) => (r.belge && /^https?:\/\//i.test(r.belge) ? `<a href="${esc(r.belge)}" target="_blank" rel="noopener noreferrer">${multi ? esc(r.yol || "KGM") : "KGM tarifesi"} ↗</a>` : "");
     const roads = [...new Set(p.trips.map((l) => l.a.road).concat(sgsLegs.map((l) => l.road)))];
     const price = (f) => { const x = f ? f[Number(S.cls) - 1] : null; return typeof x === "number" ? esc(fmtNum.format(x)) + " ₺" : "—"; };
@@ -341,25 +413,25 @@ window.RadarHesap = (function () {
       ? `<li class="is-sgs"><div class="leg-top"><span class="sw sw-serbest" aria-hidden="true"></span><span class="leg-road">Serbest geçiş · ${esc(l.ad)}</span><b>${price(l.f)}</b></div>
           <div class="leg-trip">${esc(l.road.ad)}${l.yon ? " · " + esc(l.yon) : ""}</div></li>`
       : `<li><div class="leg-top">${l.a.road.yol ? `<span class="ref">${esc(l.a.road.yol)}</span>` : ""}<span class="leg-road">${esc(l.a.road.ad)}</span><b>${price(l.f)}</b></div>
-          <div class="leg-trip">${esc(l.a.ad)} → ${esc(l.b.ad)}${l.km != null ? ` · ${esc(fmtKm.format(l.km))} km` : ""}</div></li>`)).join("")}</ol>` : "";
+          <div class="leg-trip">${esc(l.a.ad)} → ${esc(l.b.ad)}${l.km != null ? ` · ${esc(fmtKm.format(l.km))} km` : ""}</div></li>`)).join("")}${xLegsHtml(S.cls)}</ol>` : "";
     const valid = o.gecerlilik ? `Geçerlilik ${esc(S.h.date(o.gecerlilik))}` : "KDV dahil";
     const noPos = [a, b].some((s) => !hasPos(s));
     const roadsOf = (r) => [...new Set(r.trips.map((l) => l.a.road.ad.replace(/\s*\(.*\)\s*$/, "")))].join(" → ");
     const chooser = all.length > 1 ? `<div class="route-choice" role="radiogroup" aria-label="Güzergâh">${all.map((r, i) => `
       <button type="button" role="radio" data-route="${i}" aria-checked="${r === p}">
-        <span class="rc-k">${i === 0 ? "Doğrudan" : "En ucuz"}</span><span class="rc-v">${planFare(r, S.cls) != null ? esc(fmtNum.format(planFare(r, S.cls))) + " ₺" : "—"}</span>
+        <span class="rc-k">${i === 0 ? "Doğrudan" : "En ucuz"}</span><span class="rc-v">${clsTotal(r, S.cls)}</span>
         <span class="rc-s">${esc(roadsOf(r))}</span></button>`).join("")}</div>` : "";
     return `${chooser}<article class="fare" aria-label="Geçiş ücreti">
       <div class="fare-main">
         <div class="fare-label">${S.cls}. sınıf · ${CLASSES[S.cls].l}${multi ? " · toplam" : ""}</div>
         <div class="fare-amount">${v != null ? esc(fmtNum.format(v)) + '<span class="cur">₺</span>' : "—"}</div>
         <div class="fare-trip"><span>${esc(a.ad)}</span>${arrow}<span>${esc(b.ad)}</span></div>
-        <div class="fare-meta">${multi ? `<span>${p.trips.length} tarife${sgsLegs.length ? ` + ${sgsLegs.length} serbest geçiş` : ""}</span>`
+        <div class="fare-meta">${multi ? `<span>${p.trips.length} tarife${sgsLegs.length ? ` + ${sgsLegs.length} serbest geçiş` : ""}${xs.length ? ` + ${xs.length} köprü/tünel` : ""}</span>`
           : `${o.yol ? `<span class="ref">${esc(o.yol)}</span>` : ""}<span>${esc(o.ad)}</span>`}${p.km != null ? `<span>· ${esc(fmtKm.format(p.km))} km</span>` : ""}</div>
         ${legsHtml}
-        ${v == null ? `<p class="fare-note">Tarifede bu sınıf için ücret yok.</p>` : ""}
+        ${v == null ? `<p class="fare-note">${xs.length && xTotal(S.cls) == null ? "Seçili araç sınıfı eklenen geçişlerden en az birini kullanamaz." : "Tarifede bu sınıf için ücret yok."}</p>` : ""}
         ${noPos ? `<p class="fare-note">Gişelerden birinin konumu kayıtlı değil; güzergâh çizilemedi.</p>` : ""}
-        ${multi ? `<p class="fare-hint">Her bölüm kendi tarifesine göre ayrı ücretlendirilir; toplam, bölümlerin KGM tarifelerindeki ücretlerin toplamıdır.</p>` : ""}
+        ${multi ? `<p class="fare-hint">Her bölüm kendi tarifesine göre ayrı ücretlendirilir; toplam, bölümlerin ücretlerinin toplamıdır.</p>` : ""}
       </div>
       <ul class="fare-classes">${rows}</ul>
       <div class="fare-foot"><span>${valid}${roads.some((r) => r.yonlu) ? " · yöne göre değişir" : ""}</span><span class="docs">${roads.map(docLink).filter(Boolean).join(" ")}</span></div>
@@ -379,7 +451,8 @@ window.RadarHesap = (function () {
 
   function update(keepView) {
     syncInputs();
-    $("#trip-result").innerHTML = S.entry && S.exit ? resultHtml(S.entry, S.exit) : emptyHtml();
+    $("#trip-result").innerHTML = S.entry && S.exit ? resultHtml(S.entry, S.exit)
+      : !S.entry && !S.exit && S.extra.size ? extrasOnlyHtml() : emptyHtml();
     drawRoute(keepView);
     writeHash();
   }
@@ -421,10 +494,10 @@ window.RadarHesap = (function () {
 
   function writeHash() {
     try {
-      // Biçim: #hesap=<giriş otoyolu>/<giriş sırası>/<çıkış otoyolu>/<çıkış sırası>/<sınıf>
-      const a = S.entry, b = S.exit;
+      // Biçim: #hesap=<giriş otoyolu>/<giriş sırası>/<çıkış otoyolu>/<çıkış sırası>/<sınıf>[/<köprü,tünel>]
+      const a = S.entry, b = S.exit, x = picked().map((c) => encodeURIComponent(c.id)).join(",");
       const end = (s) => (s ? `${encodeURIComponent(s.road.id || "")}/${s.i}` : "/");
-      const hash = a || b ? `#hesap=${end(a)}/${end(b)}/${S.cls}` : "";
+      const hash = a || b || x ? `#hesap=${end(a)}/${end(b)}/${S.cls}${x ? "/" + x : ""}` : "";
       if (location.hash !== hash) history.replaceState(null, "", location.pathname + location.search + hash);
     } catch (e) { /* önemli değil */ }
   }
@@ -433,7 +506,7 @@ window.RadarHesap = (function () {
     if (!m) return false;
     const parts = m[1].split("/").map((x) => decodeURIComponent(x));
     // Eski biçim (tek otoyol): otoyol/giriş/çıkış/sınıf
-    const [ga, gi, ca, ci, cls] = parts.length === 4 ? [parts[0], parts[1], parts[0], parts[2], parts[3]] : parts;
+    const [ga, gi, ca, ci, cls, xs] = parts.length === 4 ? [parts[0], parts[1], parts[0], parts[2], parts[3]] : parts;
     const get = (id, i) => {
       const oi = S.roads.findIndex((o) => o.id === id);
       return oi >= 0 && i !== "" && i != null ? S.byKey.get(`${oi}:${i}`) || null : null;
@@ -441,7 +514,8 @@ window.RadarHesap = (function () {
     if (CLASSES[cls]) S.cls = cls;
     S.entry = get(ga, gi);
     S.exit = get(ca, ci);
-    return !!(S.entry || S.exit);
+    S.extra = new Set((xs || "").split(",").filter((id) => S.extras.some((c) => c.id === id)));
+    return !!(S.entry || S.exit || S.extra.size);
   }
 
   async function copyLink(btn) {
@@ -480,8 +554,18 @@ window.RadarHesap = (function () {
     S.map = opts.map || null;
     if (S.table) index(S.table);
     if (!S.stations.length) S.table = null;
+    indexExtras(opts.crossings, S.table);
     const fromHash = S.table ? readHash() : false;
     renderClasses();
+    renderExtras();
+    $("#trip-extras").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-extra]");
+      if (!b) return;
+      const id = b.dataset.extra;
+      if (S.extra.has(id)) S.extra.delete(id); else S.extra.add(id);
+      renderExtras();
+      update(true);
+    });
     if (S.table) { combo("giris"); combo("cikis"); }
     else { $("#trip-giris").disabled = true; $("#trip-cikis").disabled = true; }
     $("#trip-swap").addEventListener("click", swap);

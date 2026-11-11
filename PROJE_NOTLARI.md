@@ -150,6 +150,17 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
   kola sapan gişeler çizgiden atlanır). Haritadaki gişenin açılır penceresinden Giriş/Çıkış seçilebilir.
   Seçim adres çubuğunda: `#hesap=<otoyol-id>/<giriş>/<çıkış>/<sınıf>`. Yöne bağlı tarifelerde
   `ucret_geri` kullanılır.
+- **Köprü ve tünel ekle:** KGM gişe tablolarına dahil olmayan geçişler (Avrasya Tüneli, 15 Temmuz, FSM)
+  hesaplayıcıda işaretlenip toplama eklenir; gişe seçmeden yalnızca bunlar da hesaplanabilir. Tabloya dahil
+  olanlar (`dahil_gecisler`: YSS, Osmangazi, 1915) listelenmez, iki kez sayılmaz. Avrasya'da 3–5. sınıf
+  "Geçemez", gece tarifesi alt satırda; Boğaz köprülerinde "yalnızca Avrupa → Asya yönünde ücretli" notu.
+  Adres: `#hesap=<A>/<i>/<B>/<j>/<sınıf>/<geçiş-id,…>` (gişesiz: `#hesap=////1/avrasya-tuneli`).
+- **Resmî bağlantılar:** Rota sekmesinin altında KGM ücret sorgulama (vatandas.kgm.gov.tr/Toll) ve İhlalli
+  geçiş sorgulama/ödeme. İhlal sorgusu plaka ister (kişisel veri) — yalnızca bağlantı verilir, radar okumaz.
+- **Doğrulama (11.11.2026):** PDF'ten okunan tablolar KGM'nin resmî ücret sorgulamasıyla elle karşılaştırıldı:
+  Adapazarı→Akyazı 1. sınıf 40 TL / 15,8 km; Kurtköy→Gerede 5. sınıf 744 TL / 273,58 km — birebir aynı.
+  Resmî sorgulama yalnızca 7 KGM otoyolunu kapsar; PDF'ler 17 tabloyu (köprülü otoyollar dahil) kapsadığı
+  için kaynak olarak PDF'ler kullanılır. `ucretlerana.aspx` yalnızca bağlantı sayfasıdır, veri `UcretlerYeni.aspx`'tedir.
 - **Haritadaki gişeler yalnızca KGM tarifesinden, konumları yalnızca bizim kaydımızdan gelir.** Sahibin
   isteği: "bize haritadan veri gelmemeli, bizde gişeler verisi zaten olmalı, biz haritaya çizmeliyiz".
   OpenStreetMap'te kapanmış/tarifede olmayan gişeler var (ör. Derince, İzmit merkezdeki adsız nokta, eski

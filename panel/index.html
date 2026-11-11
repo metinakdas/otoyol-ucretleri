@@ -87,8 +87,16 @@
             <legend>Araç sınıfı</legend>
             <div class="vehicle-grid" id="trip-classes"></div>
           </fieldset>
+          <fieldset class="vehicles extras-set" hidden>
+            <legend>Köprü ve tünel ekle</legend>
+            <div class="extras" id="trip-extras" role="group" aria-label="Rotaya eklenecek köprü ve tüneller"></div>
+          </fieldset>
         </form>
         <div id="trip-result" class="result" aria-live="polite"></div>
+        <nav class="official" aria-label="Resmî KGM hizmetleri">
+          <a href="https://vatandas.kgm.gov.tr/Toll" target="_blank" rel="noopener noreferrer">KGM ücret sorgulama ↗</a>
+          <a href="https://webihlaltakip.kgm.gov.tr/WebIhlalSorgulama/Sayfalar/Sorgulama.aspx?lang=tr" target="_blank" rel="noopener noreferrer">İhlalli geçiş sorgula ve öde ↗</a>
+        </nav>
       </section>
 
       <section class="tab-panel" id="tab-kopru" role="tabpanel" aria-labelledby="tab-btn-kopru" hidden>
