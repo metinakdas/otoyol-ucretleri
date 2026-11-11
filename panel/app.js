@@ -503,9 +503,34 @@
     return (st) => { hint.hidden = dismissed() || st.hasAny; };
   }
 
+  // ---------------------------------------------------------------- tema (açık varsayılan; seçim bu cihazda)
+
+  function bindTheme() {
+    const sync = () => {
+      const dark = document.documentElement.getAttribute("data-theme") === "dark";
+      document.querySelectorAll("[data-theme-toggle]").forEach((b) => {
+        b.setAttribute("aria-label", dark ? "Açık temaya geç" : "Koyu temaya geç");
+        b.title = b.getAttribute("aria-label");
+      });
+      const m = $("#theme-color");
+      if (m) m.setAttribute("content", dark ? "#0f1916" : "#ffffff");
+    };
+    document.addEventListener("click", (e) => {
+      const b = e.target.closest("[data-theme-toggle]");
+      if (!b) return;
+      const next = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      store("radar.tema", next);
+      sync();
+      window.dispatchEvent(new Event("radar-theme"));
+    });
+    sync();
+  }
+
   // ---------------------------------------------------------------- başlatma
 
   async function main() {
+    bindTheme();
     bindTabs();
     const [data, table] = await Promise.all([load(), loadTable()]);
     if (!data) {

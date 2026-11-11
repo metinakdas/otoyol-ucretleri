@@ -146,7 +146,9 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
   "Otoyol Ücretleri — Tabela dili" tasarım dosyası (depoya girmez).
 - **Yerleşim — masaüstü:** üst çubukta logo plakası, "Yeni tarife dönemi 1 Ocak · N gün" hapı ve durum. Harita
   tam ekran; üstte arama (`/` kısayolu), katman düğmeleri (koyu = açık) ve Filtreler (katmanlar, bölge, durum,
-  il, otoyol). Sağ altta lejant ve yakınlaştırma; ilk açılışta kapatılabilir ipucu balonu. Solda içeriği kadar
+  il, otoyol); rota çizilince katman çipleri tek "Katmanlar" düğmesine iner. Sağ altta lejant ve yakınlaştırma;
+  ilk açılışta kapatılabilir ipucu balonu. Varsayılan **açık tema**; üst çubuktaki (telefonda arama çubuğundaki)
+  güneş/ay düğmesiyle koyu tema (`radar.tema`, `panel/theme.js` sayfa çizilmeden uygular). Solda içeriği kadar
   uzayan panel, bölümlü sekme (Rota / Köprüler / Duyurular).
 - **Yerleşim — telefon (≤ 900 px):** harita tam ekran, hesap alt sayfada (tutamakla büyür), altta sekme
   çubuğu. Gişe seçimi tam ekran arama sayfası (bölge çipleri, son rotalar, otoyola göre gruplu liste). Rota

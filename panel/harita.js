@@ -179,7 +179,7 @@ window.RadarMap = (function () {
     if (zin) zin.addEventListener("click", () => map.zoomIn());
     if (zout) zout.addEventListener("click", () => map.zoomOut());
     try {
-      window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+      window.addEventListener("radar-theme", () => {
         readColors();
         restyleGates();
         if (S.route) showRoute(Object.assign({}, S.route, { fit: false }));

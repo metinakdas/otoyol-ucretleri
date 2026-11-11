@@ -8,12 +8,12 @@
  */
 window.RadarHesap = (function () {
   const CLASSES = {
-    "1": { l: "Otomobil", d: "aks aralığı 3,20 m'den küçük, iki akslı" },
-    "2": { l: "Minibüs", d: "aks aralığı 3,20 m ve üzeri, iki akslı" },
-    "3": { l: "3 akslı", d: "üç akslı araçlar" },
-    "4": { l: "4-5 akslı", d: "dört ve beş akslı araçlar" },
-    "5": { l: "6+ akslı", d: "altı ve daha fazla akslı araçlar" },
-    "6": { l: "Motosiklet", d: "motosikletler" },
+    "1": { l: "Otomobil", d: "aks aralığı 3,20 m'den küçük, iki akslı", i: '<path d="M3 15.5h1.5M9.5 15.5h11M25.5 15.5H27v-3.2c0-.9-.6-1.6-1.4-1.8l-3.6-.9-2.6-3a2.5 2.5 0 0 0-1.9-.9H11a2.5 2.5 0 0 0-2 1l-2.2 3.1-2.4.6A1.8 1.8 0 0 0 3 12.2v3.3"/><circle cx="7" cy="15.5" r="2.2"/><circle cx="23" cy="15.5" r="2.2"/>' },
+    "2": { l: "Minibüs", d: "aks aralığı 3,20 m ve üzeri, iki akslı", i: '<path d="M3 15.5h1.5M9.5 15.5h11M25.5 15.5H27v-4l-3-5.5H5a2 2 0 0 0-2 2v7.5M17 6v4.5h8.6M3 10.5h14"/><circle cx="7" cy="15.5" r="2.2"/><circle cx="23" cy="15.5" r="2.2"/>' },
+    "3": { l: "3 akslı", d: "üç akslı araçlar", i: '<path d="M2 15.5h1.5M8.5 15.5h4M17.5 15.5h1M23.5 15.5H28v-4.5l-2.5-4H20v9M2 15.5V5h18"/><circle cx="6" cy="15.5" r="2"/><circle cx="15" cy="15.5" r="2"/><circle cx="21" cy="15.5" r="2"/>' },
+    "4": { l: "4-5 akslı", d: "dört ve beş akslı araçlar", i: '<path d="M1 15.5h1M6 15.5h1.5M11.5 15.5h4M19.5 15.5h1M24.5 15.5H29v-4.5l-2-3.5h-5v8M1 15.5V5h19v10.5"/><circle cx="4" cy="15.5" r="1.8"/><circle cx="9.5" cy="15.5" r="1.8"/><circle cx="17.5" cy="15.5" r="1.8"/><circle cx="22.5" cy="15.5" r="1.8"/>' },
+    "5": { l: "6+ akslı", d: "altı ve daha fazla akslı araçlar", i: '<path d="M1 15.5h.5M10 15.5h3M24 15.5H29v-4.5l-2-3.5h-4v8M1 15.5V5h20v10.5"/><circle cx="3" cy="15.5" r="1.5"/><circle cx="6.5" cy="15.5" r="1.5"/><circle cx="15" cy="15.5" r="1.5"/><circle cx="18.5" cy="15.5" r="1.5"/><circle cx="22" cy="15.5" r="1.5"/>' },
+    "6": { l: "Motosiklet", d: "motosikletler", i: '<circle cx="7" cy="14.5" r="3"/><circle cx="23" cy="14.5" r="3"/><path d="M7 14.5l4.5-6h5l3 6M16.5 8.5l1.5-3h3M11.5 8.5 10 6H7.5M20 14.5h-3l-2-3"/>' },
   };
   const NEAR_M = 1500;
   const S = {
@@ -295,7 +295,7 @@ window.RadarHesap = (function () {
 
   // ------------------------------------------------------------ araç sınıfı
 
-  const clsGridHtml = (sel, attr) => Object.keys(CLASSES).map((k) => `<button type="button" role="radio" ${attr || "data-cls"}="${k}" aria-checked="${k === sel}" tabindex="${k === sel ? 0 : -1}" aria-label="${k}. sınıf, ${CLASSES[k].l}" title="${k}. sınıf · ${CLASSES[k].l}">${k}</button>`).join("");
+  const clsGridHtml = (sel, attr) => Object.keys(CLASSES).map((k) => `<button type="button" role="radio" ${attr || "data-cls"}="${k}" aria-checked="${k === sel}" tabindex="${k === sel ? 0 : -1}" aria-label="${k}. sınıf, ${CLASSES[k].l}" title="${k}. sınıf · ${CLASSES[k].l}"><svg class="cls-ic" viewBox="0 0 30 20" aria-hidden="true">${CLASSES[k].i}</svg><span class="cls-n">${k}</span></button>`).join("");
   const clsChipHtml = (k) => `<span class="n">${esc(k)}</span>${esc(CLASSES[k].l)}${I.chev}`;
 
   function renderClasses() {
@@ -455,8 +455,9 @@ window.RadarHesap = (function () {
     const gi = $("#trip-giris"), ci = $("#trip-cikis");
     if (document.activeElement !== gi) gi.value = S.entry ? S.entry.ad : "";
     if (document.activeElement !== ci) ci.value = S.exit ? S.exit.ad : "";
-    $("#giris-road").textContent = S.entry ? roadShort(S.entry.road) : "";
-    $("#cikis-road").textContent = S.exit ? roadShort(S.exit.road) : "";
+    const tiny = (s) => roadShort(s.road).replace(/\s+Otoyolu$/, "");
+    $("#giris-road").textContent = S.entry ? tiny(S.entry) : "";
+    $("#cikis-road").textContent = S.exit ? tiny(S.exit) : "";
   }
 
   // ------------------------------------------------------------ seçim
@@ -559,7 +560,6 @@ window.RadarHesap = (function () {
   // ------------------------------------------------------------ sonuç
 
   function stripHtml(a, b, p) {
-    const multi = p.trips.length > 1;
     const rows = [`<li class="st-end"><span class="st-pin a">A</span><span>${esc(a.ad)}</span><span></span></li>`];
     let prevTrip = false;
     p.legs.forEach((l) => {
@@ -572,8 +572,7 @@ window.RadarHesap = (function () {
       }
       if (prevTrip) rows.push(`<li class="st-x"><span class="ring" aria-hidden="true"></span><span>Aktarma</span><span></span></li>`);
       const v = l.f ? l.f[Number(S.cls) - 1] : null;
-      rows.push(`<li class="st-leg"><span class="st-bar" aria-hidden="true"></span><span class="st-road"><span>${shield(l.a.road, true)}<span class="nm">${esc(roadShort(l.a.road))}</span></span>
-        ${multi ? `<span class="st-sub">${esc(l.a.ad)} → ${esc(l.b.ad)}${l.km != null ? " · " + esc(fmtKm.format(l.km)) + " km" : ""}</span>` : ""}</span>
+      rows.push(`<li class="st-leg" title="${esc(l.a.ad)} → ${esc(l.b.ad)}${l.km != null ? " · " + esc(fmtKm.format(l.km)) + " km" : ""}"><span class="st-bar" aria-hidden="true"></span><span class="st-road"><span>${shield(l.a.road, true)}<span class="nm">${esc(roadShort(l.a.road))}</span></span></span>
         <span class="st-p${typeof v === "number" ? "" : " na"}">${typeof v === "number" ? esc(tl(v)) : "Tarifede yok"}</span></li>`);
       prevTrip = true;
     });
