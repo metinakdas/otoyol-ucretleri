@@ -137,14 +137,14 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
 
 ## 5. Panel ve harita
 
-- **Tasarım (Kasım 2026, yeniden):** eski basılı yol haritası havası — kâğıt zemin ve doku, otoyol tabelası
-  yeşili başlık, hardal sarısı güzergâh, sepya harita karoları; yazı tipleri Barlow / Barlow Condensed /
-  Courier Prime (`panel/vendor/fonts/`, OFL; CSP gereği kendi sunucudan). Açık/koyu tema, mobil uyumlu.
-  İlke: gereksiz yazı yok — boş durumlar yazı yerine şekille (boş fiş), duyuru yoksa şerit gizli, kayıt
-  yoksa kart gizli, kaynak durumu ve belgeler en altta katlanır bölümde.
-- **Yerleşim:** harita sayfanın merkezi (ekran yüksekliğinde). Solda iki sekmeli konsol: *Ücret hesapla* ve
-  *Gişe ara* (arama, bölge çipleri, katlanır filtreler, liste). Altta köprü/tünel ücret tablosu, bayram
-  kartı, son kayıtlar.
+- **Tasarım (Kasım 2026):** sade, modern arayüz; tema rengi **sedir yeşili** (açık: `#14735f`, koyu:
+  `#6fd4b4` / dolgu `#178066`), nötr tonlar hafif yeşile kaydırılmış. Tüm renkler `panel/style.css`
+  başındaki değişkenlerde (açık ve koyu tema). Harita işaretleri: gişe beyaz halka, köprü/tünel koyu kare,
+  serbest geçiş **mor** karo (`--m-sgs`; sedir rota çizgisiyle karışmasın diye yeşil değil). Yazı tipi Inter
+  (`panel/vendor/fonts/`, OFL; CSP gereği kendi sunucudan). Mobil uyumlu. İlke: gereksiz yazı yok.
+- **Yerleşim:** harita tam ekran; üstte arama, katman çipleri ve filtreler. Solda içeriği kadar uzayan panel
+  (Rota / Köprüler / Duyurular). Rota: giriş-çıkış gişesi, açılır **Araç** (varsayılan 1. sınıf, seçince
+  kapanır) ve açılır **Köprü ve tünel** satırları; kapalıyken seçim özet satırda görünür.
 - **Ücret hesabı (`panel/hesap.js`):** giriş/çıkış gişesi (aranabilir liste; çıkış listesi her gişenin
   ücretini gösterir), 1–6. sınıf, sonuç "geçiş fişi"; güzergâh haritada çizilir (tablo sırası yol boyunca,
   kola sapan gişeler çizgiden atlanır). Haritadaki gişenin açılır penceresinden Giriş/Çıkış seçilebilir.

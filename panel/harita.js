@@ -108,8 +108,8 @@ window.RadarMap = (function () {
 
   function readColors() {
     S.colors = {
-      gate: cssVar("--m-gate") || "#fff", ring: cssVar("--m-gate-ring") || "#334155",
-      route: cssVar("--route") || "#2563eb", casing: cssVar("--route-casing") || "#fff",
+      gate: cssVar("--m-gate") || "#fff", ring: cssVar("--m-gate-ring") || "#31443e",
+      route: cssVar("--route") || "#14735f", casing: cssVar("--route-casing") || "#fff",
     };
   }
   function gateRadius() {
