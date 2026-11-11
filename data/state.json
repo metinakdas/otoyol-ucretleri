@@ -632,10 +632,6 @@
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/default.aspx"
       },
       {
-        "title": "Duyurular.aspx?utm_source=chatgpt",
-        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx?utm%255Fsource=chatgpt%2Ecom"
-      },
-      {
         "title": "Genel Müdür Yardımcılarımız",
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GenelMudYard.aspx"
       },
@@ -654,6 +650,10 @@
       {
         "title": "Kurumsal Mali Durum ve Beklentiler Raporu",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/MaliDurum/malidurum.pdf"
+      },
+      {
+        "title": "Uluslararası Karayolu Güzergahları",
+        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GlobalProjeler.aspx"
       }
     ]
   },
