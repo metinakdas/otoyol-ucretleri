@@ -295,8 +295,8 @@ window.RadarHesap = (function () {
 
   // ------------------------------------------------------------ araç sınıfı
 
-  const clsGridHtml = (sel, attr) => Object.keys(CLASSES).map((k) => `<button type="button" role="radio" ${attr || "data-cls"}="${k}" aria-checked="${k === sel}" tabindex="${k === sel ? 0 : -1}" aria-label="${k}. sınıf, ${CLASSES[k].l}" title="${k}. sınıf · ${CLASSES[k].l}"><svg class="cls-ic" viewBox="0 0 30 20" aria-hidden="true">${CLASSES[k].i}</svg><span class="cls-n">${k}</span></button>`).join("");
-  const clsChipHtml = (k) => `<span class="n">${esc(k)}</span>${esc(CLASSES[k].l)}${I.chev}`;
+  const clsGridHtml = (sel, attr) => Object.keys(CLASSES).map((k) => `<button type="button" role="radio" class="c${k}" ${attr || "data-cls"}="${k}" aria-checked="${k === sel}" tabindex="${k === sel ? 0 : -1}" aria-label="${k}. sınıf, ${CLASSES[k].l}" title="${k}. sınıf · ${CLASSES[k].l}"><svg class="cls-ic" viewBox="0 0 30 20" aria-hidden="true">${CLASSES[k].i}</svg><span class="cls-n">${k}</span></button>`).join("");
+  const clsChipHtml = (k) => `<span class="n c${esc(k)}">${esc(k)}</span>${esc(CLASSES[k].l)}${I.chev}`;
 
   function renderClasses() {
     $("#trip-classes").innerHTML = clsGridHtml(S.cls);
@@ -526,8 +526,8 @@ window.RadarHesap = (function () {
   // Hızlı başla: doğrulanmış örnek rotalar (ücretleri canlı tablodan hesaplanır)
   const PRESETS = [
     { ga: "anadolu-camlica-akinci", gn: "Adapazarı", ca: "anadolu-camlica-akinci", cn: "Akyazı", cls: "1", alt: 0 },
-    { ga: "kmo-kurtkoy-akyazi", gn: "İzmit Kuzey", ca: "yss-kuzey-cevre", cn: "Paşaköy", cls: "1", alt: 1, sub: "en ucuz" },
-    { ga: "anadolu-camlica-akinci", gn: "Kurtköy", ca: "anadolu-camlica-akinci", cn: "Gerede", cls: "5", alt: 0, sub: "5. sınıf" },
+    { ga: "kmo-kurtkoy-akyazi", gn: "İzmit Kuzey", ca: "yss-kuzey-cevre", cn: "Paşaköy", cls: "1", alt: 1, sub: "en ucuz", tone: "ok" },
+    { ga: "anadolu-camlica-akinci", gn: "Kurtköy", ca: "anadolu-camlica-akinci", cn: "Gerede", cls: "5", alt: 0, sub: "5. sınıf", tone: "c5" },
   ];
   function presetRows() {
     return PRESETS.map((x) => {
@@ -537,7 +537,7 @@ window.RadarHesap = (function () {
       const all = routes(a, b);
       const p = all[Math.min(x.alt, all.length - 1)];
       if (!p) return null;
-      return { r: { ga: a.road.id, gi: a.i, ca: b.road.id, ci: b.i, cls: x.cls, alt: Math.min(x.alt, all.length - 1), x: [] }, a, b, v: planFare(p, x.cls), sub: x.sub || "" };
+      return { r: { ga: a.road.id, gi: a.i, ca: b.road.id, ci: b.i, cls: x.cls, alt: Math.min(x.alt, all.length - 1), x: [] }, a, b, v: planFare(p, x.cls), sub: x.sub || "", tone: x.tone || "" };
     }).filter(Boolean);
   }
   function renderQuick() {
@@ -546,7 +546,7 @@ window.RadarHesap = (function () {
     const rec = recents().map((r) => ({ r, p: recentPlan(r) })).filter((x) => x.p).slice(0, 3);
     if (rec.length) {
       q.innerHTML = `<h3>Son rotalar</h3>` + rec.map(({ r, p }, n) => `<button type="button" class="q-row" data-recent-q="${n}">
-        ${I.clock}<span class="q-n">${esc(p.a.ad)} → ${esc(p.b.ad)}</span><span class="q-s">${esc(CLASSES[r.cls] ? CLASSES[r.cls].l : "")}</span><span class="q-p">${esc(tl(p.v))}</span></button>`).join("");
+        ${I.clock}<span class="q-n">${esc(p.a.ad)} → ${esc(p.b.ad)}</span><span class="q-s c${esc(r.cls)}">${esc(CLASSES[r.cls] ? CLASSES[r.cls].l : "")}</span><span class="q-p">${esc(tl(p.v))}</span></button>`).join("");
       q.dataset.mode = "recent";
       return;
     }
@@ -554,7 +554,7 @@ window.RadarHesap = (function () {
     q.dataset.mode = "preset";
     q._rows = rows;
     q.innerHTML = rows.length ? `<h3>Hızlı başla</h3>` + rows.map((x, n) => `<button type="button" class="q-row" data-preset="${n}">
-      ${shield(x.a.road, true)}<span class="q-n">${esc(x.a.ad)} → ${esc(x.b.ad)}</span>${x.sub ? `<span class="q-s">${esc(x.sub)}</span>` : ""}<span class="q-p">${esc(tl(x.v))}</span></button>`).join("") : "";
+      ${shield(x.a.road, true)}<span class="q-n">${esc(x.a.ad)} → ${esc(x.b.ad)}</span>${x.sub ? `<span class="q-s ${esc(x.tone)}">${esc(x.sub)}</span>` : ""}<span class="q-p">${esc(tl(x.v))}</span></button>`).join("") : "";
   }
 
   // ------------------------------------------------------------ sonuç
@@ -722,7 +722,7 @@ window.RadarHesap = (function () {
     const days = [1, 2, 3, 4, 5, 6, 7].map((n) => `<button type="button" role="radio" data-day="${n}" aria-checked="${n === S.days}" tabindex="${n === S.days ? 0 : -1}" aria-label="Haftada ${n} gün">${n}</button>`).join("");
     const upcoming = S.h.upcomingText ? S.h.upcomingText() : "";
     return `<div class="ay-head"><button type="button" class="icon-btn" data-ay="back" aria-label="Sonuca dön">${I.back}</button>
-        <h2>Gidiş-dönüş</h2><span class="veh-chip" aria-label="${esc(S.cls)}. sınıf, ${esc(CLASSES[S.cls].l)}"><span class="n">${esc(S.cls)}</span>${esc(CLASSES[S.cls].l)}</span></div>
+        <h2>Gidiş-dönüş</h2><span class="veh-chip" aria-label="${esc(S.cls)}. sınıf, ${esc(CLASSES[S.cls].l)}"><span class="n c${esc(S.cls)}">${esc(S.cls)}</span>${esc(CLASSES[S.cls].l)}</span></div>
       ${cards.join("")}
       <section class="ay-days" aria-labelledby="ay-gun"><h3 id="ay-gun">Haftada kaç gün?</h3><div class="cls-grid" role="radiogroup" aria-labelledby="ay-gun" id="ay-days">${days}</div></section>
       <div class="plate ay-plate"><div class="plate-in">

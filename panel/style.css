@@ -54,7 +54,11 @@
   --plate-off: #9fb3ab;
   --hint-bg: #0e1f1a; --hint-ink: #ffffff;
   --route: #14735f; --route-casing: #ffffff; --route-alt: #5f716b;
-  --tile-filter: grayscale(1) contrast(0.62) brightness(1.17);
+  --tile-filter: grayscale(0.55) contrast(0.7) brightness(1.13);
+  /* Araç sınıfı renkleri (ikon ve vurgu; yazı değil) */
+  --c1: #0284c7; --c2: #0d9488; --c3: #d97706; --c4: #ea580c; --c5: #e11d48; --c6: #c026d3;
+  --dest: #c2410c;          /* B · varış */
+  --x-ic: #0369a1; --x-ic-soft: #e0f2fe;
   /* Ölçüler */
   --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px; --s-5: 24px; --s-6: 32px; --s-7: 48px;
   --r-sm: 6px; --r-md: 10px; --r-lg: 16px; --r-sheet: 24px; --r-pill: 999px;
@@ -94,7 +98,10 @@
   --plate-off: #4b5d57;
   --hint-bg: #e3ebe8; --hint-ink: #08100e;
   --route: #3cc79f; --route-casing: #08100e; --route-alt: #93a6a0;
-  --tile-filter: invert(1) hue-rotate(180deg) grayscale(1) brightness(0.72) contrast(0.9);
+  --tile-filter: invert(1) hue-rotate(180deg) grayscale(0.6) brightness(0.72) contrast(0.9);
+  --c1: #38bdf8; --c2: #2dd4bf; --c3: #fbbf24; --c4: #fb923c; --c5: #fb7185; --c6: #e879f9;
+  --dest: #ea580c;
+  --x-ic: #7dd3fc; --x-ic-soft: #0c2a3a;
   --sh-1: none;
   --sh-2: 0 6px 18px rgba(0, 0, 0, 0.45);
   --sh-3: 0 16px 40px rgba(0, 0, 0, 0.5);
@@ -986,3 +993,34 @@ body.has-route .filter-btn .i-layers, body.has-route .filter-btn .fb-l2 { displa
 .cls-ic { width: 30px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .cls-n { font: 800 15px/1 var(--ov); }
 .ay-days .cls-grid button { height: 48px; }
+
+/* ------------------------------------------------------------------ renk vurguları */
+.c1 { --cc: var(--c1); } .c2 { --cc: var(--c2); } .c3 { --cc: var(--c3); }
+.c4 { --cc: var(--c4); } .c5 { --cc: var(--c5); } .c6 { --cc: var(--c6); }
+.cls-grid button .cls-ic { color: var(--cc, var(--muted)); }
+.cls-grid button:hover { background: color-mix(in srgb, var(--cc, var(--brand)) 7%, var(--surface)); }
+.cls-grid button[aria-checked="true"] {
+  border-color: var(--cc, var(--brand)); color: var(--text);
+  background: color-mix(in srgb, var(--cc, var(--brand)) 13%, var(--surface));
+}
+.cls-grid button:not([class])[aria-checked="true"] { color: var(--brand-ink); }
+.veh-chip .n[class*="c"] { background: color-mix(in srgb, var(--cc) 16%, var(--surface)); color: var(--text); box-shadow: inset 0 0 0 2px var(--cc); }
+
+/* B noktası: varış turuncusu */
+.pin-b, [data-theme="dark"] .pin-b { background: var(--dest); border: 0; color: #fff; }
+.route-fields .f-dot.is-b, [data-theme="dark"] .route-fields .f-dot.is-b, .route-fields.is-compact .f-dot.is-b, [data-theme="dark"] .route-fields.is-compact .f-dot.is-b { background: var(--dest); border: 0; color: #fff; }
+.route-rail .rail { background: repeating-linear-gradient(color-mix(in srgb, var(--sign) 45%, var(--dest)) 0 4px, transparent 4px 8px); }
+.mk-stop.b { background: var(--dest); border-color: #fff; color: #fff; }
+
+/* Köprü ve tünel kutusu: renkli ikon karosu */
+.xbox > summary > svg:first-child {
+  width: 32px; height: 32px; padding: 7px; border-radius: 9px; stroke: var(--x-ic); background: var(--x-ic-soft);
+}
+.xbox > summary { padding-left: 8px; }
+
+/* Hızlı başla etiketleri */
+.q-row .q-s { padding: 3px 8px; border-radius: var(--r-pill); font-weight: 600; background: var(--surface); }
+.q-row .q-s.ok { background: var(--ok-soft); color: var(--ok-ink); }
+.q-row .q-s[class*=" c"] { background: color-mix(in srgb, var(--cc) 14%, var(--surface)); color: var(--text-2); }
+.q-row .q-p { color: var(--brand-ink); }
+.strip .st-pin.b, [data-theme="dark"] .strip .st-pin.b { background: var(--dest); border: 0; color: #fff; }
