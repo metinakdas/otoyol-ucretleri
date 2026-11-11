@@ -1,37 +1,37 @@
 {
   "kgm-tarifeler": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "20 tarife belgesi, 0 değişiklik"
   },
   "kgm-duyurular": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "52 başlık, 0 yeni, 0 ilgili"
   },
   "uab-haberler": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "20 başlık, 0 yeni, 0 ilgili"
   },
   "uab-duyurular": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "20 başlık, 0 yeni, 0 ilgili"
   },
   "uab-basin": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "20 başlık, 0 yeni, 0 ilgili"
   },
   "avrasya-haberler": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "14 başlık, 0 yeni, 0 ilgili"
   },
   "avrasya-ucretler": {
     "ok": true,
-    "last_success": "2026-11-11T22:10:56+03:00",
+    "last_success": "2026-11-11T23:58:21+03:00",
     "info": "değişiklik yok"
   }
 }
