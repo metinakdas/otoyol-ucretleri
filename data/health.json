@@ -1,41 +1,37 @@
 {
   "kgm-tarifeler": {
-    "ok": false,
-    "last_success": "2026-11-11T18:59:54+03:00",
-    "info": "20 tarife belgesi, 0 değişiklik",
-    "error": "Erişilemedi: https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Otoyollar/UcretlerYeni.aspx (timed out)",
-    "failing_since": "2026-11-11T20:36:14+03:00"
+    "ok": true,
+    "last_success": "2026-11-11T20:57:34+03:00",
+    "info": "20 tarife belgesi, 0 değişiklik"
   },
   "kgm-duyurular": {
-    "ok": false,
-    "last_success": "2026-11-11T18:59:54+03:00",
-    "info": "52 başlık, 1 yeni, 0 ilgili",
-    "error": "Erişilemedi: https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx (timed out)",
-    "failing_since": "2026-11-11T20:36:14+03:00"
+    "ok": true,
+    "last_success": "2026-11-11T20:57:34+03:00",
+    "info": "52 başlık, 0 yeni, 0 ilgili"
   },
   "uab-haberler": {
     "ok": true,
-    "last_success": "2026-11-11T20:36:14+03:00",
+    "last_success": "2026-11-11T20:57:34+03:00",
     "info": "20 başlık, 0 yeni, 0 ilgili"
   },
   "uab-duyurular": {
     "ok": true,
-    "last_success": "2026-11-11T20:36:14+03:00",
+    "last_success": "2026-11-11T20:57:34+03:00",
     "info": "20 başlık, 0 yeni, 0 ilgili"
   },
   "uab-basin": {
     "ok": true,
-    "last_success": "2026-11-11T20:36:14+03:00",
+    "last_success": "2026-11-11T20:57:34+03:00",
     "info": "20 başlık, 0 yeni, 0 ilgili"
   },
   "avrasya-haberler": {
     "ok": true,
-    "last_success": "2026-11-11T20:36:14+03:00",
+    "last_success": "2026-11-11T20:57:34+03:00",
     "info": "14 başlık, 0 yeni, 0 ilgili"
   },
   "avrasya-ucretler": {
     "ok": true,
-    "last_success": "2026-11-11T20:36:14+03:00",
+    "last_success": "2026-11-11T20:57:34+03:00",
     "info": "değişiklik yok"
   }
 }
