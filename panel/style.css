@@ -134,8 +134,9 @@ button { font: inherit; color: inherit; }
 .map-area { position: absolute; inset: 0; z-index: 0; isolation: isolate; }
 .map { position: absolute; inset: 0; z-index: 0; background: var(--surface-3); }
 
+/* Panel içeriği kadar uzar (en fazla harita yüksekliği); gişe listesi açıkken liste sığsın diye büyür. */
 .panel {
-  position: absolute; z-index: 10; top: 16px; left: 16px; bottom: 16px; width: var(--panel-w);
+  position: absolute; z-index: 10; top: 16px; left: 16px; max-height: calc(100% - 32px); width: var(--panel-w);
   display: flex; flex-direction: column; min-height: 0;
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); box-shadow: var(--shadow-3);
   overflow: hidden;
@@ -154,7 +155,9 @@ button { font: inherit; color: inherit; }
   content: ""; position: absolute; left: 12px; right: 12px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--brand-2);
 }
 .badge { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 9px; background: var(--brand-2); color: #fff; font-size: 11px; font-weight: 650; line-height: 18px; text-align: center; }
-.tab-panel { flex: 1; min-height: 0; overflow: auto; padding: 16px; overscroll-behavior: contain; scrollbar-width: thin; }
+.tab-panel { flex: 0 1 auto; min-height: 0; overflow: auto; padding: 16px; overscroll-behavior: contain; scrollbar-width: thin; }
+.panel:has(#trip .combo-list:not([hidden])) { min-height: min(580px, calc(100% - 32px)); }
+.panel:has(#trip .combo-list:not([hidden])) .tab-panel { flex: 1 1 auto; }
 
 .section-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin: 20px 0 8px; }
 .tab-panel > .section-head:first-child, #announcements:empty + .section-head { margin-top: 2px; }
@@ -203,11 +206,9 @@ button { font: inherit; color: inherit; }
 .icon-btn:hover { background: var(--surface-3); border-color: var(--border-2); }
 .icon-btn svg { width: 18px; height: 18px; }
 
-.vehicles { border: 0; margin: 18px 0 0; padding: 0; min-width: 0; }
-.vehicles legend { padding: 0; margin-bottom: 8px; font-size: 12.5px; font-weight: 600; color: var(--text-2); }
 .vehicle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
 .vehicle-grid button {
-  display: grid; justify-items: center; gap: 2px; padding: 8px 4px 7px; min-width: 0; cursor: pointer;
+  display: grid; justify-items: center; gap: 1px; padding: 7px 4px 6px; min-width: 0; cursor: pointer;
   border: 1px solid var(--border); border-radius: var(--r-sm); background: var(--surface); color: var(--text-2);
   transition: border-color 0.12s, background 0.12s, color 0.12s;
 }
@@ -217,6 +218,32 @@ button { font: inherit; color: inherit; }
 .vehicle-grid .v-n { font-size: 10.5px; color: var(--muted); }
 .vehicle-grid button[aria-pressed="true"] { border-color: var(--brand-2); background: var(--brand-soft); color: var(--brand); box-shadow: inset 0 0 0 1px var(--brand-2); }
 .vehicle-grid button[aria-pressed="true"] .v-n { color: inherit; opacity: 0.8; }
+
+/* Seçenekler: seçili değeri gösteren tek satır; dokununca açılır. */
+.opts { margin-top: 14px; border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+.opt + .opt { border-top: 1px solid var(--border); }
+.opt > summary {
+  display: flex; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; cursor: pointer; list-style: none;
+  border-radius: var(--r-md); user-select: none; transition: background 0.12s;
+}
+.opt > summary::-webkit-details-marker { display: none; }
+.opt > summary:hover { background: var(--surface-2); }
+.opt > summary:focus-visible { outline: none; box-shadow: var(--focus); }
+.opt + .opt > summary, .opt:not(:last-child) > summary { border-radius: 0; }
+.opt:first-child > summary { border-radius: var(--r-md) var(--r-md) 0 0; }
+.opt:last-child > summary { border-radius: 0 0 var(--r-md) var(--r-md); }
+.opt:only-child > summary { border-radius: var(--r-md); }
+.opt-ic { flex: none; display: grid; place-items: center; width: 34px; height: 34px; border-radius: var(--r-sm); background: var(--surface-3); color: var(--text-2); }
+.opt-ic svg { width: 24px; height: 16px; }
+.opt-t { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.opt-k { font-size: 11.5px; font-weight: 550; color: var(--muted); }
+.opt-v { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.opt-v.is-set { color: var(--brand); }
+.chev { flex: none; width: 16px; height: 16px; color: var(--muted); transition: transform 0.15s; }
+.opt[open] > summary .chev { transform: rotate(180deg); }
+.opt[open] > summary { background: none; }
+.opt-body { padding: 2px 12px 12px; }
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
 
 .extras { display: grid; gap: 6px; }
 .extras button {
@@ -242,8 +269,12 @@ button { font: inherit; color: inherit; }
 /* ------------------------------------------------------------------ sonuç */
 
 .result { margin-top: 18px; }
-.result-empty { padding: 18px 16px; border: 1px dashed var(--border-2); border-radius: var(--r-md); color: var(--muted); font-size: 13px; text-align: center; }
-.result-empty strong { display: block; color: var(--text-2); font-weight: 600; margin-bottom: 2px; }
+.result-empty { display: grid; grid-template-columns: 18px minmax(0, 1fr); column-gap: 10px; row-gap: 1px; align-items: center; padding: 10px 12px; border-radius: var(--r-md); background: var(--surface-2); color: var(--muted); font-size: 12.5px; }
+.result-empty::before { grid-row: 1 / span 2;
+  content: ""; flex: none; width: 18px; height: 18px; border-radius: 50%; background: var(--brand-soft);
+  box-shadow: inset 0 0 0 5px var(--brand-soft), inset 0 0 0 9px var(--brand-2);
+}
+.result-empty strong { display: block; color: var(--text-2); font-size: 13px; font-weight: 600; }
 
 .route-choice { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
 .route-choice button {
@@ -555,6 +586,7 @@ button { font: inherit; color: inherit; }
   :root { --panel-w: 100%; }
   .app { height: auto; }
   .map-area { position: relative; height: 48vh; min-height: 300px; }
+  .panel, .panel:has(#trip .combo-list:not([hidden])) { max-height: none; min-height: 0; }
   .panel { position: relative; inset: auto; width: auto; margin: -16px 0 0; border-radius: var(--r-lg) var(--r-lg) 0 0; border-width: 1px 0 0; box-shadow: 0 -8px 24px -12px rgba(15, 23, 42, 0.25); overflow: visible; }
   .tabs { position: sticky; top: 0; z-index: 5; background: var(--surface); border-radius: var(--r-lg) var(--r-lg) 0 0; }
   .tab-panel { overflow: visible; padding-bottom: 32px; }

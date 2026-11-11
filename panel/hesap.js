@@ -315,13 +315,21 @@ window.RadarHesap = (function () {
   function renderExtras() {
     const box = $("#trip-extras");
     if (!box) return;
-    box.closest("fieldset").hidden = !S.extras.length;
+    box.closest(".opt").hidden = !S.extras.length;
     box.innerHTML = S.extras.map((c) => {
       const v = xFare(c, S.cls);
       return `<button type="button" data-extra="${S.h.esc(c.id)}" aria-pressed="${S.extra.has(c.id)}">
         <span class="x-box">${CHECK}</span><span class="x-n">${S.h.esc(c.name)}</span>
         <span class="x-v${v == null ? " no" : ""}">${v != null ? S.h.esc(fmtNum.format(v)) + " ₺" : "Bu sınıf geçemez"}</span></button>`;
     }).join("");
+    // Özet satırı: kapalıyken de seçim görünsün
+    const sum = $("#extras-sum"), xs = picked(), t = xTotal(S.cls);
+    if (sum) {
+      sum.textContent = !xs.length ? "Eklenmedi"
+        : `${xs.length === 1 ? xs[0].name : xs.length + " geçiş"}${t != null ? ` · +${fmtNum.format(t)} ₺` : " · geçemez"}`;
+      sum.title = xs.map((c) => c.name).join(", ");
+      sum.classList.toggle("is-set", xs.length > 0);
+    }
   }
   function xLegsHtml(cls) {
     const esc = S.h.esc;
@@ -382,6 +390,9 @@ window.RadarHesap = (function () {
     $("#trip-classes").innerHTML = Object.keys(CLASSES).map((k) => `
       <button type="button" data-cls="${k}" aria-pressed="${k === S.cls}" title="${k}. sınıf · ${CLASSES[k].l}">
         ${icon(k)}<span class="v-l">${CLASSES[k].l}</span><span class="v-n">${k}. sınıf</span></button>`).join("");
+    const sum = $("#veh-sum"), ic = $("#veh-ic");
+    if (sum) sum.textContent = `${CLASSES[S.cls].l} · ${S.cls}. sınıf`;
+    if (ic) ic.innerHTML = icon(S.cls);
   }
 
   function resultHtml(a, b) {
@@ -569,7 +580,14 @@ window.RadarHesap = (function () {
     if (S.table) { combo("giris"); combo("cikis"); }
     else { $("#trip-giris").disabled = true; $("#trip-cikis").disabled = true; }
     $("#trip-swap").addEventListener("click", swap);
-    $("#trip-classes").addEventListener("click", (e) => { const b = e.target.closest("[data-cls]"); if (b) setClass(b.dataset.cls); });
+    $("#trip-classes").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-cls]");
+      if (!b) return;
+      setClass(b.dataset.cls);
+      // Seçim yapıldı: bölüm kapanır, odak özet satırına döner
+      const d = $("#opt-vehicle");
+      if (d) { d.open = false; d.querySelector("summary").focus({ preventScroll: true }); }
+    });
     $("#trip-result").addEventListener("click", (e) => {
       const r = e.target.closest("[data-route]");
       if (r) { S.alt = Number(r.dataset.route) || 0; update(); return; }
@@ -589,7 +607,7 @@ window.RadarHesap = (function () {
     setClass: (c) => setClass(c, true),
     allStations: () => S.stations,
     roads: () => S.roads,
-    reload: () => { if (readHash()) update(); },
+    reload: () => { if (readHash()) { renderClasses(); renderExtras(); update(); } },
     redraw: () => drawRoute(false),
     classIcon: (k) => icon(k),
     className: (k) => (CLASSES[k] ? CLASSES[k].l : ""),

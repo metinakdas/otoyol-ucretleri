@@ -83,14 +83,24 @@
               <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4v12M7 16l-3-3M7 16l3-3M13 16V4M13 4l-3 3M13 4l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
-          <fieldset class="vehicles">
-            <legend>Araç sınıfı</legend>
-            <div class="vehicle-grid" id="trip-classes"></div>
-          </fieldset>
-          <fieldset class="vehicles extras-set" hidden>
-            <legend>Köprü ve tünel ekle</legend>
-            <div class="extras" id="trip-extras" role="group" aria-label="Rotaya eklenecek köprü ve tüneller"></div>
-          </fieldset>
+          <div class="opts">
+            <details class="opt" id="opt-vehicle">
+              <summary>
+                <span class="opt-ic" id="veh-ic" aria-hidden="true"></span>
+                <span class="opt-t"><span class="opt-k">Araç</span><span class="opt-v" id="veh-sum">Otomobil · 1. sınıf</span></span>
+                <svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </summary>
+              <div class="opt-body"><div class="vehicle-grid" id="trip-classes" role="group" aria-label="Araç sınıfı"></div></div>
+            </details>
+            <details class="opt" id="opt-extras" hidden>
+              <summary>
+                <span class="opt-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M1.8 11.6h12.4M3.2 11.6c1.3-4.2 8.3-4.2 9.6 0M5.6 8.3v3.3M10.4 8.3v3.3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
+                <span class="opt-t"><span class="opt-k">Köprü ve tünel</span><span class="opt-v" id="extras-sum">Eklenmedi</span></span>
+                <svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </summary>
+              <div class="opt-body"><div class="extras" id="trip-extras" role="group" aria-label="Rotaya eklenecek köprü ve tüneller"></div></div>
+            </details>
+          </div>
         </form>
         <div id="trip-result" class="result" aria-live="polite"></div>
         <nav class="official" aria-label="Resmî KGM hizmetleri">
