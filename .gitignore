@@ -23,8 +23,7 @@ data/*.tmp
 data/events/*.tmp
 data/rules/*.tmp
 
-# Claude'un sohbete eklediği dosyaların kopyaları ve işletim sistemi dosyaları
-Claude outputs/
+# İşletim sistemi dosyaları
 Thumbs.db
 desktop.ini
 .DS_Store

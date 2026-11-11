@@ -47,10 +47,6 @@ PERSONAL_PATTERNS: list[tuple[str, re.Pattern]] = [
 BINARY_EXT = {".pdf", ".png", ".jpg", ".jpeg", ".gif", ".ico", ".webp", ".woff", ".woff2", ".zip"}
 MAX_FILE_BYTES = 5_000_000
 RULESET_NAME = "ana-dal-koruma"
-SESSION_TRAILER = (
-    "Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>\n"
-    "Claude-Session: https://claude.ai/code/session_01XrTCZ6SardTCfT1pto9jac"
-)
 
 
 class YayinHatasi(Exception):
@@ -234,11 +230,7 @@ def check_workflows(root: Path) -> None:
     if problems:
         raise YayinHatasi(
             "İş akışı dosyaları eksik ya da eski: " + "; ".join(problems) + ".\n"
-            "  Sohbete eklenen radar.yml ve testler.yml dosyalarını (\"Claude outputs\" klasöründeler)\n"
-            "  proje klasöründe .github\\workflows\\ içine kopyalayın:\n"
-            "    mkdir .github\\workflows\n"
-            "    copy \"Claude outputs\\radar.yml\" .github\\workflows\\\n"
-            "    copy \"Claude outputs\\testler.yml\" .github\\workflows\\")
+            "  radar.yml ve testler.yml dosyalarının güncel sürümleri .github\\workflows\\ içinde olmalı.")
 
 
 def publish_files(r: Runner) -> list[str]:
@@ -371,7 +363,7 @@ def yayinla(root: Path, *, repo_name: str = "otoyol-ucretleri", public: bool = T
         has_commit = r.run("git", "rev-parse", "--verify", "HEAD", check=False).returncode == 0
         if staged:
             title = "Tarife Radarı: güncelleme" if has_commit else "Tarife Radarı: ilk yayın"
-            r.run("git", "commit", "-q", "-m", title, "-m", SESSION_TRAILER)
+            r.run("git", "commit", "-q", "-m", title)
             out(f"✓ Commit oluşturuldu (yazar: {login}, e-posta: GitHub'ın gizli adresi)")
         r.run("git", "branch", "-M", "main")
         if remote.returncode != 0:

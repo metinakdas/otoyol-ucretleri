@@ -187,14 +187,7 @@ satırına hiçbir zaman yazılmaz.
    gh auth login --hostname github.com --git-protocol https --web --scopes workflow
    ```
 
-3. **İş akışı dosyalarını yerleştirin.** Sohbete eklenen `radar.yml` ve `testler.yml` "Claude outputs"
-   klasöründedir:
-
-   ```
-   mkdir .github\workflows
-   copy "Claude outputs\radar.yml" .github\workflows\
-   copy "Claude outputs\testler.yml" .github\workflows\
-   ```
+3. **İş akışı dosyaları** (`radar.yml`, `testler.yml`) depoda `.github/workflows/` altında hazırdır.
 
 4. **`.env` dosyasını doldurun** (Telegram ve isterseniz e-posta; aşağıdaki bölümlere bakın).
 

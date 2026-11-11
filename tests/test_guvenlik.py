@@ -160,7 +160,7 @@ def test_proje_dosyalarinda_gizli_bilgi_yok():
     if proc.returncode != 0:  # proje henüz git deposu değil: tüm dosyalar
         files = [str(p.relative_to(ROOT)).replace("\\", "/") for p in ROOT.rglob("*")
                  if p.is_file() and not any(x in p.parts for x in (".git", "__pycache__", ".pytest_cache", ".venv"))
-                 and p.name != ".env" and "Claude outputs" not in p.parts]
+                 and p.name != ".env"]
     else:
         files = [f for f in proc.stdout.split("\0") if f]
     found = yayin.scan_files(ROOT, files, yayin.scan_terms({}, {}))
@@ -201,8 +201,8 @@ def project(tmp_path, monkeypatch):
     (root / "README.md").write_text("# Tarife Radarı\n", encoding="utf-8")
     (root / "radar").mkdir()
     (root / "radar" / "__init__.py").write_text("", encoding="utf-8")
-    (root / "Claude outputs").mkdir()
-    (root / "Claude outputs" / "not.txt").write_text(FAKE_TOKEN, encoding="utf-8")  # .gitignore dışarıda bırakır
+    (root / ".venv").mkdir()
+    (root / ".venv" / "not.txt").write_text(FAKE_TOKEN, encoding="utf-8")  # .gitignore dışarıda bırakır
     (root / ".env").write_text(
         f"TELEGRAM_BOT_TOKEN={FAKE_TOKEN}\nTELEGRAM_CHAT_ID={FAKE_CHAT}\nSMTP_PASSWORD=\nEMAIL_TO=\n", encoding="utf-8")
     bare = tmp_path / "uzak.git"
@@ -228,10 +228,10 @@ def test_yayin_guvenli_akis(project, capsys):
     output = capsys.readouterr().out
     assert FAKE_TOKEN not in output and FAKE_CHAT not in output
 
-    # Uzak depoda .env ve Claude outputs yok; commit yazarı GitHub'ın gizli adresi
+    # Uzak depoda .env ve .venv yok; commit yazarı GitHub'ın gizli adresi
     files = subprocess.run(["git", "ls-tree", "-r", "--name-only", "main"], cwd=bare, capture_output=True, text=True).stdout
     assert ".github/workflows/radar.yml" in files and "README.md" in files
-    assert ".env" not in files.split() and "Claude outputs" not in files
+    assert ".env" not in files.split() and ".venv/" not in files
     author = subprocess.run(["git", "log", "-1", "--format=%an <%ae>", "main"], cwd=bare, capture_output=True, text=True).stdout
     assert author.strip() == "OrnekKullanici <4242+OrnekKullanici@users.noreply.github.com>"
 
