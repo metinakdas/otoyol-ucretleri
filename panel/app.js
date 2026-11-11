@@ -5,8 +5,11 @@
   const fmtMoney = new Intl.NumberFormat("tr-TR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const fmtDate = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", timeZone: TZ });
   const fmtShort = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", timeZone: TZ });
+  const fmtShorter = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "short", timeZone: TZ });
+  const fmtMonthYear = new Intl.DateTimeFormat("tr-TR", { month: "long", year: "numeric", timeZone: TZ });
   const fmtDateTime = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: TZ });
   const fmtYmd = new Intl.DateTimeFormat("en-CA", { year: "numeric", month: "2-digit", day: "2-digit", timeZone: TZ });
+  const MONTHS = ["OCA", "ŞUB", "MAR", "NİS", "MAY", "HAZ", "TEM", "AĞU", "EYL", "EKİ", "KAS", "ARA"];
   const CLASSES = ["1", "2", "3", "4", "5", "6"];
 
   const $ = (sel) => document.querySelector(sel);
@@ -14,13 +17,23 @@
   const money = (v) => (v == null ? "—" : fmtMoney.format(Number(v)) + " ₺");
   const date = (iso) => (iso ? fmtDate.format(new Date(iso)) : "belirsiz");
   const dateTime = (iso) => (iso ? fmtDateTime.format(new Date(iso)) : "belirsiz");
-  // Yalnızca http(s) bağlantıları tıklanabilir.
   const safeUrl = (url) => (typeof url === "string" && /^https?:\/\/[^\s]+$/i.test(url.trim()) ? url.trim() : null);
   const link = (url, label) => (safeUrl(url) ? `<a href="${esc(safeUrl(url))}" target="_blank" rel="noopener noreferrer">${esc(label)}</a>` : esc(label));
-  const className = (k) => `${k}. sınıf` + (window.RadarHesap && window.RadarHesap.className(k) ? " · " + window.RadarHesap.className(k) : "");
+  const hesapApi = () => window.RadarHesap;
+  const clsName = (k) => (hesapApi() ? hesapApi().className(k) : "");
+  const className = (k) => `${k}. sınıf` + (clsName(k) ? " · " + clsName(k) : "");
+  const narrow = () => window.matchMedia("(max-width: 900px)").matches;
   const ICON = {
-    kopru: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M1.8 11.6h12.4M3.2 11.6c1.3-4.2 8.3-4.2 9.6 0M5.6 8.3v3.3M10.4 8.3v3.3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
-    tunel: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 12.4V9a4.8 4.8 0 0 1 9.6 0v3.4M1.8 12.4h12.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>',
+    kopru: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16h18M5 16V9M19 16V9M5 9c3 4 11 4 14 0"/></svg>',
+    tunel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19V12a8 8 0 0 1 16 0v7M4 19h16"/></svg>',
+    cal: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+    x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  };
+  // Köprü listesinde ad yanındaki kısa not (ücretin nasıl alındığı)
+  const NOTE = {
+    "15-temmuz-sehitler": "yalnız Avrupa → Asya", "fatih-sultan-mehmet": "yalnız Avrupa → Asya",
+    "yavuz-sultan-selim": "KMO tarifesinde", "osmangazi": "Gebze–Bursa tarifesinde", "1915-canakkale": "Malkara–Çanakkale",
   };
 
   let data_ = null, now_ = new Date(), cls_ = "1";
@@ -62,7 +75,7 @@
   const load = () => fetchFirst(sample() ? ["ornek-panel.json"] : ["data/panel.json", "../data/panel.json"]);
   const loadTable = () => fetchFirst(sample() ? ["ornek-ucret-tablosu.json"] : ["data/ucret-tablosu.json", "../data/ucret-tablosu.json"]);
 
-  // ---------------------------------------------------------------- sekmeler
+  // ---------------------------------------------------------------- sekmeler (masaüstü sekme, telefon alt çubuk)
 
   function selectTab(name, focus) {
     document.querySelectorAll('.tabs [role="tab"]').forEach((t) => {
@@ -72,6 +85,11 @@
       document.getElementById(t.getAttribute("aria-controls")).hidden = !on;
       if (on && focus) t.focus();
     });
+    document.querySelectorAll("#tabbar [data-tab]").forEach((b) => {
+      if (b.dataset.tab === name) b.setAttribute("aria-current", "page"); else b.removeAttribute("aria-current");
+    });
+    const panel = $("#panel");
+    if (panel) panel.querySelectorAll(".tab-panel").forEach((p) => { if (!p.hidden) p.scrollTop = 0; });
   }
   function bindTabs() {
     const tabs = [...document.querySelectorAll('.tabs [role="tab"]')];
@@ -84,6 +102,17 @@
         selectTab(next.getAttribute("aria-controls").slice(4), true);
       });
     });
+    $("#tabbar").addEventListener("click", (e) => {
+      const b = e.target.closest("[data-tab]");
+      if (!b) return;
+      selectTab(b.dataset.tab);
+      $("#panel").classList.remove("is-expanded");
+    });
+    $("#sheet-handle").addEventListener("click", () => {
+      const p = $("#panel");
+      p.classList.toggle("is-expanded");
+      setTimeout(() => window.RadarMap && window.RadarMap.invalidate(), 240);
+    });
   }
 
   // Sınıf seçimi hesap, köprü listesi ve harita arasında ortaktır.
@@ -91,7 +120,7 @@
     cls_ = cls;
     store("radar.sinif", cls);
     renderCrossings(data_, now_);
-    if (from !== "hesap" && window.RadarHesap) window.RadarHesap.setClass(cls);
+    if (from !== "hesap" && hesapApi()) hesapApi().setClass(cls);
     if (window.RadarMap) window.RadarMap.setClass(cls);
   }
 
@@ -102,147 +131,117 @@
     const failing = enabled.filter((s) => s.ok === false);
     const stale = data.last_run && now - new Date(data.last_run) > 6 * 3600 * 1000;
     const cls = failing.length ? "bad" : stale ? "warn" : "good";
+    const text = failing.length ? `${failing.length} kaynak okunamıyor` : `Güncel · ${ago(data.last_run, now)}`;
+    const title = `Son kontrol ${ago(data.last_run, now)} · ${failing.length ? failing.length + " kaynak okunamıyor; ücretler son doğrulanan tarifeden" : "tüm kaynaklar çalışıyor"}`;
     const el = $("#status");
-    el.title = `Son kontrol ${ago(data.last_run, now)} · ${failing.length ? failing.length + " kaynak okunamıyor" : "tüm kaynaklar çalışıyor"}`;
-    el.innerHTML = `<span class="dot ${cls}" aria-hidden="true"></span>${failing.length ? esc(failing.length + " kaynak okunamıyor")
-      : `<span><span class="txt-long">Güncel · </span>${esc(ago(data.last_run, now))}</span>`}`;
+    el.title = title;
+    el.innerHTML = `<span class="dot ${cls}" aria-hidden="true"></span>${esc(text)}`;
+    const m = $("#m-status");
+    m.className = "m-status m-only " + (cls === "good" ? "" : cls);
+    m.setAttribute("aria-label", text);
+    m.title = title;
+    $("#m-status-2").innerHTML = `<span class="dot ${cls}" aria-hidden="true"></span>${esc(text)}`;
   }
 
-  // Yaklaşan değişiklik / süren ücretsiz geçiş: haritada kısa bir hap, Duyurular'da ayrıntı.
-  function renderAnnouncements(data, now) {
-    const items = [];
-    (data.active_rules || []).forEach((r) => items.push({ cls: "free", k: "Ücretsiz geçiş sürüyor", t: r.title,
-      m: `${names(data, r.crossings)} · bitiş ${dateTime(r.valid_to)}`, cd: inDays(r.valid_to, now), src: null }));
-    (data.upcoming || []).forEach((u) => {
-      const src = u.sources && u.sources[u.sources.length - 1];
-      items.push({ cls: "change", k: "Yaklaşan değişiklik", t: u.title,
-        m: `Yürürlük ${dateTime(u.effective_from)}${u.crossings.length ? " · " + names(data, u.crossings) : ""}`,
-        cd: inDays(u.effective_from, now), src });
-    });
-    $("#announcements").innerHTML = items.map((x) => `<div class="announce ${x.cls}">
-      <div class="k">${esc(x.k)}</div><div class="t">${esc(x.t)}</div><div class="m">${esc(x.m)}${x.src ? " · " + link(x.src.url, x.src.publisher || "kaynak") : ""}</div>
-      <div class="cd">${esc(x.cd)}</div></div>`).join("");
-    const badge = $("#duyuru-badge");
-    badge.hidden = !items.length;
-    badge.textContent = items.length;
-    const n = $("#notice");
-    if (!items.length) { n.hidden = true; return; }
-    const top = items[0];
-    n.hidden = false;
-    n.innerHTML = `<span class="tag ${top.cls}">${esc(top.cd)}</span><span>${esc(top.t)}</span>`;
-    n.onclick = () => selectTab("duyuru");
+  // Yeni tarife dönemi geri sayımı (yılbaşı) ve varsa resmî olarak yayımlanmış yeni tarife
+  function nextTariff(data, now) {
+    const up = (data.upcoming || []).filter((u) => u.effective_from && dayDiff(u.effective_from, now) >= 0)
+      .sort((a, b) => new Date(a.effective_from) - new Date(b.effective_from))[0];
+    const cal = (data.calendar || []).find((p) => p.kind === "yilbasi" && dayDiff(p.end || p.start, now) >= 0);
+    return { up, cal };
   }
-
-  // ---------------------------------------------------------------- köprüler
-
-  function historyChart(history, now) {
-    const pts = (history || []).filter((h) => h.class1 != null).map((h) => ({ t: new Date(h.valid_from).getTime(), v: Number(h.class1) }));
-    if (pts.length < 2) return "";
-    const W = 330, H = 120, L = 8, R = 48, T = 16, B = 20;
-    const tMin = pts[0].t, tMax = Math.max(pts[pts.length - 1].t, now.getTime()) + 30 * 86400000;
-    const vMax = Math.max(...pts.map((p) => p.v)) * 1.15;
-    const x = (t) => L + ((t - tMin) / (tMax - tMin)) * (W - L - R);
-    const y = (v) => T + (1 - v / vMax) * (H - T - B);
-    let past = "", future = "";
-    pts.forEach((p, i) => {
-      const nextT = i + 1 < pts.length ? pts[i + 1].t : tMax;
-      const seg = `M${x(p.t).toFixed(1)} ${y(p.v).toFixed(1)}H${x(nextT).toFixed(1)}` + (i + 1 < pts.length ? `V${y(pts[i + 1].v).toFixed(1)}` : "");
-      if (p.t > now.getTime()) future += seg; else past += seg;
-    });
-    const years = [];
-    for (let yr = new Date(tMin).getFullYear(); yr <= new Date(tMax).getFullYear(); yr++) {
-      const t = Date.UTC(yr, 0, 1);
-      if (t >= tMin && t <= tMax) years.push(`<text x="${x(t).toFixed(1)}" y="${H - 4}" text-anchor="middle">${yr}</text>`);
-    }
-    const labels = pts.map((p) => `<circle cx="${x(p.t).toFixed(1)}" cy="${y(p.v).toFixed(1)}" r="2.5"/>
-      <text x="${(x(p.t) + 4).toFixed(1)}" y="${(y(p.v) - 5).toFixed(1)}">${esc(fmtMoney.format(p.v))}</text>`).join("");
-    return `<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="1. sınıf ücret geçmişi">
-      <line class="axis" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}"/>
-      <path class="line" d="${past}"/><path class="line future" d="${future}"/>${labels}${years.join("")}</svg>`;
+  function renderCountdown(data, now) {
+    const { up, cal } = nextTariff(data, now);
+    const when = up ? up.effective_from : cal ? cal.start : null;
+    const pill = $("#countdown"), chip = $("#m-countdown");
+    if (!when) { pill.hidden = true; chip.hidden = true; return; }
+    const n = dayDiff(when, now);
+    const d = fmtShort.format(new Date(when));
+    pill.hidden = false;
+    pill.innerHTML = `${ICON.cal}${up ? "Yeni tarife" : "Yeni tarife dönemi"} ${esc(d)} · <b>${esc(n > 0 ? n + " gün" : "bugün")}</b>`;
+    pill.setAttribute("aria-label", `${up ? "Yeni tarife" : "Yeni tarife dönemi"} ${d}, ${n} gün kaldı. Duyuruları aç`);
+    chip.hidden = false;
+    chip.innerHTML = `${esc(d)} · <b>${esc(n > 0 ? n + " gün" : "bugün")}</b>`;
+    chip.setAttribute("aria-label", pill.getAttribute("aria-label"));
+    pill.onclick = chip.onclick = () => selectTab("duyuru");
   }
-
-  function crossingDetail(c, now) {
-    const gece = c.current && c.current.gece && c.current.gece.classes ? c.current.gece : null;
-    // Sınıf tablosu yalnızca bazı sınıfları içeriyorsa (Avrasya: 3–5. sınıf giremez) boş hücre "Geçemez" olur.
-    const partial = c.current && c.current.classes && CLASSES.some((k) => c.current.classes[k] == null);
-    const cellOf = (classes, k) => (classes && classes[k] != null ? esc(money(classes[k])) : partial ? `<span class="muted">Geçemez</span>` : "—");
-    const rows = CLASSES.map((k) => `<tr><td>${esc(className(k))}</td><td>${cellOf(c.current && c.current.classes, k)}</td>
-      ${gece ? `<td>${gece.classes[k] != null ? esc(money(gece.classes[k])) : "—"}</td>` : ""}
-      ${c.upcoming ? `<td>${esc(money(c.upcoming.classes[k]))}</td>` : ""}</tr>`).join("");
-    const links = [c.konum ? `<a href="#" data-map-focus="${esc(c.id)}">Haritada göster</a>` : "",
-      c.current && c.current.source_url ? link(c.current.source_url, "Tarife belgesi") : ""].filter(Boolean).join("");
-    const head = gece ? `<th>Gündüz${c.current.gunduz_saat ? `<br><small>${esc(c.current.gunduz_saat)}</small>` : ""}</th><th>Gece${gece.saat ? `<br><small>${esc(gece.saat)}</small>` : ""}</th>` : "<th>Şimdi</th>";
-    return `<div class="crossing-detail">
-      <table class="mini"><thead><tr><th>Sınıf</th>${head}${c.upcoming ? `<th>${esc(fmtShort.format(new Date(c.upcoming.valid_from)))}</th>` : ""}</tr></thead>
-      <tbody>${rows}</tbody></table>
-      ${historyChart(c.history, now)}
-      ${links ? `<div class="detail-links">${links}</div>` : ""}</div>`;
-  }
-
-  function renderCrossings(data, now) {
-    if (!data) return;
-    $("#kopru-sinif").textContent = className(cls_);
-    const list = data.crossings || [];
-    if (!list.length) { $("#crossings").innerHTML = `<li><p class="empty" style="padding:12px">Henüz ücret kaydı yok.</p></li>`; return; }
-    const open = $("#crossings").dataset.open || "";
-    $("#crossings").innerHTML = list.map((c) => {
-      const v = c.current && c.current.classes[cls_];
-      let tag = "";
-      if (c.free_now) tag = `<small class="tag free">Ücretsiz</small>`;
-      else if (c.upcoming) tag = `<small class="tag change">${esc(fmtShort.format(new Date(c.upcoming.valid_from)))} → ${esc(money(c.upcoming.classes[cls_]))}</small>`;
-      const sub = [(c.iller || []).join(" / "), c.operator].filter(Boolean).join(" · ");
-      return `<li><button type="button" class="crossing-row" data-id="${esc(c.id)}" aria-expanded="${open === c.id}">
-          <span class="ic">${ICON[c.tur] || ICON.kopru}</span>
-          <span><span class="nm">${esc(c.name)}</span><span class="sub">${esc(sub)}</span></span>
-          <span class="pr">${v != null ? esc(money(v)) : c.current ? `<small class="tag neutral">Bu sınıf geçemez</small>` : "—"}${tag}</span>
-        </button>${open === c.id ? crossingDetail(c, now) : ""}</li>`;
-    }).join("");
-  }
-
-  function bindCrossings() {
-    $("#crossings").addEventListener("click", (e) => {
-      const f = e.target.closest("[data-map-focus]");
-      if (f) {
-        e.preventDefault();
-        if (window.RadarMap) window.RadarMap.focusCrossing(f.dataset.mapFocus);
-        if (window.matchMedia("(max-width: 900px)").matches) $(".map-area").scrollIntoView({ behavior: "smooth" });
-        return;
-      }
-      const row = e.target.closest(".crossing-row");
-      if (!row) return;
-      const box = $("#crossings");
-      box.dataset.open = box.dataset.open === row.dataset.id ? "" : row.dataset.id;
-      renderCrossings(data_, now_);
-    });
-  }
-
-  function openCrossing(id) {
-    selectTab("kopru");
-    $("#crossings").dataset.open = id;
-    renderCrossings(data_, now_);
-    const row = document.querySelector(`.crossing-row[data-id="${CSS.escape(id)}"]`);
-    if (row) row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  function upcomingText() {
+    if (!data_) return "";
+    const { up, cal } = nextTariff(data_, now_);
+    if (up) return `Yeni tarife ${fmtShort.format(new Date(up.effective_from))} itibarıyla geçerli olacak.`;
+    if (cal) return `Yeni tarife dönemi ${fmtShort.format(new Date(cal.start))}; tarife yayımlanınca yeni tutar burada görünür.`;
+    return "";
   }
 
   // ---------------------------------------------------------------- duyurular
 
+  function renderAnnouncements(data, now) {
+    const items = [];
+    (data.active_rules || []).forEach((r) => items.push({ cls: "free-rule", k: "Ücretsiz geçiş sürüyor", t: r.title,
+      m: `${names(data, r.crossings)} · bitiş ${dateTime(r.valid_to)}`, cd: inDays(r.valid_to, now), tag: "ok", src: null }));
+    (data.upcoming || []).forEach((u) => {
+      const src = u.sources && u.sources[u.sources.length - 1];
+      items.push({ cls: "change", k: "Yaklaşan değişiklik", t: u.title,
+        m: `Yürürlük ${dateTime(u.effective_from)}${u.crossings.length ? " · " + names(data, u.crossings) : ""}`,
+        cd: inDays(u.effective_from, now), tag: "warn", src });
+    });
+    $("#announcements").innerHTML = items.map((x) => `<div class="ann ${x.cls}">
+      <div class="k"><span>${esc(x.k)}</span><span class="tag ${x.tag}">${esc(x.cd)}</span></div><div class="t">${esc(x.t)}</div>
+      <div class="m">${esc(x.m)}${x.src ? " · " + link(x.src.url, x.src.publisher || "kaynak") : ""}</div></div>`).join("");
+    ["#duyuru-badge", "#duyuru-badge-m"].forEach((id) => { const b = $(id); b.hidden = !items.length; b.textContent = items.length; });
+    const n = $("#notice");
+    if (!items.length) { n.hidden = true; return; }
+    const top = items[0];
+    n.hidden = false;
+    n.innerHTML = `<span class="tag ${top.tag}">${esc(top.cd)}</span><span>${esc(top.t)}</span>`;
+    n.onclick = () => selectTab("duyuru");
+  }
+
+  function renderPlate(data, now) {
+    const { up, cal } = nextTariff(data, now);
+    const when = up ? up.effective_from : cal ? cal.start : null;
+    if (!when) { $("#cd-plate").innerHTML = ""; return; }
+    const n = dayDiff(when, now);
+    $("#cd-plate").innerHTML = `<div class="plate cd-plate"><div class="plate-in">
+      <div class="cd-top"><div class="cd-l"><span class="cd-k">${up ? "Yeni tarife" : esc(cal.name.replace(/^\d{4}\s*/, "").replace(/^./, (c) => c.toLocaleUpperCase("tr")))}</span>
+        <span class="cd-d">${esc(fmtDate.format(new Date(when)))}</span></div>
+        <div class="cd-n"><b>${esc(Math.max(0, n))}</b><span>gün</span></div></div>
+      <div class="cd-t">${up ? `${esc(up.title)}. Rotalarının yeni tutarı Rota sekmesinde görünür.` : "Yeni tarife henüz yayımlanmadı. Yayımlanınca rotalarının yeni tutarı burada görünür."}</div></div></div>`;
+  }
+
+  // Takvim: bayramlar (yılbaşı yukarıdaki plakada). Karar çıktıysa yeşil.
+  function renderCalendar(data, now) {
+    const { cal } = nextTariff(data, now);
+    const rules = (data.next_rules || []).concat(data.active_rules || []);
+    const list = (data.calendar || []).filter((p) => p !== cal && dayDiff(p.end || p.start, now) >= 0).slice(0, 4);
+    $("#calendar-sec").hidden = !list.length;
+    $("#calendar").innerHTML = list.map((p) => {
+      const d = new Date(p.start);
+      const [y, m, dd] = fmtYmd.format(d).split("-").map(Number);
+      const decided = p.kind === "bayram" && rules.some((r) => r.valid_from && dayDiff(r.valid_from, new Date(p.start)) <= 3 && dayDiff(r.valid_from, new Date(p.start)) >= -3);
+      const sub = p.kind === "bayram" ? (decided ? "Ücretsiz geçiş kararı çıktı" : "Ücretsiz geçiş kararı açıklanmadı") : "Ücret güncellemesi dönemi";
+      return `<li><span class="cal-tile" aria-hidden="true"><b>${dd}</b><span>${MONTHS[m - 1]}</span></span>
+        <span class="cal-t"><b>${esc(p.name.replace(/\s*\d{4}$/, ""))}</b><span class="${decided ? "ok" : ""}">${esc(sub)}</span></span>
+        <span class="cal-n">${esc(inDays(p.start, now))}</span><span class="visually-hidden">${esc(fmtDate.format(d))} ${y}</span></li>`;
+    }).join("");
+  }
+
   function renderFree(data) {
     const parts = [];
-    (data.active_rules || []).forEach((r) => parts.push(`<p><strong>Sürüyor:</strong> ${esc(r.title)}<br>
-      <span class="muted small">${esc(names(data, r.crossings))} · bitiş ${esc(dateTime(r.valid_to))}</span></p>`));
-    (data.next_rules || []).forEach((r) => parts.push(`<p><strong>Karar çıktı:</strong> ${esc(r.title)}<br>
-      <span class="muted small">${esc(dateTime(r.valid_from))} – ${esc(dateTime(r.valid_to))} · ${esc(names(data, r.crossings))}</span></p>`));
+    (data.active_rules || []).forEach((r) => parts.push(`<div class="ann free-rule"><div class="k"><span>Ücretsiz geçiş sürüyor</span><span class="tag ok">Bitiş ${esc(fmtShorter.format(new Date(r.valid_to)))}</span></div>
+      <div class="t">${esc(r.title)}</div><div class="m">${esc(names(data, r.crossings))} · bitiş ${esc(dateTime(r.valid_to))}</div></div>`));
+    (data.next_rules || []).forEach((r) => parts.push(`<div class="ann free-rule"><div class="k"><span>Karar çıktı</span><span class="tag ok">${esc(fmtShorter.format(new Date(r.valid_from)))}</span></div>
+      <div class="t">${esc(r.title)}</div><div class="m">${esc(dateTime(r.valid_from))} – ${esc(dateTime(r.valid_to))} · ${esc(names(data, r.crossings))}</div></div>`));
     if (!parts.length) {
-      const b = (data.calendar || []).find((p) => p.kind === "bayram");
-      parts.push(b ? `<div class="next"><div><strong>${esc(b.name)}</strong><span>Sıradaki bayram</span></div><span>${esc(date(b.start))}</span></div>`
-        : `<p class="empty">Karar çıktığında burada görünür.</p>`);
+      parts.push(`<div class="empty-box">${ICON.bell}<div><b>Şu an yeni duyuru yok</b><span>KGM ve Bakanlık ${esc(data.run_interval_minutes || 30)} dakikada bir kontrol ediliyor</span></div></div>`);
     }
     $("#free").innerHTML = parts.join("");
   }
 
   function renderEvents(data, now) {
     const list = data.events || [];
-    $("#events-head").hidden = !list.length;
+    $("#events-fold").hidden = !list.length;
+    $("#events-count").textContent = list.length ? String(Math.min(list.length, 8)) : "";
     $("#events").innerHTML = list.slice(0, 8).map((e) => {
       const src = e.sources && e.sources[e.sources.length - 1];
       const when = e.effective_from ? ` · yürürlük ${esc(date(e.effective_from))}` : "";
@@ -256,7 +255,9 @@
   function renderSources(data, now) {
     const enabled = data.sources.filter((s) => s.enabled);
     const failing = enabled.filter((s) => s.ok === false).length;
-    $("#source-summary").textContent = failing ? `· ${failing} sorunlu` : `· ${enabled.length} çalışıyor`;
+    const sum = $("#source-summary");
+    sum.textContent = failing ? `${failing} sorunlu` : "Tümü okunuyor";
+    sum.className = "fold-v " + (failing ? "bad" : "good");
     $("#sources").innerHTML = enabled.map((s) => `<li><span class="dot ${s.ok === true ? "good" : s.ok === false ? "bad" : ""}" aria-hidden="true"></span>
       <span>${link(s.url, s.name)}</span><span class="when">${esc(ago(s.last_success, now))}</span>
       ${s.ok === false ? `<span class="err">${esc((s.error || "").slice(0, 120))}</span>` : ""}</li>`).join("");
@@ -264,21 +265,123 @@
 
   function renderDocuments(data) {
     const docs = data.documents || [];
-    $("#doc-count").textContent = docs.length ? `· ${docs.filter((d) => !d.removed).length}` : "";
+    $("#doc-count").textContent = docs.length ? String(docs.filter((d) => !d.removed).length) : "";
     $("#documents").innerHTML = docs.length ? docs.map((d) => `<li class="${d.removed ? "removed" : ""}">
       <span>${link(d.url, d.title || d.key)}</span>
       <span class="sub">Geçerlilik ${esc(date(d.effective_from))}${d.error ? ` · <span class="chip bad">${esc(d.error)}</span>` : ""}</span></li>`).join("")
       : `<li class="empty">Henüz belge okunmadı.</li>`;
   }
 
-  // Takvim: yılbaşı ücret dönemi ve bayramlar (config/calendar.yaml). Kararlar çıktığında yukarıda duyuru olur.
-  function renderCalendar(data, now) {
-    const KIND = { yilbasi: "Ücret güncellemesi dönemi", bayram: "Bayram · ücretsiz geçiş kararı beklenir" };
-    const list = (data.calendar || []).filter((p) => dayDiff(p.end || p.start, now) >= 0).slice(0, 4);
-    $("#calendar-head").hidden = !list.length;
-    $("#calendar").innerHTML = list.map((p) => `<li>
-      <div><strong>${esc(p.name)}</strong><span>${esc(KIND[p.kind] || "")}</span></div>
-      <div class="when"><b>${esc(inDays(p.start, now))}</b><span>${esc(date(p.start))}</span></div></li>`).join("");
+  // ---------------------------------------------------------------- köprüler
+
+  const shortName = (n) => String(n).replace(/\s+Köprüsü$/, "");
+  function crossingDetail(c) {
+    const cur = c.current && c.current.classes ? c.current.classes : {};
+    const gece = c.current && c.current.gece && c.current.gece.classes ? c.current.gece : null;
+    const up = c.upcoming && c.upcoming.classes ? c.upcoming : null;
+    const partial = CLASSES.some((k) => cur[k] == null) && CLASSES.some((k) => cur[k] != null);
+    const head = `<tr><th scope="col">Sınıf</th><th scope="col" class="now">${gece ? `Gündüz · şu an` : "Şu an"}</th>${gece ? `<th scope="col">Gece ${esc((gece.saat || "").replace("-", "–"))}</th>` : ""}${up ? `<th scope="col">${esc(fmtShorter.format(new Date(up.valid_from)))}</th>` : ""}</tr>`;
+    const rows = [];
+    for (let i = 0; i < CLASSES.length; i++) {
+      const k = CLASSES[i];
+      if (partial && cur[k] == null) {
+        let j = i;
+        while (j + 1 < CLASSES.length && cur[CLASSES[j + 1]] == null) j++;
+        const label = j > i ? `${k}–${CLASSES[j]} · ${k === "3" && CLASSES[j] === "5" ? "Kamyon, otobüs" : CLASSES.slice(i, j + 1).map(clsName).join(", ")}` : `${k} · ${clsName(k)}`;
+        rows.push(`<tr><th scope="row">${esc(label)}</th><td class="no" colspan="${1 + (gece ? 1 : 0) + (up ? 1 : 0)}"><span class="no-tag">Geçemez</span></td></tr>`);
+        i = j;
+        continue;
+      }
+      rows.push(`<tr><th scope="row">${esc(k)} · ${esc(clsName(k))}</th><td class="now">${cur[k] != null ? esc(fmtMoney.format(Number(cur[k]))) : "—"}</td>
+        ${gece ? `<td>${gece.classes[k] != null ? esc(fmtMoney.format(Number(gece.classes[k]))) : "—"}</td>` : ""}${up ? `<td>${up.classes[k] != null ? esc(fmtMoney.format(Number(up.classes[k]))) : "—"}</td>` : ""}</tr>`);
+    }
+    const H = hesapApi();
+    const canAdd = H && H.canAddExtra(c.id);
+    const acts = [];
+    if (canAdd) acts.push(H.hasExtra(c.id) ? `<button type="button" class="btn primary" data-goto-rota="1">Rotada ✓</button>` : `<button type="button" class="btn primary" data-add-extra="${esc(c.id)}">Rotaya ekle</button>`);
+    if (c.konum) acts.push(`<button type="button" class="btn" data-map-focus="${esc(c.id)}">Haritada göster</button>`);
+    if (c.current && safeUrl(c.current.source_url)) acts.push(`<a class="btn" href="${esc(safeUrl(c.current.source_url))}" target="_blank" rel="noopener noreferrer">Tarife ↗</a>`);
+    const included = !canAdd && NOTE[c.id] && !/Avrupa/.test(NOTE[c.id]) ? `<p class="cr-note">Ücret otoyol gişe tarifesine dahildir; rotada otomatik hesaplanır.</p>` : "";
+    return `<div class="cr-detail">
+      <table class="cr-table"><thead>${head}</thead><tbody>${rows.join("")}</tbody></table>${included}
+      <div class="cr-acts n${acts.length || 1}">${acts.join("")}</div></div>`;
+  }
+
+  function renderKClasses() {
+    const H = hesapApi();
+    if (!H) return;
+    $("#k-veh-chip").innerHTML = H.clsChipHtml(cls_);
+    $("#k-veh-chip").setAttribute("aria-label", `Araç: ${className(cls_)}. Değiştir`);
+    $("#k-classes").innerHTML = H.clsGridHtml(cls_, "data-kcls");
+  }
+
+  function renderCrossings(data, now) {
+    if (!data) return;
+    renderKClasses();
+    const list = data.crossings || [];
+    if (!list.length) { $("#crossings").innerHTML = `<li><p class="empty pad">Henüz ücret kaydı yok.</p></li>`; return; }
+    const open = $("#crossings").dataset.open || "";
+    const vals = list.map((c) => (c.current && c.current.classes[cls_] != null ? Number(c.current.classes[cls_]) : null));
+    const max = Math.max(1, ...vals.filter((v) => v != null));
+    $("#crossings").innerHTML = list.map((c, i) => {
+      const v = vals[i];
+      let tag = "";
+      if (c.free_now) tag = `<span class="tag ok">Ücretsiz</span>`;
+      else if (c.upcoming) tag = `<span class="tag warn">Zam ${esc(fmtShorter.format(new Date(c.upcoming.valid_from)))}</span>`;
+      const note = NOTE[c.id] || c.operator || "";
+      const isOpen = open === c.id;
+      return `<li class="${isOpen ? "is-open" : ""}"><button type="button" class="cr-row" data-id="${esc(c.id)}" aria-expanded="${isOpen}">
+          <span class="nm">${esc(shortName(c.name))}${note ? ` <span class="nt">· ${esc(note)}</span>` : ""}</span>
+          <span class="pr">${tag}${v != null ? esc(money(v)) : c.current ? `<span class="tag no">Geçemez</span>` : "—"}</span>
+          <span class="bar" aria-hidden="true"><i data-w="${v != null ? Math.max(2, (v / max) * 100).toFixed(1) : 0}"></i></span>
+        </button>${isOpen ? crossingDetail(c) : ""}</li>`;
+    }).join("");
+    // Çubuk genişlikleri (CSP satır içi stile izin vermez; CSSOM ile atanır)
+    document.querySelectorAll("#crossings [data-w]").forEach((i) => { i.style.width = i.dataset.w + "%"; });
+    const latest = list.map((c) => c.current && c.current.valid_from).filter(Boolean).sort().pop();
+    $("#k-foot").textContent = `Çubuklar en pahalı geçişe göre ölçeklenir${latest ? " · " + fmtMonthYear.format(new Date(latest)) + " tarifesi" : ""}`;
+  }
+
+  function bindCrossings() {
+    $("#crossings").addEventListener("click", (e) => {
+      const f = e.target.closest("[data-map-focus]");
+      if (f) {
+        e.preventDefault();
+        if (window.RadarMap) window.RadarMap.focusCrossing(f.dataset.mapFocus);
+        $("#panel").classList.remove("is-expanded");
+        return;
+      }
+      const a = e.target.closest("[data-add-extra]");
+      if (a) { addExtra(a.dataset.addExtra); return; }
+      if (e.target.closest("[data-goto-rota]")) { selectTab("rota"); return; }
+      const row = e.target.closest(".cr-row");
+      if (!row) return;
+      const box = $("#crossings");
+      box.dataset.open = box.dataset.open === row.dataset.id ? "" : row.dataset.id;
+      renderCrossings(data_, now_);
+      const again = document.querySelector(`.cr-row[data-id="${CSS.escape(row.dataset.id)}"]`);
+      if (again) again.focus();
+    });
+    const chip = $("#k-veh-chip"), grid = $("#k-classes");
+    chip.addEventListener("click", () => { grid.hidden = !grid.hidden; chip.setAttribute("aria-expanded", String(!grid.hidden)); });
+    const pickK = (k, keep) => { setClassEverywhere(k); if (!keep) { grid.hidden = true; chip.setAttribute("aria-expanded", "false"); } };
+    grid.addEventListener("click", (e) => { const b = e.target.closest("[data-kcls]"); if (b) pickK(b.dataset.kcls); });
+    if (hesapApi()) hesapApi().radioKeys(grid, (k) => pickK(k, true), "data-kcls");
+  }
+
+  function openCrossing(id) {
+    selectTab("kopru");
+    $("#crossings").dataset.open = id;
+    renderCrossings(data_, now_);
+    const row = document.querySelector(`.cr-row[data-id="${CSS.escape(id)}"]`);
+    if (row) row.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+  function addExtra(id) {
+    const H = hesapApi();
+    if (!H) return;
+    H.addExtra(id);
+    selectTab("rota");
+    renderCrossings(data_, now_);
   }
 
   // ---------------------------------------------------------------- harita araçları
@@ -287,25 +390,26 @@
     const M = window.RadarMap;
     if (!M || !M.countsBy) return;
     const chips = $("#layer-chips");
-    const renderChips = () => {
+    const SW = { kopru: ICON.kopru, gise: '<span class="sw-gate" aria-hidden="true"></span>', serbest: '<span class="sw-sgs" aria-hidden="true"></span>' };
+    const layerHtml = (cls) => {
       const c = M.countsBy(), on = new Set(M.filter().types);
-      chips.innerHTML = M.types().map(([t, label]) => `<button type="button" class="layer-chip" data-type="${t}" aria-pressed="${on.has(t)}">
-        <span class="sw sw-${t}" aria-hidden="true"></span>${esc(label)}<span class="n">${c[t]}</span></button>`).join("");
+      return M.types().map(([t, label]) => `<button type="button" class="${cls}" data-type="${t}" aria-pressed="${on.has(t)}">
+        ${SW[t]}${esc(label)}<span class="n">${c[t]}</span></button>`).join("");
     };
-    chips.addEventListener("click", (e) => {
-      const b = e.target.closest("[data-type]");
-      if (!b) return;
+    const renderChips = () => { chips.innerHTML = layerHtml("layer-chip"); $("#fp-layers").innerHTML = layerHtml("fp-chip"); };
+    const toggleType = (t) => {
       const on = new Set(M.filter().types);
-      if (on.has(b.dataset.type)) on.delete(b.dataset.type); else on.add(b.dataset.type);
+      if (on.has(t)) on.delete(t); else on.add(t);
       M.setFilter({ types: [...on] });
-      renderFilters();   // tıklama anında tanımlıdır
-    });
-    // Filtre penceresi: bölge, durum, il, otoyol. Seçenek sayıları diğer filtrelere göre hesaplanır.
+      renderFilters();
+    };
+    chips.addEventListener("click", (e) => { const b = e.target.closest("[data-type]"); if (b) toggleType(b.dataset.type); });
+    // Filtre penceresi: katmanlar, bölge, durum, il, otoyol. Seçenek sayıları diğer filtrelere göre hesaplanır.
     const roads = hesap ? hesap.roads() : [];
-    const roadName = (id) => { const o = roads.find((r) => r.id === id); return o ? (o.yol ? o.yol + " · " : "") + o.ad : id; };
+    const roadName = (id) => { const o = roads.find((r) => r.id === id); return o ? (o.yol ? o.yol + " · " : "") + (hesap ? hesap.roadShort(o) : o.ad) : id; };
     const DURUM = [["change", "Zammı yaklaşan"], ["free", "Ücretsiz geçiş"]];
     const pop = $("#filter-pop"), btn = $("#filter-btn");
-    const renderFilters = () => {
+    function renderFilters() {
       const f = M.filter(), o = M.options();
       $("#fp-bolge").innerHTML = o.regions.map((r) => {
         const n = o.bolge.get(r.id) || 0;
@@ -319,25 +423,27 @@
       $("#f-il").innerHTML = `<option value="">Tüm iller</option>` + iller.map((il) => `<option value="${esc(il)}" ${il === f.il ? "selected" : ""}>${esc(il)} (${o.il.get(il) || 0})</option>`).join("");
       const rids = roads.map((r) => r.id).filter((id) => o.road.has(id) || id === f.road);
       $("#f-road").innerHTML = `<option value="">Tüm otoyollar</option>` + rids.map((id) => `<option value="${esc(id)}" ${id === f.road ? "selected" : ""}>${esc(roadName(id))} (${o.road.get(id) || 0})</option>`).join("");
-      // Seçili filtreler araç çubuğunda kaldırılabilir etiket olarak görünür.
       const active = [];
       if (f.bolge) active.push(["bolge", (o.regions.find((r) => r.id === f.bolge) || {}).ad || f.bolge]);
       if (f.il) active.push(["il", f.il]);
       if (f.road) active.push(["road", roadName(f.road)]);
       if (f.durum) active.push(["durum", (DURUM.find((d) => d[0] === f.durum) || [])[1]]);
-      $("#active-filters").innerHTML = active.map(([k, label]) => `<button type="button" class="af-chip" data-clear="${k}" title="Filtreyi kaldır">${esc(label)}
-        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7M11.5 4.5l-7 7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>`).join("");
-      $("#filter-count").hidden = !active.length;
-      $("#filter-count").textContent = active.length;
-      btn.classList.toggle("is-on", active.length > 0);
+      $("#active-filters").innerHTML = active.map(([k, label]) => `<button type="button" class="af-chip" data-clear="${k}" aria-label="${esc(label)} filtresini kaldır">${esc(label)}${ICON.x}</button>`).join("");
+      const hiddenLayers = 3 - f.types.length;
+      const n = active.length + hiddenLayers;
+      $("#filter-count").hidden = !n;
+      $("#filter-count").textContent = n;
+      btn.classList.toggle("is-on", n > 0);
       renderChips();
-    };
+    }
     const apply = (f) => { M.setFilter(f); renderFilters(); };
     const openPop = (open) => { pop.hidden = !open; btn.setAttribute("aria-expanded", String(open)); if (open) renderFilters(); };
     btn.addEventListener("click", () => openPop(pop.hidden));
     $("#fp-close").addEventListener("click", () => openPop(false));
-    $("#fp-clear").addEventListener("click", () => apply({ bolge: "", il: "", road: "", durum: "", reset: true }));
+    $("#fp-clear").addEventListener("click", () => apply({ bolge: "", il: "", road: "", durum: "", types: ["kopru", "gise", "serbest"], reset: true }));
     pop.addEventListener("click", (e) => {
+      const t = e.target.closest("[data-type]");
+      if (t) { toggleType(t.dataset.type); return; }
       const b = e.target.closest("[data-bolge]");
       if (b && !b.disabled) { const f = M.filter(); apply({ bolge: f.bolge === b.dataset.bolge ? "" : b.dataset.bolge, il: "", reset: true }); return; }
       const d = e.target.closest("[data-durum]");
@@ -349,23 +455,23 @@
       const c = e.target.closest("[data-clear]");
       if (c) apply({ [c.dataset.clear]: "", reset: true });
     });
-    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) openPop(false); });
-    // Dışarı tıklanınca kapanır. (Çip tıklanınca liste yeniden çizildiği için hedef sayfadan çıkmış olabilir; o tıklama içeridedir.)
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !pop.hidden) { openPop(false); btn.focus(); } });
     document.addEventListener("click", (e) => { if (!pop.hidden && e.target.isConnected && !pop.contains(e.target) && !btn.contains(e.target)) openPop(false); });
     renderFilters();
 
     // Arama: yazdıkça en fazla 8 sonuç; seçilen noktaya gidilir ve açılır pencere açılır.
     const q = $("#map-q"), list = $("#map-q-list");
     let items = [], active = -1;
-    const TYPE_LABEL = { kopru: "Köprü / tünel", gise: "Gişe", serbest: "Serbest geçiş" };
-    const close = () => { list.hidden = true; q.setAttribute("aria-expanded", "false"); };
+    const KIND = (x) => (x.type === "kopru" ? `<span class="mk-bridge">${(M.icons || {})[x.kind] || ICON.kopru}</span>` : x.type === "serbest" ? '<span class="mk-sgs flat"></span>' : '<span class="lg-gate"></span>');
+    const close = () => { list.hidden = true; q.setAttribute("aria-expanded", "false"); q.removeAttribute("aria-activedescendant"); };
     const render = () => {
       if (!q.value.trim()) { close(); return; }
-      list.innerHTML = items.length ? items.map((x, i) => `<li role="option" id="mq-${i}" data-id="${esc(x.id)}" aria-selected="${i === active}">
-        <span class="o-name">${esc(x.name)}</span><span class="o-sub">${esc(TYPE_LABEL[x.type] || "")}${x.sub ? " · " + esc(x.sub) : ""}</span></li>`).join("")
+      list.innerHTML = items.length ? items.map((x, i) => `<li role="option" class="opt" id="mq-${i}" data-id="${esc(x.id)}" aria-selected="${i === active}">
+        <span class="o-kind" aria-hidden="true">${KIND(x)}</span><span class="o-t"><span class="o-name">${esc(x.name)}</span><span class="o-sub">${esc(x.sub || "")}</span></span></li>`).join("")
         : `<li class="o-empty">Sonuç yok</li>`;
       list.hidden = false;
       q.setAttribute("aria-expanded", "true");
+      if (active >= 0) q.setAttribute("aria-activedescendant", "mq-" + active);
     };
     const go = (id) => { close(); q.blur(); M.focusPoint(id); renderFilters(); };
     q.addEventListener("input", () => { items = M.search(q.value); active = -1; render(); });
@@ -378,13 +484,29 @@
     q.addEventListener("blur", () => setTimeout(close, 120));
     list.addEventListener("mousedown", (e) => e.preventDefault());
     list.addEventListener("click", (e) => { const li = e.target.closest("[data-id]"); if (li) go(li.dataset.id); });
+    // "/" kısayolu: haritada ara
+    document.addEventListener("keydown", (e) => {
+      if (e.key !== "/" || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT" || t.isContentEditable)) return;
+      e.preventDefault();
+      q.focus();
+    });
+  }
+
+  // İpucu balonu: ilk açılışta; kapatılınca bu cihazda bir daha gösterilmez.
+  function bindHint() {
+    const hint = $("#map-hint");
+    const dismissed = () => store("radar.ipucu") === "1";
+    hint.hidden = dismissed();
+    $("#map-hint-close").addEventListener("click", () => { store("radar.ipucu", "1"); hint.hidden = true; });
+    return (st) => { hint.hidden = dismissed() || st.hasAny; };
   }
 
   // ---------------------------------------------------------------- başlatma
 
   async function main() {
     bindTabs();
-    bindCrossings();
     const [data, table] = await Promise.all([load(), loadTable()]);
     if (!data) {
       $("#app").insertAdjacentHTML("beforeend", $("#error-tpl").innerHTML);
@@ -398,22 +520,28 @@
     cls_ = CLASSES.includes(saved) ? saved : "1";
     $("#sample-note").hidden = !data.ornek;
     renderStatus(data, now_);
+    renderCountdown(data, now_);
     renderAnnouncements(data, now_);
+    renderPlate(data, now_);
     renderFree(data);
     renderCalendar(data, now_);
     renderEvents(data, now_);
     renderSources(data, now_);
     renderDocuments(data);
-    $("#footer").textContent = `Kaynak: KGM resmi tarifeleri · ${data.run_interval_minutes || 30} dakikada bir kontrol edilir.`;
+    $("#footer").textContent = `Kaynak: KGM resmî tarifeleri · ${data.run_interval_minutes || 30} dakikada bir kontrol edilir.`;
 
-    const helpers = { esc, money, date, dateTime, className };
+    const regions = new Map((data.bolgeler || []).map((r) => [r.id, r.ad]));
+    const helpers = { esc, money, date, dateTime, className, regionName: (id) => regions.get(id) || id, upcomingText };
     const hesap = window.RadarHesap;
+    const onHint = bindHint();
     if (hesap) {
       try {
-        const r = hesap.init({ table, crossings: data.crossings, helpers, cls: cls_, map: window.RadarMap, onClass: (c) => setClassEverywhere(c, "hesap") });
+        const r = hesap.init({ table, crossings: data.crossings, helpers, cls: cls_, map: window.RadarMap,
+          onClass: (c) => setClassEverywhere(c, "hesap"), onChange: (st) => onHint(st) });
         if (r.fromHash) selectTab("rota");
       } catch (e) { console.error("Ücret hesabı açılamadı", e); }
     }
+    bindCrossings();
     renderCrossings(data, now_);
     if (window.RadarMap) {
       try {
@@ -422,17 +550,16 @@
           stations: hesap ? hesap.allStations() : [],
           roads: hesap ? hesap.roads() : [],
           onShowCrossing: openCrossing,
+          onAddExtra: addExtra,
+          canAddExtra: (id) => !!(hesap && hesap.canAddExtra(id)),
           popupExtra: (p) => (hesap ? hesap.popupHtml(p) : ""),
-          onTrip: (role, key) => {
-            selectTab("rota");
-            const done = hesap && hesap.pick(role, key);
-            if (done && window.matchMedia("(max-width: 900px)").matches) $("#trip-result").scrollIntoView({ behavior: "smooth", block: "start" });
-          },
+          onTrip: (role, key) => { selectTab("rota"); if (hesap) hesap.pick(role, key); },
         });
         if (hesap) hesap.redraw();
         bindMapTools(hesap);
       } catch (e) { console.error("Harita açılamadı", e); }
     }
+    $("#m-back").addEventListener("click", () => { if (hesap) hesap.reset(); });
     // Paylaşılan bir hesap bağlantısı aynı sekmede açılırsa (yalnızca # değişir) hesap yenilenir.
     window.addEventListener("hashchange", () => { if (hesap) { hesap.reload(); selectTab("rota"); } });
   }

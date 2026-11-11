@@ -3,43 +3,54 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: blob: https://tile.openstreetmap.org; connect-src 'self'; font-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
   <meta name="referrer" content="strict-origin-when-cross-origin">
   <meta name="color-scheme" content="light dark">
   <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#08100e" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0f1916" media="(prefers-color-scheme: dark)">
   <title>Otoyol Ücretleri</title>
-  <meta name="description" content="Otoyol gişeleri arası geçiş ücreti hesaplama, köprü ücretleri ve bayramda ücretsiz geçiş kararları">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2314735f'/%3E%3Cpath d='M11 25 14.5 7h3L21 25' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M16 10.5v2.5M16 15.5v2.5M16 20.5v2.5' stroke='white' stroke-width='1.8' stroke-linecap='round'/%3E%3C/svg%3E">
+  <meta name="description" content="Otoyol gişeleri arası geçiş ücreti hesaplama, köprü ve tünel ücretleri, bayramda ücretsiz geçiş kararları">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230d5546'/%3E%3Crect x='3.5' y='3.5' width='25' height='25' rx='5.5' fill='none' stroke='white' stroke-width='2'/%3E%3Ctext x='16' y='22.5' font-family='Arial' font-weight='900' font-size='17' fill='white' text-anchor='middle'%3E%E2%82%BA%3C/text%3E%3C/svg%3E">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="appbar">
     <a class="logo" href="./" aria-label="Otoyol Ücretleri, ana sayfa">
-      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" class="logo-bg"/><path d="M11 25 14.5 7h3L21 25" fill="none" stroke="#fff" stroke-width="2.4" stroke-linejoin="round"/><path d="M16 10.5v2.5M16 15.5v2.5M16 20.5v2.5" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
-      <span>Otoyol Ücretleri</span>
+      <span class="plate-logo" aria-hidden="true"><span class="ov">₺</span></span>
+      <span class="logo-t ov">Otoyol Ücretleri</span>
     </a>
+    <span class="grow"></span>
+    <button type="button" class="tarif-pill" id="countdown" hidden></button>
     <div id="status" class="status" role="status" aria-live="polite"></div>
   </header>
 
   <div class="app" id="app">
     <div class="map-area">
-      <div id="map" class="map" aria-label="Otoyol gişeleri ve köprüler haritası"></div>
-      <div class="map-tools">
-        <div class="map-search">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="1.7"/><path d="M12.6 12.6 17 17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <div id="map" class="map" aria-label="Otoyol gişeleri, köprüler ve serbest geçişler haritası"></div>
+
+      <div class="map-tools" id="map-tools">
+        <button type="button" class="tool-btn icon-only m-back" id="m-back" aria-label="Yeni hesap" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg>
+        </button>
+        <div class="map-search" id="map-search">
+          <span class="plate-logo sm m-only" aria-hidden="true"><span class="ov">₺</span></span>
+          <svg class="d-only" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
           <input id="map-q" type="search" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="map-q-list"
-                 placeholder="Gişe, köprü ya da serbest geçiş ara" autocomplete="off" spellcheck="false" aria-label="Haritada ara">
+                 placeholder="Gişe, köprü ya da il ara" autocomplete="off" spellcheck="false" aria-label="Haritada ara">
+          <kbd class="d-only" aria-hidden="true">/</kbd>
+          <span class="m-status m-only" id="m-status" role="img"></span>
           <ul id="map-q-list" class="combo-list" role="listbox" hidden></ul>
         </div>
         <div class="layer-chips" id="layer-chips" role="group" aria-label="Haritada göster"></div>
-        <button type="button" class="layer-chip filter-btn" id="filter-btn" aria-expanded="false" aria-controls="filter-pop">
-          <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 5h14M6 10h8M8.5 15h3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
-          Filtreler<span class="badge" id="filter-count" hidden></span>
+        <span class="grow"></span>
+        <button type="button" class="tool-btn filter-btn" id="filter-btn" aria-expanded="false" aria-controls="filter-pop">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+          <span class="fb-l">Filtreler</span><span class="badge" id="filter-count" hidden></span>
         </button>
         <div class="active-filters" id="active-filters"></div>
-        <div class="filter-pop" id="filter-pop" role="dialog" aria-label="Filtreler" hidden>
+        <div class="filter-pop" id="filter-pop" role="dialog" aria-label="Katmanlar ve filtreler" hidden>
+          <div class="fp-sec"><div class="fp-h">Katmanlar</div><div class="fp-chips" id="fp-layers"></div></div>
           <div class="fp-sec"><div class="fp-h">Bölge</div><div class="fp-chips" id="fp-bolge"></div></div>
           <div class="fp-sec"><div class="fp-h">Durum</div><div class="fp-chips" id="fp-durum"></div></div>
           <div class="fp-row">
@@ -52,10 +63,28 @@
           </div>
         </div>
       </div>
+
+      <div class="map-hint" id="map-hint" hidden>
+        <span><b>Bir gişeye dokun</b>, giriş ya da çıkış yap.</span>
+        <button type="button" id="map-hint-close" aria-label="İpucunu kapat"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+
+      <div class="map-corner">
+        <div class="map-legend" id="map-legend">
+          <div><span class="lg-gate" aria-hidden="true"></span>Gişe</div>
+          <div><span class="lg-bridge" aria-hidden="true"></span>Köprü ve tünel</div>
+          <div><span class="lg-sgs" aria-hidden="true"></span><span>Serbest geçiş <span class="muted">· gişesiz, HGS'den kesilir</span></span></div>
+        </div>
+        <div class="zoom" role="group" aria-label="Yakınlaştırma">
+          <button type="button" id="zoom-in" aria-label="Yakınlaştır"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button type="button" id="zoom-out" aria-label="Uzaklaştır"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14"/></svg></button>
+        </div>
+      </div>
       <button type="button" id="notice" class="notice" hidden></button>
     </div>
 
-    <aside class="panel" aria-label="Ücret hesabı ve bilgiler">
+    <aside class="panel" id="panel" aria-label="Ücret hesabı ve bilgiler">
+      <button type="button" class="sheet-handle" id="sheet-handle" aria-label="Paneli büyüt ya da küçült"><span></span></button>
       <div id="sample-note" class="sample-note" hidden>Örnek veri ile önizleme</div>
       <nav class="tabs" role="tablist" aria-label="Bölümler">
         <button type="button" role="tab" id="tab-btn-rota" aria-controls="tab-rota" aria-selected="true">Rota</button>
@@ -64,78 +93,118 @@
       </nav>
 
       <section class="tab-panel" id="tab-rota" role="tabpanel" aria-labelledby="tab-btn-rota">
-        <form class="route" id="trip" autocomplete="off" novalidate>
-          <div class="route-fields">
-            <span class="route-rail" aria-hidden="true"><i class="dot dot-in"></i><i class="rail"></i><i class="dot dot-out"></i></span>
-            <div class="combo">
-              <label class="visually-hidden" for="trip-giris">Giriş gişesi</label>
-              <input id="trip-giris" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                     aria-controls="trip-giris-list" placeholder="Giriş gişesi" spellcheck="false">
-              <ul class="combo-list" id="trip-giris-list" role="listbox" hidden></ul>
-            </div>
-            <div class="combo">
-              <label class="visually-hidden" for="trip-cikis">Çıkış gişesi</label>
-              <input id="trip-cikis" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
-                     aria-controls="trip-cikis-list" placeholder="Çıkış gişesi" spellcheck="false">
-              <ul class="combo-list" id="trip-cikis-list" role="listbox" hidden></ul>
-            </div>
-            <button type="button" class="icon-btn swap" id="trip-swap" title="Yönü değiştir" aria-label="Giriş ve çıkışı değiştir">
-              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M7 4v12M7 16l-3-3M7 16l3-3M13 16V4M13 4l-3 3M13 4l3 3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
+        <div id="rota-main">
+          <div class="m-res-head m-only" id="m-res-head" hidden>
+            <h1 class="ov" id="m-res-title"></h1>
+            <button type="button" class="veh-chip" id="m-veh-chip" aria-expanded="false" aria-controls="veh-block"></button>
           </div>
-          <div class="opts">
-            <details class="opt" id="opt-vehicle">
-              <summary>
-                <span class="opt-ic" id="veh-ic" aria-hidden="true"></span>
-                <span class="opt-t"><span class="opt-k">Araç</span><span class="opt-v" id="veh-sum">Otomobil · 1. sınıf</span></span>
-                <svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </summary>
-              <div class="opt-body"><div class="vehicle-grid" id="trip-classes" role="group" aria-label="Araç sınıfı"></div></div>
-            </details>
-            <details class="opt" id="opt-extras" hidden>
-              <summary>
-                <span class="opt-ic" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="M1.8 11.6h12.4M3.2 11.6c1.3-4.2 8.3-4.2 9.6 0M5.6 8.3v3.3M10.4 8.3v3.3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></span>
-                <span class="opt-t"><span class="opt-k">Köprü ve tünel</span><span class="opt-v" id="extras-sum">Eklenmedi</span></span>
-                <svg class="chev" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-              </summary>
-              <div class="opt-body"><div class="extras" id="trip-extras" role="group" aria-label="Rotaya eklenecek köprü ve tüneller"></div></div>
-            </details>
+          <div class="m-head m-only" id="m-rota-head">
+            <h1 class="ov">Nereden nereye?</h1>
+            <button type="button" class="tarif-chip" id="m-countdown" hidden></button>
           </div>
-        </form>
-        <div id="trip-result" class="result" aria-live="polite"></div>
+          <form class="route" id="trip" autocomplete="off" novalidate>
+            <div class="search-head">
+              <button type="button" class="icon-btn" id="search-back" aria-label="Geri"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button>
+              <span id="search-title">Gişe seç</span>
+            </div>
+            <div class="route-fields" id="route-fields">
+              <span class="route-rail" aria-hidden="true"><i class="pin-a ov">A</i><i class="rail"></i><i class="pin-b ov">B</i></span>
+              <div class="combo" id="combo-giris">
+                <label class="field" for="trip-giris">
+                  <span class="f-l">Giriş gişesi</span>
+                  <span class="f-dot ov" aria-hidden="true">A</span>
+                  <input id="trip-giris" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
+                         aria-controls="trip-giris-list" placeholder="Ara ya da haritadan seç" spellcheck="false">
+                  <span class="f-road" id="giris-road"></span>
+                </label>
+                <ul class="combo-list" id="trip-giris-list" role="listbox" aria-label="Giriş gişeleri" hidden></ul>
+              </div>
+              <div class="combo" id="combo-cikis">
+                <label class="field" for="trip-cikis">
+                  <span class="f-l">Çıkış gişesi</span>
+                  <span class="f-dot ov is-b" aria-hidden="true">B</span>
+                  <input id="trip-cikis" type="text" role="combobox" aria-autocomplete="list" aria-expanded="false"
+                         aria-controls="trip-cikis-list" placeholder="Ara ya da haritadan seç" spellcheck="false">
+                  <span class="f-road" id="cikis-road"></span>
+                </label>
+                <ul class="combo-list" id="trip-cikis-list" role="listbox" aria-label="Çıkış gişeleri" hidden></ul>
+              </div>
+              <button type="button" class="icon-btn swap" id="trip-swap" aria-label="Giriş ve çıkışı değiştir">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16M7 4L4 7M7 4l3 3M17 20V4M17 20l-3-3M17 20l3-3"/></svg>
+              </button>
+            </div>
+
+            <div class="opt-chips" id="opt-chips" hidden>
+              <button type="button" class="veh-chip" id="veh-chip" aria-expanded="false" aria-controls="veh-block"></button>
+              <button type="button" class="x-chip" id="x-chip" aria-expanded="false" aria-controls="opt-extras"></button>
+            </div>
+
+            <div class="veh" id="veh-block">
+              <div class="veh-h"><span>Araç</span><span class="muted">Bu cihazda hatırlanır</span></div>
+              <div class="cls-grid" id="trip-classes" role="radiogroup" aria-label="Araç sınıfı"></div>
+              <p class="veh-desc" id="veh-desc"></p>
+            </div>
+
+            <details class="xbox" id="opt-extras" hidden>
+              <summary>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16h18M5 16V9M19 16V9M5 9c3 4 11 4 14 0"/></svg>
+                <span class="xb-t">Köprü ve tünel ekle</span>
+                <span class="xb-v" id="extras-sum">Eklenmedi</span>
+                <svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+              </summary>
+              <div class="extras" id="trip-extras" role="group" aria-label="Rotaya eklenecek köprü ve tüneller"></div>
+            </details>
+          </form>
+          <div id="trip-result" class="result" aria-live="polite"></div>
+          <div id="quick" class="quick"></div>
+        </div>
+        <div id="aylik" class="aylik" hidden></div>
         <nav class="official" aria-label="Resmî KGM hizmetleri">
           <a href="https://vatandas.kgm.gov.tr/Toll" target="_blank" rel="noopener noreferrer">KGM ücret sorgulama ↗</a>
-          <a href="https://webihlaltakip.kgm.gov.tr/WebIhlalSorgulama/Sayfalar/Sorgulama.aspx?lang=tr" target="_blank" rel="noopener noreferrer">İhlalli geçiş sorgula ve öde ↗</a>
+          <a href="https://webihlaltakip.kgm.gov.tr/WebIhlalSorgulama/Sayfalar/Sorgulama.aspx?lang=tr" target="_blank" rel="noopener noreferrer">İhlalli geçiş sorgula ↗</a>
         </nav>
+        <p class="osm-credit m-only">Harita © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> katkıcıları</p>
       </section>
 
       <section class="tab-panel" id="tab-kopru" role="tabpanel" aria-labelledby="tab-btn-kopru" hidden>
-        <div class="section-head">
-          <h2>Köprü ve tüneller</h2>
-          <span class="muted small" id="kopru-sinif"></span>
+        <div class="k-head">
+          <h2 class="ov">Kaça geçerim?</h2>
+          <button type="button" class="veh-chip" id="k-veh-chip" aria-expanded="false" aria-controls="k-classes"></button>
         </div>
+        <div class="cls-grid k-classes" id="k-classes" role="radiogroup" aria-label="Araç sınıfı" hidden></div>
         <ul class="crossings" id="crossings"></ul>
+        <p class="footnote" id="k-foot"></p>
       </section>
 
       <section class="tab-panel" id="tab-duyuru" role="tabpanel" aria-labelledby="tab-btn-duyuru" hidden>
+        <div class="m-head m-only"><h1 class="ov">Duyurular</h1><span class="m-st" id="m-status-2"></span></div>
+        <div id="cd-plate"></div>
         <div id="announcements"></div>
-        <div class="section-head" id="calendar-head"><h2>Takvim</h2></div>
-        <ul id="calendar" class="calendar"></ul>
-        <div class="section-head"><h2>Bayramda ücretsiz geçiş</h2></div>
-        <div id="free" class="free"></div>
-        <div class="section-head" id="events-head"><h2>Son kayıtlar</h2></div>
-        <ul id="events" class="events"></ul>
-        <details class="disclosure">
-          <summary>Kaynaklar <span class="muted" id="source-summary"></span></summary>
-          <ul id="sources" class="sources"></ul>
-        </details>
-        <details class="disclosure">
-          <summary>KGM tarife belgeleri <span class="muted" id="doc-count"></span></summary>
-          <ul id="documents" class="documents"></ul>
-        </details>
+        <section class="d-sec" id="calendar-sec" aria-labelledby="calendar-h">
+          <h2 id="calendar-h">Takvim</h2>
+          <ul id="calendar" class="calendar"></ul>
+        </section>
+        <section class="d-sec" aria-labelledby="free-h">
+          <h2 id="free-h">Resmî duyurular</h2>
+          <div id="free" class="free"></div>
+        </section>
+        <div class="folds">
+          <details class="fold" id="events-fold"><summary><span>Son kayıtlar</span><span class="fold-v" id="events-count"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul id="events" class="events"></ul></details>
+          <details class="fold"><summary><span>Kaynaklar</span><span class="fold-v" id="source-summary"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul id="sources" class="sources"></ul></details>
+          <details class="fold"><summary><span>KGM tarife belgeleri</span><span class="fold-v" id="doc-count"></span><svg class="chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></summary><ul id="documents" class="documents"></ul></details>
+        </div>
         <p class="footnote" id="footer"></p>
       </section>
     </aside>
+
+    <nav class="tabbar" id="tabbar" aria-label="Ana bölümler">
+      <button type="button" data-tab="rota" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h8a3 3 0 0 0 0-6H8a3 3 0 0 1 0-6h8"/></svg>Rota</button>
+      <button type="button" data-tab="kopru">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 16h18M5 16V9M19 16V9M5 9c3 4 11 4 14 0"/></svg>Köprüler</button>
+      <button type="button" data-tab="duyuru">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>Duyurular<span class="badge" id="duyuru-badge-m" hidden></span></button>
+    </nav>
   </div>
 
   <template id="error-tpl">

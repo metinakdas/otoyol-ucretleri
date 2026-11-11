@@ -32,8 +32,9 @@ GitHub Pages (panel), Telegram ve e-posta (bildirim). Yapay zekâ ya da ücretli
   Arama; Köprü-tünel / Gişe / Serbest geçiş katmanları; bölge (7 bölge), il, otoyol ve durum ("zammı yaklaşan",
   "ücretsiz geçiş") filtreleri vardır.
 - **Hesaplayıcı:** Giriş/çıkış gişesi ve sınıf; tarifeler arası geçişler, serbest geçişler ve isteğe bağlı
-  Avrasya Tüneli / Boğaz köprüleri toplama eklenir (Avrasya gece tarifesiyle). Resmî KGM ücret sorgulama ve
-  ihlalli geçiş sorgulama bağlantıları panelde.
+  Avrasya Tüneli / Boğaz köprüleri toplama eklenir (Avrasya gece tarifesiyle). Doğrudan / en ucuz rota,
+  gidiş-dönüş ve aylık maliyet, son rotalar (yalnızca bu cihazda), paylaşım kartı (PNG). Resmî KGM ücret
+  sorgulama ve ihlalli geçiş sorgulama bağlantıları panelde.
 - **Panel:** Köprü ve tünel ücretleri (sınıf seçerek; Avrasya Tüneli dahil), takvim (yılbaşı ücret dönemi,
   bayramlar), bayramda ücretsiz geçişler, kayıtlar; kaynakların durumu ve KGM belgeleri. Hepsi ücretsizdir,
   API anahtarı gerekmez.

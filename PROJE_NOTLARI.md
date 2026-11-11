@@ -137,14 +137,36 @@ grup), günlük ve haftalık e-posta özeti. Aynı bildirim iki kez gitmez (`dat
 
 ## 5. Panel ve harita
 
-- **Tasarım (Kasım 2026):** sade, modern arayüz; tema rengi **sedir yeşili** (açık: `#14735f`, koyu:
-  `#6fd4b4` / dolgu `#178066`), nötr tonlar hafif yeşile kaydırılmış. Tüm renkler `panel/style.css`
-  başındaki değişkenlerde (açık ve koyu tema). Harita işaretleri: gişe beyaz halka, köprü/tünel koyu kare,
-  serbest geçiş **mor** karo (`--m-sgs`; sedir rota çizgisiyle karışmasın diye yeşil değil). Yazı tipi Inter
-  (`panel/vendor/fonts/`, OFL; CSP gereği kendi sunucudan). Mobil uyumlu. İlke: gereksiz yazı yok.
-- **Yerleşim:** harita tam ekran; üstte arama, katman çipleri ve filtreler. Solda içeriği kadar uzayan panel
-  (Rota / Köprüler / Duyurular). Rota: giriş-çıkış gişesi, açılır **Araç** (varsayılan 1. sınıf, seçince
-  kapanır) ve açılır **Köprü ve tünel** satırları; kapalıyken seçim özet satırda görünür.
+- **Tasarım "Tabela dili" (Kasım 2026):** Türkiye otoyol tabelasının dili — koyu yeşil plaka (`--sign`
+  `#0d5546`), beyaz iç çerçeve, iri ve dar rakamlar. Tabela yeşili yalnızca **toplam plakası**, geri sayım
+  plakası ve otoyol kalkanında (O-4, O-7); arayüz vurgusu sedir (`--brand` `#14735f`, koyu `#178066`/`#6fd4b4`).
+  Serbest geçiş her yerde **mor karo** (`--free`), geçemez kırmızı, zam amber, ücretsiz yeşil. Yazı tipleri:
+  **Overpass** (rakam ve başlık) + **Inter** (arayüz); ikisi de `panel/vendor/fonts/` altında (OFL), CSP gereği
+  kendi sunucudan. Tüm renk/ölçü değişkenleri `panel/style.css` başında (açık ve koyu). Tasarım kaynağı:
+  "Otoyol Ücretleri — Tabela dili" tasarım dosyası (depoya girmez).
+- **Yerleşim — masaüstü:** üst çubukta logo plakası, "Yeni tarife dönemi 1 Ocak · N gün" hapı ve durum. Harita
+  tam ekran; üstte arama (`/` kısayolu), katman düğmeleri (koyu = açık) ve Filtreler (katmanlar, bölge, durum,
+  il, otoyol). Sağ altta lejant ve yakınlaştırma; ilk açılışta kapatılabilir ipucu balonu. Solda içeriği kadar
+  uzayan panel, bölümlü sekme (Rota / Köprüler / Duyurular).
+- **Yerleşim — telefon (≤ 900 px):** harita tam ekran, hesap alt sayfada (tutamakla büyür), altta sekme
+  çubuğu. Gişe seçimi tam ekran arama sayfası (bölge çipleri, son rotalar, otoyola göre gruplu liste). Rota
+  çizilince haritada geri ve katmanlar düğmesi; alt sayfada "A → B" başlığı ve araç çipi.
+- **Rota sekmesi:** boşken A/B alanları, 6'lı araç seçimi (bu cihazda hatırlanır), "Köprü ve tünel ekle" ve
+  **Hızlı başla** (doğrulanmış örnekler) ya da **Son rotalar** (localStorage `radar.rotalar`). Sonuçta alanlar
+  tek kutuda özetlenir; araç ve köprü/tünel çiplere iner; **Doğrudan / En ucuz** bölümlü seçici (aktarma
+  sayısıyla); **toplam plakası** (fark: "152,50 ₺ daha ucuz · +1 aktarma · +1 serbest geçiş"); **güzergâh
+  şeridi** (A, otoyol kalkanlı bölümler, mor serbest geçiş satırı, "Aktarma", B); eklenen geçişler; eylemler
+  Ters yön / **Aylık** / Bağlantı / **Kart** (tarayıcıda PNG paylaşım kartı); Diğer sınıflar, Tarife belgeleri.
+  Seçili sınıf eklenen bir geçişi kullanamıyorsa (Avrasya 3–5) engelleyici uyarı + kesik çizgili boş plaka.
+- **Gidiş-dönüş ve aylık maliyet:** iki yön ayrı hesaplanır (ters yön tarifesiyle); Boğaz köprüleri dönüşte
+  0 ₺; haftada 1–7 gün seçimi (`radar.gun`); aylık = haftalık × 52 ÷ 12; "Rotalarıma kaydet" yalnızca cihazda.
+- **Köprüler sekmesi:** "Kaça geçerim?" + sınıf çipi; her geçiş en pahalıya göre ölçeklenmiş çubukla; açılınca
+  sınıf tablosu (Avrasya: Gündüz · şu an / Gece, 3–5 "Geçemez"), Rotaya ekle / Haritada göster / Tarife.
+- **Duyurular sekmesi:** yılbaşı geri sayım plakası, tarih kutucuklu takvim (bayramlar, karar durumu), resmî
+  duyurular (yoksa boş durum), katlanır Son kayıtlar / Kaynaklar / KGM tarife belgeleri.
+- **Harita yoğunluğu:** yakınlık ≤ 9 gişeler ızgara kümesi (sayılı hap); rota varken 10–11'de yalnızca rotadaki
+  otoyolların gişeleri, diğerleri soluk; ≥ 12 hepsi. Rota: 6 px sedir + beyaz kenar; serbest geçişli bağlantı mor
+  kesik; diğer seçenek soluk noktalı ve tıklanabilir etiketli ("Doğrudan · 415,00 ₺"). Giriş/çıkış A/B işaretli.
 - **Ücret hesabı (`panel/hesap.js`):** giriş/çıkış gişesi (aranabilir liste; çıkış listesi her gişenin
   ücretini gösterir), 1–6. sınıf, sonuç "geçiş fişi"; güzergâh haritada çizilir (tablo sırası yol boyunca,
   kola sapan gişeler çizgiden atlanır). Haritadaki gişenin açılır penceresinden Giriş/Çıkış seçilebilir.
