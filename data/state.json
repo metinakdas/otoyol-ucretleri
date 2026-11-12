@@ -1198,5 +1198,27 @@
       },
       "yon_farkli": false
     }
+  },
+  "_saat_dilimi": {
+    "bildirimler": [
+      {
+        "key": "saatdilimi:kurulum",
+        "kind": "kurulum",
+        "at": "2026-11-12T21:56:25+03:00",
+        "iana": "2026f",
+        "subject": "[Saat dilimi] İzleme başladı",
+        "lines": [
+          "[SAAT DİLİMİ İZLEME BAŞLADI] IANA tzdata 2026f",
+          "418 bölge, 247 ülke izleniyor.",
+          "Bir ülkenin saat farkı ya da yaz saati değişince bildirim gelir.",
+          "Türkiye: UTC+03:00, yaz saati yok."
+        ],
+        "channels": [
+          "telegram"
+        ]
+      }
+    ],
+    "tzdata": "2026.6",
+    "iana": "2026f"
   }
 }
