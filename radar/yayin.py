@@ -30,10 +30,12 @@ from .guvenlik import SECRET_PATTERNS, redact
 
 SECRET_KEYS = (
     "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_TECH_CHAT_ID",
+    "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_TO", "WHATSAPP_TEMPLATE", "WHATSAPP_TEMPLATE_LANG",
     "SMTP_HOST", "SMTP_PORT", "SMTP_SSL", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO",
 )
 # Depoda aranacak değerler (bunlar asla dosyalarda geçmemeli)
 SCAN_KEYS = ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_TECH_CHAT_ID",
+             "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_TO",
              "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO")
 # İş akışı dosyaları ve güncel sürümde bulunması gereken ifade
 WORKFLOWS = {
@@ -82,7 +84,8 @@ def read_env(path: Path) -> dict[str, str]:
 def channel_ready(env: dict[str, str]) -> bool:
     telegram = env.get("TELEGRAM_BOT_TOKEN") and env.get("TELEGRAM_CHAT_ID")
     email = env.get("SMTP_HOST") and env.get("EMAIL_TO")
-    return bool(telegram or email)
+    whatsapp = env.get("WHATSAPP_TOKEN") and env.get("WHATSAPP_PHONE_NUMBER_ID") and env.get("WHATSAPP_TO")
+    return bool(telegram or email or whatsapp)
 
 
 def scan_terms(env: dict[str, str], extra: dict[str, str] | None = None) -> dict[str, str]:

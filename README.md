@@ -4,7 +4,7 @@ Köprü, tünel ve otoyol geçiş ücretleri değişmeden ya da bayramlarda geç
 haber verir. Amaç bilgi sahibi olmak: onay adımı yoktur, radar bulduğunu doğrudan bildirir ve panele yazar.
 
 Tamamen ücretsiz kaynaklarla çalışır: GitHub Actions (zamanlayıcı), Git deposu (veritabanı),
-GitHub Pages (panel), Telegram ve e-posta (bildirim). Yapay zekâ ya da ücretli API kullanılmaz.
+GitHub Pages (panel), Telegram, WhatsApp (isteğe bağlı) ve e-posta (bildirim). Yapay zekâ ya da ücretli API kullanılmaz.
 
 ## Ne yapar
 
@@ -145,7 +145,43 @@ Sanal ortamı etkinleştirmeden de çalıştırabilirsiniz: `.venv\Scripts\pytho
 4. Kaynak hataları için ayrı bir teknik grup isterseniz aynı yolla `TELEGRAM_TECH_CHAT_ID` alın.
    Boş bırakırsanız bu uyarılar da ana gruba gider.
 
-Telegram Bot API ücretsizdir. WhatsApp Business API mesaj başına ücretli olduğu için kullanılmıyor.
+Telegram Bot API ücretsizdir.
+
+## WhatsApp kurulumu (isteğe bağlı)
+
+Telegram'a giden ana bildirimlerin (karar, hatırlatma, yürürlük, iptal, izleme) bir kopyası WhatsApp'a da gider.
+Teknik uyarılar ve e-posta özetleri gitmez. Meta'nın **WhatsApp Cloud API test numarası** kullanılır:
+ücretsizdir, ödeme yöntemi istemez, en fazla **5 doğrulanmış numaraya** mesaj atar.
+
+1. **Uygulama:** [developers.facebook.com](https://developers.facebook.com/apps) → *Create app* → kullanım
+   türü olarak WhatsApp'ı seçin. Meta bir test işletme hesabı ve test numarası oluşturur.
+2. **Alıcılar:** *WhatsApp → API Setup* sayfasında *To* alanına kendi numaranızı ve arkadaşlarınızınkileri
+   ekleyin (en fazla 5). Her numaraya WhatsApp'tan bir kod gelir; kodu girince numara doğrulanır.
+   Numaralar ülke koduyla, `+` olmadan virgülle `WHATSAPP_TO`'ya yazılır: `905551112233,905554445566`.
+3. **Phone number ID:** Aynı sayfadaki *Phone number ID* değeri `WHATSAPP_PHONE_NUMBER_ID` olur
+   (test numarasının kendisi değil).
+4. **Kalıcı anahtar:** Sayfadaki geçici anahtar 24 saatte biter. [business.facebook.com](https://business.facebook.com)
+   → *Business settings → Users → System users* → *Add* (Admin) → *Assign assets* ile uygulamayı ve WhatsApp
+   hesabını verin → *Generate token*: süre *Never*, izinler `whatsapp_business_messaging` ve
+   `whatsapp_business_management`. Bu anahtar `WHATSAPP_TOKEN` olur.
+5. **Şablon:** WhatsApp, alıcı önce yazmadıysa yalnızca onaylı şablonla mesaj gönderir. *WhatsApp Manager →
+   Message templates → Create*: kategori **Utility**, ad `radar_bildirim`, dil **Turkish**, gövde:
+
+   ```
+   Tarife Radarı bildirimi:
+   {{1}}
+   Ayrıntılar panelde.
+   ```
+
+   Örnek değer olarak `[KARAR ÇIKTI] Köprü ve otoyol ücretleri 1 Ocak'ta değişiyor` yazın. Meta, değişkenle
+   başlayan ya da biten gövdeleri reddeder; bu yüzden değişkenin önünde ve arkasında sabit metin var.
+   Mesajın tamamı `{{1}}` yerine tek satır olarak gelir (satırlar " · " ile birleşir, 900 karakterde kesilir).
+6. `.env`'ye dört değeri yazın. Şablon onaylanmadan denemek için `WHATSAPP_TEMPLATE=hello_world` yazabilirsiniz
+   (Meta'nın hazır İngilizce şablonu; mesaj metni gitmez). Sonra `python -m radar test-bildirim` ile deneyin
+   ve GitHub'a `python -m radar yayinla --yalnizca-ayarlar` ile gönderin.
+
+Test numarasının adı "Test Number" görünür; arkadaşlarınız numarayı rehbere kaydederse mesajlar düzenli gelir.
+Gerçek bir işletme numarasına geçildiğinde Meta şablon mesajlarını ülkeye göre ücretlendirir.
 
 ## E-posta kurulumu
 
@@ -319,6 +355,8 @@ işaretleyin.
 | Bir kaynak 24 saatten uzun okunamadığında | Teknik grup | `[KAYNAK HATASI]` |
 | Her sabah 08:00'den sonra (anlatacak bir şey varsa) | E-posta | Günlük özet |
 | Pazartesi | E-posta | Haftalık özet |
+
+WhatsApp ayarlıysa "Telegram" yazan ana bildirimlerin kopyası WhatsApp'a da gider (teknik grup hariç).
 
 Aynı bildirim iki kez gönderilmez (`data/notifications.json`). Gönderilemeyen bildirim bir sonraki turda
 yeniden denenir. Okunan bilgide belirsizlik varsa mesaja ve panele etiket eklenir (ör. "Kapsamı kontrol et":

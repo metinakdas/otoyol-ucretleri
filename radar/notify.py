@@ -1,4 +1,4 @@
-"""Hangi bildirimin ne zaman gideceğine karar verir ve Telegram/e-posta ile gönderir.
+"""Hangi bildirimin ne zaman gideceğine karar verir ve Telegram/WhatsApp/e-posta ile gönderir.
 
 Her bildirimin bir anahtarı vardır (ör. "<kayıt>:karar"). Gönderilen anahtarlar
 data/notifications.json'da tutulur; aynı bildirim iki kez gitmez.
@@ -7,6 +7,7 @@ data/notifications.json'da tutulur; aynı bildirim iki kez gitmez.
 from __future__ import annotations
 
 import logging
+import re
 import smtplib
 import ssl
 from dataclasses import dataclass, field
@@ -25,6 +26,8 @@ from .timeutil import fmt_date, from_iso, hours_since, to_iso
 log = logging.getLogger(__name__)
 
 TELEGRAM_LIMIT = 4000
+META_PARAM_LIMIT = 900   # şablon gövdesi en fazla 1024 karakter (şablonun kendi metniyle birlikte)
+META_API = "https://graph.facebook.com/v23.0"
 
 
 @dataclass
@@ -209,6 +212,46 @@ def send_telegram(cfg: Config, chat_id: str, text: str, client: httpx.Client | N
             client.close()
 
 
+def _cut(text: str, limit: int) -> str:
+    return text if len(text) <= limit else text[: limit - 1].rstrip() + "…"
+
+
+def one_line(text: str) -> str:
+    """Meta şablon değişkeni satır sonu, sekme ve 4'ten fazla art arda boşluk kabul etmez."""
+    parts = [re.sub(r"\s+", " ", line).strip() for line in str(text).splitlines()]
+    return " · ".join(p for p in parts if p)
+
+
+def send_whatsapp(cfg: Config, text: str, client: httpx.Client | None = None, to: list[str] | None = None) -> None:
+    """Düz metni Meta WhatsApp Cloud API ile, onaylı şablonun {{1}} değişkeni olarak her alıcıya gönderir.
+
+    Radarın mesajları kendiliğinden gittiği için (alıcı önce yazmadığı için) WhatsApp şablon şartı koyar.
+    """
+    s = cfg.settings
+    if not s.whatsapp_ready:
+        raise RuntimeError("WhatsApp ayarlı değil")
+    own = client is None
+    client = client or httpx.Client(timeout=30)
+    try:
+        template = {"name": s.wa_template, "language": {"code": s.wa_template_lang}}
+        if s.wa_template != "hello_world":  # Meta'nın hazır deneme şablonu değişken almaz
+            template["components"] = [{"type": "body", "parameters": [
+                {"type": "text", "text": _cut(one_line(text), META_PARAM_LIMIT)}]}]
+        else:
+            template["language"] = {"code": "en_US"}
+        for number in s.wa_to if to is None else to:
+            resp = client.post(f"{META_API}/{s.wa_phone_id}/messages",
+                               headers={"Authorization": f"Bearer {s.wa_token}"},
+                               json={"messaging_product": "whatsapp", "to": number, "type": "template", "template": template})
+            if resp.status_code != 200:
+                raise RuntimeError(f"WhatsApp {resp.status_code}: {redact(resp.text[:300], s)}")
+    except httpx.HTTPError as exc:  # hata metni adresi (dolayısıyla anahtarı) içerebilir
+        raise RuntimeError(f"WhatsApp'a bağlanılamadı: {redact(exc, s)}") from None
+    finally:
+        if own:
+            client.close()
+
+
 def send_email(cfg: Config, subject: str, plain: str, html_body: str | None = None) -> None:
     s = cfg.settings
     m = EmailMessage()
@@ -250,6 +293,20 @@ def deliver(
                 log_lines.append(f"[gönderilmedi, deneme] {m.subject}\n{m.plain}")
             continue
         ok = True
+        # WhatsApp, Telegram'a giden ana bildirimlerin kopyasını alır (teknik uyarılar ve özetler hariç).
+        # Her alıcı ayrı işaretlenir (sıra numarasıyla; numara herkese açık data/ klasörüne yazılmaz).
+        # WhatsApp hatası bildirimi "gönderilemedi" saymaz: yoksa Telegram her turda yinelenirdi.
+        if "telegram" in m.channels and s.whatsapp_ready:
+            for n, number in enumerate(s.wa_to, 1):
+                wkey = f"{m.key}#wa{n}"
+                if wkey in sent:
+                    continue
+                try:
+                    send_whatsapp(cfg, m.plain or m.subject, client, to=[number])
+                    sent[wkey] = to_iso(now)
+                    log_lines.append(f"WhatsApp'a gönderildi ({n}. alıcı): {m.subject}")
+                except Exception as exc:
+                    log_lines.append(f"WhatsApp'a gönderilemedi ({n}. alıcı): {m.subject}: {redact(exc, s)}")
         for ch in m.channels:
             try:
                 if ch in ("telegram", "tech"):

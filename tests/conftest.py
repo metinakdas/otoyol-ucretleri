@@ -72,6 +72,9 @@ def cfg(tmp_path):
     s.telegram_token = "TEST"
     s.telegram_chat_id = "-100"
     s.telegram_tech_chat_id = "-200"
+    # Gerçek .env'deki WhatsApp ayarları testlerde kullanılmaz
+    s.wa_token = s.wa_phone_id = ""
+    s.wa_to = []
     s.smtp_host = ""
     s.email_to = []
     s.request_delay = 0

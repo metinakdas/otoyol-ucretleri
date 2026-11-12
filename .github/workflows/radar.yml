@@ -30,8 +30,12 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           EMAIL_TO: ${{ secrets.EMAIL_TO }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
         run: |
-          if { [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; } || { [ -n "$SMTP_HOST" ] && [ -n "$EMAIL_TO" ]; }; then
+          if { [ -n "$TELEGRAM_BOT_TOKEN" ] && [ -n "$TELEGRAM_CHAT_ID" ]; } || { [ -n "$SMTP_HOST" ] && [ -n "$EMAIL_TO" ]; } \
+             || { [ -n "$WHATSAPP_TOKEN" ] && [ -n "$WHATSAPP_PHONE_NUMBER_ID" ] && [ -n "$WHATSAPP_TO" ]; }; then
             echo "hazir=true" >> "$GITHUB_OUTPUT"
           else
             echo "::warning::Bildirim kanalı tanımlı değil (Settings > Secrets and variables > Actions). Radar ayarlar girilene kadar çalışmaz."
@@ -57,6 +61,11 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_TECH_CHAT_ID: ${{ secrets.TELEGRAM_TECH_CHAT_ID }}
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_TO: ${{ secrets.WHATSAPP_TO }}
+          WHATSAPP_TEMPLATE: ${{ secrets.WHATSAPP_TEMPLATE }}
+          WHATSAPP_TEMPLATE_LANG: ${{ secrets.WHATSAPP_TEMPLATE_LANG }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
           SMTP_PORT: ${{ secrets.SMTP_PORT }}
           SMTP_SSL: ${{ secrets.SMTP_SSL }}

@@ -130,7 +130,7 @@ def cmd_kaynak_testi(args, cfg) -> int:
 
 def cmd_test_bildirim(args, cfg) -> int:
     from .guvenlik import redact
-    from .notify import send_email, send_telegram
+    from .notify import send_email, send_telegram, send_whatsapp
 
     s = cfg.settings
     text = "<b>[TEST] Tarife Radarı</b>\nBu bir deneme mesajıdır. Bildirim ayarları çalışıyor."
@@ -147,6 +147,15 @@ def cmd_test_bildirim(args, cfg) -> int:
             print(f"Telegram: HATA {redact(exc, s)}")
     else:
         print("Telegram: TELEGRAM_BOT_TOKEN ve TELEGRAM_CHAT_ID tanımlı değil (.env).")
+    if s.whatsapp_ready:
+        try:
+            send_whatsapp(cfg, "[TEST] Tarife Radarı\nBu bir deneme mesajıdır. WhatsApp ayarları çalışıyor.")
+            print(f"WhatsApp: gönderildi ({len(s.wa_to)} alıcı, şablon {s.wa_template}).")
+        except Exception as exc:
+            ok = False
+            print(f"WhatsApp: HATA {redact(exc, s)}")
+    else:
+        print("WhatsApp: WHATSAPP_TOKEN, WHATSAPP_PHONE_NUMBER_ID ve WHATSAPP_TO tanımlı değil (.env). İsteğe bağlı.")
     if s.email_ready:
         try:
             send_email(cfg, "[Tarife Radarı] Test", "Bu bir deneme mesajıdır. E-posta ayarları çalışıyor.")
@@ -281,7 +290,7 @@ def build_parser() -> argparse.ArgumentParser:
     k.add_argument("--hizli", action="store_true", help="PDF'leri indirme")
     k.set_defaults(func=cmd_kaynak_testi)
 
-    t = sub.add_parser("test-bildirim", help="Telegram ve e-postaya deneme mesajı gönderir")
+    t = sub.add_parser("test-bildirim", help="Telegram, WhatsApp ve e-postaya deneme mesajı gönderir")
     t.set_defaults(func=cmd_test_bildirim)
 
     pn = sub.add_parser("panel", help="Paneli yerelde açar")

@@ -34,8 +34,11 @@ olmayacak, amacımız bilgimizin olması"). Taksimetre güncellemesini insan yap
 3. **Tüm süreç ücretsiz olmalı:** ücretli API, sunucu ya da yapay zekâ servisi kullanılmaz.
 4. **TollGuru API değerlendirildi, reddedildi:** Türkiye/TL desteği yok, yalnızca güzergâh ücreti hesaplar,
    gelecekteki değişiklikleri ve ücretsiz dönemleri bilmez, deneme sürümü sınırlı.
-5. **WhatsApp kullanılmıyor:** WhatsApp Cloud API, 24 saatlik pencere dışındaki bildirim şablonları için
-   mesaj başına ücretli. Telegram Bot API ücretsiz.
+5. **WhatsApp yalnızca test numarasıyla:** WhatsApp Cloud API'nin gerçek işletme numarasında şablon mesajları
+   ücretli. Kasım 2026'da Meta'nın ücretsiz test numarası eklendi (en fazla 5 doğrulanmış alıcı: sahibi ve
+   arkadaşları). Telegram'a giden ana bildirimlerin kopyası tek değişkenli `radar_bildirim` şablonuyla gider;
+   her alıcı `<anahtar>#wa1`, `#wa2`… ile ayrı işaretlenir (numara data/ klasörüne yazılmaz). WhatsApp hatası
+   bildirimi "gönderilemedi" saymaz; Telegram yinelenmez, hata günlüğe yazılır.
 6. Arayüz istendi → web paneli. Sonra panele **ücretsiz harita**, isimli işaretler, arama, filtre ve
    **bölgelere ayırma** eklendi.
 7. Son olarak **GitHub'da herkese açık depo** olarak yayınlama istendi; güvenlik en üst düzeyde olmalı:

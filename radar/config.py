@@ -72,6 +72,12 @@ class Settings:
     telegram_token: str = ""
     telegram_chat_id: str = ""
     telegram_tech_chat_id: str = ""
+    # WhatsApp: Meta Cloud API (test numarası ücretsiz, en fazla 5 doğrulanmış alıcı)
+    wa_token: str = ""
+    wa_phone_id: str = ""
+    wa_to: list[str] = field(default_factory=list)
+    wa_template: str = "radar_bildirim"
+    wa_template_lang: str = "tr"
     smtp_host: str = ""
     smtp_port: int = 587
     smtp_ssl: bool = False
@@ -84,6 +90,10 @@ class Settings:
     @property
     def telegram_ready(self) -> bool:
         return bool(self.telegram_token and self.telegram_chat_id)
+
+    @property
+    def whatsapp_ready(self) -> bool:
+        return bool(self.wa_token and self.wa_phone_id and self.wa_to)
 
     @property
     def email_ready(self) -> bool:
@@ -252,6 +262,11 @@ def load_config(root: Path | None = None, data_dir: Path | None = None) -> Confi
         telegram_token=os.environ.get("TELEGRAM_BOT_TOKEN", "").strip(),
         telegram_chat_id=os.environ.get("TELEGRAM_CHAT_ID", "").strip(),
         telegram_tech_chat_id=os.environ.get("TELEGRAM_TECH_CHAT_ID", "").strip(),
+        wa_token=os.environ.get("WHATSAPP_TOKEN", "").strip(),
+        wa_phone_id=os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "").strip(),
+        wa_to=[x.strip().lstrip("+") for x in os.environ.get("WHATSAPP_TO", "").split(",") if x.strip()],
+        wa_template=os.environ.get("WHATSAPP_TEMPLATE", "").strip() or "radar_bildirim",
+        wa_template_lang=os.environ.get("WHATSAPP_TEMPLATE_LANG", "").strip() or "tr",
         smtp_host=os.environ.get("SMTP_HOST", "").strip(),
         smtp_port=int(os.environ.get("SMTP_PORT", "587") or 587),
         smtp_ssl=_bool_env("SMTP_SSL"),

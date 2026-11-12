@@ -17,12 +17,14 @@ MASK = "***"
 # .env içinde gizli tutulan değerler (bildirim ayarları)
 SECRET_ENV_KEYS = (
     "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_TECH_CHAT_ID",
+    "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_TO",
     "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO",
 )
 
 # Depoya hiçbir zaman girmemesi gereken anahtar biçimleri
 SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("Telegram bot anahtarı", re.compile(r"\b\d{6,12}:[A-Za-z0-9_-]{30,}\b")),
+    ("Meta (WhatsApp) erişim anahtarı", re.compile(r"\bEAA[A-Za-z0-9]{60,}\b")),
     ("GitHub anahtarı", re.compile(r"\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{40,})\b")),
     ("Özel anahtar", re.compile(r"-----BEGIN (?:RSA |EC |OPENSSH |DSA |PGP )?PRIVATE KEY")),
     ("AWS erişim anahtarı", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
@@ -50,7 +52,8 @@ def secret_values(settings=None) -> list[str]:
     values: list[str] = []
     if settings is not None:
         values += [settings.telegram_token, settings.telegram_chat_id, settings.telegram_tech_chat_id,
-                   settings.smtp_password, settings.smtp_user, settings.smtp_from, *settings.email_to]
+                   settings.smtp_password, settings.smtp_user, settings.smtp_from, *settings.email_to,
+                   settings.wa_token, settings.wa_phone_id, *settings.wa_to]
     values += [os.environ.get(k, "") for k in SECRET_ENV_KEYS]
     out = set()
     for v in values:
