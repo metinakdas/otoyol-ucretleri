@@ -27,7 +27,7 @@ log = logging.getLogger(__name__)
 
 TELEGRAM_LIMIT = 4000
 META_PARAM_LIMIT = 900   # şablon gövdesi en fazla 1024 karakter (şablonun kendi metniyle birlikte)
-META_API = "https://graph.facebook.com/v23.0"
+META_API = "https://graph.facebook.com/v25.0"
 
 
 @dataclass
@@ -233,12 +233,9 @@ def send_whatsapp(cfg: Config, text: str, client: httpx.Client | None = None, to
     own = client is None
     client = client or httpx.Client(timeout=30)
     try:
-        template = {"name": s.wa_template, "language": {"code": s.wa_template_lang}}
-        if s.wa_template != "hello_world":  # Meta'nın hazır deneme şablonu değişken almaz
-            template["components"] = [{"type": "body", "parameters": [
-                {"type": "text", "text": _cut(one_line(text), META_PARAM_LIMIT)}]}]
-        else:
-            template["language"] = {"code": "en_US"}
+        template = {"name": s.wa_template, "language": {"code": s.wa_template_lang},
+                    "components": [{"type": "body", "parameters": [
+                        {"type": "text", "text": _cut(one_line(text), META_PARAM_LIMIT)}]}]}
         for number in s.wa_to if to is None else to:
             resp = client.post(f"{META_API}/{s.wa_phone_id}/messages",
                                headers={"Authorization": f"Bearer {s.wa_token}"},

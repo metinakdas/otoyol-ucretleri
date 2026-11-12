@@ -176,9 +176,10 @@ Teknik uyarılar ve e-posta özetleri gitmez. Meta'nın **WhatsApp Cloud API tes
    Örnek değer olarak `[KARAR ÇIKTI] Köprü ve otoyol ücretleri 1 Ocak'ta değişiyor` yazın. Meta, değişkenle
    başlayan ya da biten gövdeleri reddeder; bu yüzden değişkenin önünde ve arkasında sabit metin var.
    Mesajın tamamı `{{1}}` yerine tek satır olarak gelir (satırlar " · " ile birleşir, 900 karakterde kesilir).
-6. `.env`'ye dört değeri yazın. Şablon onaylanmadan denemek için `WHATSAPP_TEMPLATE=hello_world` yazabilirsiniz
-   (Meta'nın hazır İngilizce şablonu; mesaj metni gitmez). Sonra `python -m radar test-bildirim` ile deneyin
-   ve GitHub'a `python -m radar yayinla --yalnizca-ayarlar` ile gönderin.
+6. `.env`'ye üç değeri yazın (şablon adı varsayılan olarak `radar_bildirim`). Numaraları önceden denemek için
+   *API Setup → Step 1* sayfasındaki **Send message** kullanılabilir (Meta'nın örnek şablonu gider).
+   Şablon onaylanınca `python -m radar test-bildirim` ile deneyin ve GitHub'a
+   `python -m radar yayinla --yalnizca-ayarlar` ile gönderin.
 
 Test numarasının adı "Test Number" görünür; arkadaşlarınız numarayı rehbere kaydederse mesajlar düzenli gelir.
 Gerçek bir işletme numarasına geçildiğinde Meta şablon mesajlarını ülkeye göre ücretlendirir.

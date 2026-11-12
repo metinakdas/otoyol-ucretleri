@@ -104,7 +104,7 @@ def test_one_recipient_failing_does_not_spam_others(meta):
 def test_template_single_line(meta):
     net = Net()
     send_whatsapp(meta, msg().plain, net.client)
-    assert [r.url.path for r in net.reqs] == ["/v23.0/1234567890/messages"] * 2
+    assert [r.url.path for r in net.reqs] == ["/v25.0/1234567890/messages"] * 2
     body = json.loads(net.reqs[0].content)
     assert body["messaging_product"] == "whatsapp" and body["type"] == "template"
     assert body["template"]["name"] == "radar_bildirim" and body["template"]["language"] == {"code": "tr"}
@@ -118,14 +118,6 @@ def test_long_text_cut(meta):
     send_whatsapp(meta, "a " * 2000, net.client)
     text = json.loads(net.reqs[0].content)["template"]["components"][0]["parameters"][0]["text"]
     assert len(text) <= 900 and text.endswith("…")
-
-
-def test_hello_world(meta):
-    meta.settings.wa_template = "hello_world"
-    net = Net()
-    send_whatsapp(meta, "x", net.client)
-    t = json.loads(net.reqs[0].content)["template"]
-    assert t == {"name": "hello_world", "language": {"code": "en_US"}}
 
 
 def test_error_is_masked(meta):
