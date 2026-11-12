@@ -36,7 +36,7 @@ olmayacak, amacımız bilgimizin olması"). Taksimetre güncellemesini insan yap
    gelecekteki değişiklikleri ve ücretsiz dönemleri bilmez, deneme sürümü sınırlı.
 5. **WhatsApp yalnızca test numarasıyla:** WhatsApp Cloud API'nin gerçek işletme numarasında şablon mesajları
    ücretli. Kasım 2026'da Meta'nın ücretsiz test numarası eklendi (en fazla 5 doğrulanmış alıcı: sahibi ve
-   arkadaşları). Telegram'a giden ana bildirimlerin kopyası tek değişkenli `radar_bildirim` şablonuyla gider;
+   arkadaşları). Telegram'a giden ana bildirimlerin kopyası tek değişkenli `otoyol_bildirim` şablonuyla gider;
    her alıcı `<anahtar>#wa1`, `#wa2`… ile ayrı işaretlenir (numara data/ klasörüne yazılmaz). WhatsApp hatası
    bildirimi "gönderilemedi" saymaz; Telegram yinelenmez, hata günlüğe yazılır.
 6. Arayüz istendi → web paneli. Sonra panele **ücretsiz harita**, isimli işaretler, arama, filtre ve

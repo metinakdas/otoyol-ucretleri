@@ -76,7 +76,7 @@ class Settings:
     wa_token: str = ""
     wa_phone_id: str = ""
     wa_to: list[str] = field(default_factory=list)
-    wa_template: str = "radar_bildirim"
+    wa_template: str = "otoyol_bildirim"
     wa_template_lang: str = "tr"
     smtp_host: str = ""
     smtp_port: int = 587
@@ -265,7 +265,7 @@ def load_config(root: Path | None = None, data_dir: Path | None = None) -> Confi
         wa_token=os.environ.get("WHATSAPP_TOKEN", "").strip(),
         wa_phone_id=os.environ.get("WHATSAPP_PHONE_NUMBER_ID", "").strip(),
         wa_to=[x.strip().lstrip("+") for x in os.environ.get("WHATSAPP_TO", "").split(",") if x.strip()],
-        wa_template=os.environ.get("WHATSAPP_TEMPLATE", "").strip() or "radar_bildirim",
+        wa_template=os.environ.get("WHATSAPP_TEMPLATE", "").strip() or "otoyol_bildirim",
         wa_template_lang=os.environ.get("WHATSAPP_TEMPLATE_LANG", "").strip() or "tr",
         smtp_host=os.environ.get("SMTP_HOST", "").strip(),
         smtp_port=int(os.environ.get("SMTP_PORT", "587") or 587),

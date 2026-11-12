@@ -42,7 +42,7 @@ class Net:
 def meta(cfg):
     s = cfg.settings
     s.wa_token, s.wa_phone_id, s.wa_to = TOKEN, "1234567890", ["905551112233", "905554445566"]
-    s.wa_template, s.wa_template_lang = "radar_bildirim", "tr"
+    s.wa_template, s.wa_template_lang = "otoyol_bildirim", "tr"
     return cfg
 
 
@@ -107,7 +107,7 @@ def test_template_single_line(meta):
     assert [r.url.path for r in net.reqs] == ["/v25.0/1234567890/messages"] * 2
     body = json.loads(net.reqs[0].content)
     assert body["messaging_product"] == "whatsapp" and body["type"] == "template"
-    assert body["template"]["name"] == "radar_bildirim" and body["template"]["language"] == {"code": "tr"}
+    assert body["template"]["name"] == "otoyol_bildirim" and body["template"]["language"] == {"code": "tr"}
     text = body["template"]["components"][0]["parameters"][0]["text"]
     assert text == "[KARAR ÇIKTI] Köprü · Yürürlük: 1 Ocak https://ornek"
     assert net.reqs[0].headers["authorization"] == f"Bearer {TOKEN}"
