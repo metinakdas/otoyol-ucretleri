@@ -4,7 +4,7 @@
       "15-temmuz-sehitler-ve-fatih-sultan-mehmet-kopruleri-gecis-ucretleri-ta": {
         "title": "1- 15 Temmuz Şehitler ve Fatih Sultan Mehmet Köprüleri Geçiş Ücretleri Tarifesi",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/1-15Temmuz-FSM.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [
           "15-temmuz-sehitler",
           "fatih-sultan-mehmet"
@@ -34,7 +34,7 @@
       "osmangazi-koprusu-gecis-ucretleri-tarifesi": {
         "title": "2- Osmangazi Köprüsü Geçiş Ücretleri Tarifesi",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/2-Osmangazi.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [
           "osmangazi"
         ],
@@ -63,7 +63,7 @@
       "yavuz-sultan-selim-koprusu-gecis-ucretleri-tarifesi": {
         "title": "3- Yavuz Sultan Selim Köprüsü Geçiş Ücretleri Tarifesi",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/3-YSSKoprusu.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [
           "yavuz-sultan-selim"
         ],
@@ -92,7 +92,7 @@
       "canakkale-koprusu-gecis-ucretleri-tarifesi": {
         "title": "4- 1915 Çanakkale Köprüsü Geçiş Ücretleri Tarifesi",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/4-1915Canakkale.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [
           "1915-canakkale"
         ],
@@ -121,7 +121,7 @@
       "kgm-anadolu-otoyolu-camlica-istasyonu-akinci-kesimi-gecis-ucretleri": {
         "title": "5- KGM Anadolu Otoyolu (Çamlıca İstasyonu - Akıncı Kesimi ) Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/5-AnadoluOtoyoluCamlica-Akinci.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{95ED7E9D-A97C-4B5B-AD0F-A098566F5DEC},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:06 GMT",
@@ -148,7 +148,7 @@
       "kgm-izmir-cesme-otoyolu-gecis-ucretleri": {
         "title": "6- KGM İzmir - Çeşme Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/6-Izmir-Cesme.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{EF3D2E68-509A-427F-820D-F82186BEEEE1},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:06 GMT",
@@ -175,7 +175,7 @@
       "kgm-izmir-aydin-otoyolu-isikkent-aydin-bati-kesimi-gecis-ucretleri": {
         "title": "7- KGM İzmir - Aydın Otoyolu (Işıkkent - Aydın Batı Kesimi ) Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/7-Izmir-Aydin.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{FC736C3E-6B6B-4A11-8CE9-D878854DEC2E},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:06 GMT",
@@ -202,7 +202,7 @@
       "kgm-cukurova-otoyollari-adana-dogu-gaziantep-bati-kesimi-gecis-ucretle": {
         "title": "8- KGM Çukurova Otoyolları (Adana Doğu - Gaziantep Batı kesimi)Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/8-CukurovaOtoyoluAdana-Gaziantep.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{B04A0D58-951F-4D7D-AC53-990A1BF71661},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:07 GMT",
@@ -229,7 +229,7 @@
       "kgm-cukurova-otoyollari-gaziantep-dogu-sanliurfa-kesimi-gecis-ucretler": {
         "title": "9- KGM Çukurova Otoyolları (Gaziantep Doğu - Şanlıurfa kesimi) Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/9-CukurovaOtoyoluGaziantep-Sanliurfa.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{B456A531-6E44-4902-8DE3-5406278EF598},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:07 GMT",
@@ -256,7 +256,7 @@
       "kgm-cukurova-otoyollari-nigde-mersin-adana-bati-kesimi-gecis-ucretleri": {
         "title": "10- KGM Çukurova Otoyolları (Niğde - Mersin - Adana Batı Kesimi) Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/10-CukurovaOtoyoluNigde-Mersin-Adana.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{F06DB743-3D16-4D81-857C-3869B04580E7},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:01 GMT",
@@ -283,7 +283,7 @@
       "kgm-avrupa-otoyolu-mahmutbey-edirne-kesimi-gecis-ucretleri": {
         "title": "11- KGM Avrupa Otoyolu (Mahmutbey - Edirne Kesimi) Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/11-AvrupaOtoyoluMahmutbey-Edirne.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{A9101551-AC2F-4B81-A4FF-7DD8BD14284E},29\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:02 GMT",
@@ -310,7 +310,7 @@
       "gebze-orhangazi-izmir-izmit-korfez-gecisi-ve-baglanti-yollari-dahil-ot": {
         "title": "12- Gebze - Orhangazi - İzmir (İzmit Körfez Geçişi ve Bağlantı Yolları Dahil) Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/12-Gebze-Orhangazi-Izmir.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{C4B7C6E5-04EF-4E92-A9EF-0D59967D1AAD},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:02 GMT",
@@ -337,7 +337,7 @@
       "yavuz-sultan-selim-koprusu-ve-kuzey-cevre-otoyolu-gecis-ucretleri": {
         "title": "13- Yavuz Sultan Selim Köprüsü ve Kuzey Çevre Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/13-YSSKuzeyCevreYolu.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{9C06BB3D-6B64-4DB6-B5B7-BEEEEA45FDBB},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:02 GMT",
@@ -365,7 +365,7 @@
       "kuzey-marmara-avrupa-kinali-odayeri-otoyolu-gecis-ucretleri": {
         "title": "14- Kuzey Marmara Avrupa (Kınalı - Odayeri) Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/14-KMOAvrupaKinali-Odayeri.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{9D850352-FAEE-4349-A8A0-1ACCC9999C69},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:03 GMT",
@@ -393,7 +393,7 @@
       "kuzey-marmara-anadolu-kurtkoy-akyazi-otoyolu-gecis-ucretleri": {
         "title": "15- Kuzey Marmara Anadolu (Kurtköy - Akyazı) Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/15-KMOAnadoluKurtkoy-Akyazi.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{5B064A59-416B-48D0-817D-990BAEAB1E0C},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:03 GMT",
@@ -421,7 +421,7 @@
       "menemen-aliaga-candarli-otoyolu-gecis-ucretleri": {
         "title": "16- Menemen Aliağa Çandarlı Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/16-Menemen-Aliaga-Candarli.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{D08092E3-5D64-4FA6-9D55-9BF05A6058F8},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:03 GMT",
@@ -449,7 +449,7 @@
       "ankara-nigde-otoyolu-gecis-ucretleri": {
         "title": "17- Ankara - Niğde Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/17-Ankara-Nigde.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{DA3F0EB3-8D7C-4452-85BA-6368A37F8367},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:03 GMT",
@@ -478,7 +478,7 @@
       "malkara-canakkale-canakkale-koprurusu-dahil-otoyolu-gecis-ucretleri": {
         "title": "18- Malkara - Çanakkale (1915 Çanakkale Köprürüsü dahil) Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/18-Malkara-Canakkale.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [
           "1915-canakkale"
         ],
@@ -510,7 +510,7 @@
       "aydin-denizli-otoyolu-gecis-ucretleri": {
         "title": "19- Aydın - Denizli Otoyolu Geçiş Ücretleri",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/19-Aydin-Denizli.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{369A5DA0-7172-4476-A647-595CC002B04A},27\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:04 GMT",
@@ -538,7 +538,7 @@
       "cesmeli-erdemli-sliifke-tasucu-otoyolu-cesmeli-kizkalesi-kesimi-ucret": {
         "title": "20-Çeşmeli – Erdemli – Sliifke – Taşucu Otoyolu Çeşmeli Kızkalesi Kesimi Ücret Tarifesi",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/Otoyollar/OtoyolKopruUcret/2026Gecis_Ucret/20-Cesmeli-KizkalesiTR.pdf",
-        "checked_at": "2026-11-11T10:38:53+03:00",
+        "checked_at": "2026-11-12T15:26:51+03:00",
         "crossings": [],
         "etag": "\"{8BF26C84-AF2F-44CE-9776-E71540B6239F},5\"",
         "last_modified": "Mon, 02 Nov 2026 13:14:04 GMT",
@@ -633,6 +633,10 @@
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/default.aspx"
       },
       {
+        "title": "Duyurular.aspx?utm_source=chatgpt",
+        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Root/Duyurular.aspx?utm%255Fsource=chatgpt%2Ecom"
+      },
+      {
         "title": "Genel Müdür Yardımcılarımız",
         "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GenelMudYard.aspx"
       },
@@ -651,10 +655,6 @@
       {
         "title": "Kurumsal Mali Durum ve Beklentiler Raporu",
         "url": "https://www.kgm.gov.tr/SiteCollectionDocuments/KGMdocuments/MerkezBirimler/Kurumsal/MaliDurum/malidurum.pdf"
-      },
-      {
-        "title": "Uluslararası Karayolu Güzergahları",
-        "url": "https://www.kgm.gov.tr/Sayfalar/KGM/SiteTr/Kurumsal/GlobalProjeler.aspx"
       }
     ]
   },
