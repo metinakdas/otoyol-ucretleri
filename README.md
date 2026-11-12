@@ -352,7 +352,9 @@ sürümle karşılaştırılır (`data/saat-dilimleri.json`). Farklılaşan ülk
 
 Üst çubuktaki **Saat dilimleri** düğmesi (telefonda Duyurular → Saat dilimleri → Tüm ülkeleri gör) bütün ülkeleri
 şu anki UTC farkı, yerel saati ve sonraki yaz saati geçişiyle listeler; Türkçe ülke adı, şehir ya da `UTC+3` ile
-aranır. Son sürümlerde değişen bölgeler en üstte "eski → yeni" farkıyla görünür. İlk turda bir kez "izleme başladı"
+aranır ("5:30" ve "+5.5" aynı farktır). Son sürümlerde değişen bölgeler en üstte "eski → yeni" farkıyla görünür;
+ülkeler yıldızla sabitlenir (bu cihazda), çok bölgeli ülkeler açılır grup olarak gelir, A–Z ya da UTC farkına göre
+sıralanır; Türkiye'ye göre fark ("6 sa geri") ve IANA sürüm geçmişi gösterilir. İlk turda bir kez "izleme başladı"
 mesajı gelir. Kapatmak için `config/settings.yaml` içinde `saat_dilimi_izle: false` yapın.
 
 ## Bildirimler

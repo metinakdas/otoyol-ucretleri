@@ -33,6 +33,7 @@ BEKLEME_GUN = 30           # gönderilemeyen bildirim bu kadar gün yeniden dene
 EN_FAZLA_SATIR = 25
 NEWS_URL = "https://data.iana.org/time-zones/tzdb/NEWS"
 UTC = timezone.utc
+SEMA = 2                   # görüntü biçimi; değişince dosya sessizce yeniden yazılır
 
 
 # ---------------------------------------------------------------------------- tzdata paketi
@@ -130,13 +131,13 @@ def anlik_goruntu(now: datetime, paket: str, iana: str) -> dict:
     start = now.astimezone(UTC).replace(minute=0, second=0, microsecond=0)
     end = start + timedelta(days=PENCERE_GUN)
     zones = {}
-    for name, cc in sorted(bolgeler().items()):
+    for name, cc in bolgeler().items():  # zone.tab sırası (ülke içinde doğudan batıya), panel grupları için
         try:
             zones[name] = {"cc": cc, "t": gecisler(bolge(name), start, end)}
         except Exception:  # paket bozuksa tek bölge yüzünden durma
             continue
     names = ulkeler()
-    return {"tzdata": paket, "iana": iana, "start": _iso(start), "end": _iso(end),
+    return {"sema": SEMA, "tzdata": paket, "iana": iana, "start": _iso(start), "end": _iso(end),
             "ulkeler": {cc: names[cc] for cc in sorted({z["cc"] for z in zones.values()}) if cc in names},
             "zones": zones}
 
@@ -215,7 +216,7 @@ def _bildirim(key: str, subject: str, lines: list[str], at: datetime, channels: 
     out = {"key": key, "kind": kind, "at": to_iso(at), "iana": iana, "subject": subject, "lines": lines,
            "channels": list(channels)}
     if farklar:  # panelde "eski → yeni" gösterimi için
-        out["farklar"] = [{"zone": f["zone"], "eski": None if f["yeni_bolge"] else f["eski"],
+        out["farklar"] = [{"zone": f["zone"], "cc": f["cc"], "eski": None if f["yeni_bolge"] else f["eski"],
                            "yeni": f["simdi"] if f["yeni_bolge"] else f["yeni"], "tarih": f.get("tarih")}
                           for f in farklar]
     return out
@@ -263,7 +264,7 @@ def kontrol(cfg: Config, store: Store, state: dict, sent: dict, now: datetime) -
             notes.append(f"Saat dilimi: tzdata {iana} geldi; gelecekteki saat farklarında değişiklik yok")
         yazildi = store.write(DOSYA, anlik_goruntu(now, paket, iana))
     elif _vkey(paket) == _vkey(eski.get("tzdata")) and (
-            _dt(eski["end"]) - now < timedelta(days=YENILE_GUN) or "ulkeler" not in eski):
+            _dt(eski["end"]) - now < timedelta(days=YENILE_GUN) or eski.get("sema") != SEMA):
         yazildi = store.write(DOSYA, anlik_goruntu(now, paket, iana))
 
     if _vkey(paket) >= _vkey(info.get("tzdata")):
@@ -287,6 +288,7 @@ def panel_ozeti(state: dict) -> dict | None:
     return {
         "iana": info.get("iana"),
         "kaynak": NEWS_URL,
-        "degisiklikler": [{"at": b["at"], "iana": b["iana"], "lines": b["lines"][1:-1]} for b in son],
+        "degisiklikler": [{"at": b["at"], "iana": b["iana"], "lines": b["lines"][1:-1], "farklar": b.get("farklar") or []}
+                          for b in son],
         "farklar": farklar,
     }

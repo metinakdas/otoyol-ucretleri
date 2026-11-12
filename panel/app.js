@@ -252,108 +252,350 @@
     }).join("");
   }
 
-  function renderTz(data, now) {
+  // ---------------------------------------------------------------- saat dilimleri: Duyurular kartı, üst çubuk noktası
+
+  const TZ_SEEN = "radar.tz.gorulen", TZ_PIN = "radar.tz.sabit";
+  const regionTr = (() => { try { return new Intl.DisplayNames(["tr"], { type: "region" }); } catch (e) { return null; } })();
+  const ccName = (cc, en) => { const tr = regionTr && cc ? regionTr.of(cc) : ""; return tr && tr !== cc ? tr : en || cc || ""; };
+  const zoneCity = (zone) => { const c = zone.split("/").pop().replace(/_/g, " "); return CITY_TR[c] || c; };
+  const CITY_TR = { Istanbul: "İstanbul", Tehran: "Tahran", Moscow: "Moskova", Kyiv: "Kiev", Kiev: "Kiev", Athens: "Atina", Baku: "Bakü",
+    Tbilisi: "Tiflis", Yerevan: "Erivan", Cairo: "Kahire", Riyadh: "Riyad", Baghdad: "Bağdat", Damascus: "Şam", Beirut: "Beyrut",
+    Jerusalem: "Kudüs", Kabul: "Kabil", Vienna: "Viyana", Brussels: "Brüksel", Lisbon: "Lizbon", Warsaw: "Varşova", Prague: "Prag",
+    Bucharest: "Bükreş", Sofia: "Sofya", Belgrade: "Belgrad", Copenhagen: "Kopenhag", Stockholm: "Stokholm", Algiers: "Cezayir",
+    Tripoli: "Trablus", Tunis: "Tunus", Rome: "Roma", London: "Londra", Qatar: "Katar", Kuwait: "Kuveyt", Bahrain: "Bahreyn",
+    Muscat: "Maskat", Karachi: "Karaçi", Shanghai: "Şanghay", Seoul: "Seul", Nicosia: "Lefkoşa", Famagusta: "Gazimağusa",
+    Chisinau: "Kişinev", Tashkent: "Taşkent", Bishkek: "Bişkek", Dushanbe: "Duşanbe", Ashgabat: "Aşkabat", Almaty: "Almatı" };
+  function tzNames(fs) {
+    const n = [...new Set(fs.map((f) => ccName(f.cc, zoneCity(f.zone))))];
+    return n.slice(0, 3).join(", ") + (n.length > 3 ? ` +${n.length - 3}` : "");
+  }
+  function tzLatest() {
+    const t = data_ && data_.saat_dilimi;
+    const last = t && (t.degisiklikler || [])[0];
+    return last && (last.farklar || []).length && (Date.now() - new Date(last.at)) / 864e5 < 30 ? last : null;
+  }
+  function tzSyncDot() {
+    const last = tzLatest();
+    const unseen = !!last && store(TZ_SEEN) !== last.at;
+    document.querySelectorAll(".tz-dot").forEach((d) => { d.hidden = !unseen; });
+    document.querySelectorAll(".tz-btn, .tz-mbtn").forEach((b) => b.setAttribute("aria-label",
+      unseen ? `Saat dilimleri, ${last.farklar.length} yeni değişiklik` : "Saat dilimleri"));
+  }
+  function renderTz(data) {
     const t = data.saat_dilimi;
-    $("#tz-fold").hidden = !t;
+    $("#tz-card").hidden = !t;
+    document.querySelectorAll(".tz-btn, .tz-mbtn").forEach((b) => { b.hidden = !t; });
     if (!t) return;
-    const list = t.degisiklikler || [];
-    $("#tz-v").textContent = list.length ? `${list.length} değişiklik` : "Değişiklik yok";
-    $("#tz-list").innerHTML = (list.length ? list.map((c) => `<li><div class="top"><span class="title">IANA tzdata ${esc(c.iana)}</span><span class="when">${esc(ago(c.at, now))}</span></div>
-        ${c.lines.map((l) => `<div class="sub">${esc(l)}</div>`).join("")}</li>`).join("")
-      : `<li class="empty">Son sürümde gelecekteki saat farklarında değişiklik yok.</li>`)
-      + `<li class="empty">IANA tzdata ${esc(t.iana || "?")} izleniyor · ${link(t.kaynak, "IANA duyuruları")}</li>`
-      + `<li><button type="button" class="tz-all" data-tz-open>Tüm ülkeleri gör</button></li>`;
-    document.querySelectorAll(".tz-btn").forEach((b) => { b.hidden = false; });
-    const recent = list.some((c) => (now - new Date(c.at)) / 864e5 < 30);
-    $("#tz-dot").hidden = !recent;
+    const last = tzLatest();
+    $("#tz-card-t").innerHTML = `IANA tzdata <span class="ov">${esc(t.iana || "?")}</span> izleniyor`;
+    $("#tz-card-s").innerHTML = last ? `<b class="tz-c">${last.farklar.length} değişiklik</b> · ${esc(tzNames(last.farklar))}` : "Son sürümde saat farkı değişen ülke yok";
+    tzSyncDot();
   }
 
-  // ---------------------------------------------------------------- saat dilimleri penceresi (tüm ülkeler, arama)
+  // ---------------------------------------------------------------- saat dilimleri penceresi
 
-  const TZW = { data: null, rows: [], filter: "all", timer: 0 };
+  const TZW = { data: null, failed: false, zones: [], countries: [], byZone: {}, filter: "all", sort: "az",
+    open: new Set(), more: new Set(), pins: null, timer: 0, tick: 0 };
   const AY = ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"];
-  const regionTr = (() => { try { return new Intl.DisplayNames(["tr"], { type: "region" }); } catch (e) { return null; } })();
-  const tzFold = (s) => String(s || "").toLocaleLowerCase("tr").replace(/ı/g, "i").normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  const tzFold = (s) => String(s || "").toLocaleLowerCase("tr").replace(/ı/g, "i").normalize("NFD").replace(/[̀-ͯ]/g, "");
   const two = (n) => String(n).padStart(2, "0");
-  const utcLabel = (sec) => `UTC${sec < 0 ? "−" : "+"}${two(Math.floor(Math.abs(sec) / 3600))}:${two(Math.floor((Math.abs(sec) % 3600) / 60))}`;
+  const hm = (sec) => `${two(Math.floor(Math.abs(sec) / 3600))}:${two(Math.floor((Math.abs(sec) % 3600) / 60))}`;
+  const sgn = (sec) => (sec < 0 ? "−" : "+");
+  const utcLabel = (sec) => `UTC${sgn(sec)}${hm(sec)}`;
   const shifted = (ms, off) => new Date(ms + off * 1000);
   const clock = (ms, off) => { const d = shifted(ms, off); return `${two(d.getUTCHours())}:${two(d.getUTCMinutes())}`; };
-  const day = (ms, off) => { const d = shifted(ms, off); return `${d.getUTCDate()} ${AY[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const dayStr = (ms, off) => { const d = shifted(ms, off); return `${d.getUTCDate()} ${AY[d.getUTCMonth()]} ${d.getUTCFullYear()}`; };
+  const dur = (s) => { const h = Math.floor(s / 3600), m = Math.round((s % 3600) / 60); return h && m ? `${h} sa ${m} dk` : h ? `${h} sa` : `${m} dk`; };
+  const ICO = {
+    star: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"/></svg>',
+    arr: '<svg class="tz-arr" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+    chev: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+    nores: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5M8 11h6"/></svg>',
+    ok: '<svg class="ok" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8 12l3 3 5-6"/></svg>',
+    globe: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+  };
+
   function tzAt(t, ms) {
     let v = t[0];
     for (const x of t) { if (Date.parse(x[0]) <= ms) v = x; else break; }
     return v;
   }
-  function offsetKeys(o) {
-    const sign = o < 0 ? "-" : "+", h = Math.abs(o) / 3600;
-    return [utcLabel(o).replace("−", "-"), `utc${sign}${h}`, `gmt${sign}${h}`, `${sign}${h}`];
+  const trOff = (ms) => { const z = TZW.byZone["Europe/Istanbul"]; return z ? tzAt(z.t, ms)[1] : 10800; };
+  function relTr(off, ms, zone) {
+    if (zone === "Europe/Istanbul") return "referans";
+    const d = off - trOff(ms);
+    return d === 0 ? "Türkiye ile aynı" : `${dur(Math.abs(d))} ${d > 0 ? "ileri" : "geri"}`;
   }
+  function dayWord(off, ms) {
+    const a = shifted(ms, off), b = shifted(ms, trOff(ms));
+    const n = (Date.UTC(a.getUTCFullYear(), a.getUTCMonth(), a.getUTCDate()) - Date.UTC(b.getUTCFullYear(), b.getUTCMonth(), b.getUTCDate())) / 864e5;
+    return n > 0 ? " yarın" : n < 0 ? " dün" : "";
+  }
+  function tzPins() {
+    if (!TZW.pins) {
+      try { TZW.pins = JSON.parse(store(TZ_PIN) || "null"); } catch (e) { TZW.pins = null; }
+      if (!Array.isArray(TZW.pins)) TZW.pins = ["Europe/Istanbul"];
+    }
+    return TZW.pins;
+  }
+
   function tzBuild() {
-    const names = TZW.data.ulkeler || {};
+    const d = TZW.data, names = d.ulkeler || {};
     const chg = (data_ && data_.saat_dilimi && data_.saat_dilimi.farklar) || {};
-    TZW.rows = Object.entries(TZW.data.zones || {}).map(([zone, z]) => {
-      const tr = regionTr ? regionTr.of(z.cc) : "";
-      const en = names[z.cc] || z.cc;
-      const name = tr && tr !== z.cc ? tr : en;
-      const city = zone.split("/").pop().replace(/_/g, " ");
-      const offs = [...new Set(z.t.map((x) => x[1]))];
-      const c = chg[zone] || null;
-      const keys = [name, en, zone.replace(/[_/]/g, " "), z.cc, ...offs.flatMap(offsetKeys), ...(c && c.eski != null ? offsetKeys(c.eski) : [])];
-      return { zone, cc: z.cc, name, city, t: z.t, dst: z.t.some((x) => x[2]), chg: c, key: tzFold(keys.join(" ")) };
-    }).sort((a, b) => (!!b.chg - !!a.chg) || a.name.localeCompare(b.name, "tr") || a.city.localeCompare(b.city, "tr"));
-    const n = TZW.rows.filter((r) => r.chg).length;
-    $("#tz-nchg").textContent = `(${n})`;
-    $("#tz-sub").textContent = `IANA tzdata ${TZW.data.iana || "?"} · ${TZW.rows.length} bölge, ${new Set(TZW.rows.map((r) => r.cc)).size} ülke · saatler şu an`;
+    const byCc = {};
+    TZW.zones = Object.entries(d.zones || {}).map(([zone, z], i) => {
+      const cityEn = zone.split("/").pop().replace(/_/g, " ");
+      const r = { zone, cc: z.cc, i, t: z.t, en: names[z.cc] || z.cc, country: ccName(z.cc, names[z.cc]), city: zoneCity(zone), cityEn,
+        dst: z.t.some((x) => x[2]), offs: [...new Set(z.t.map((x) => x[1]))], chg: chg[zone] || null };
+      r.text = tzFold(["utc gmt", r.country, r.en, r.city, cityEn, zone.replace(/[_/]/g, " "), z.cc].join(" "));
+      (byCc[z.cc] = byCc[z.cc] || []).push(r);
+      return r;
+    });
+    TZW.byZone = Object.fromEntries(TZW.zones.map((r) => [r.zone, r]));
+    TZW.countries = Object.entries(byCc).map(([cc, zs]) => ({ cc, name: zs[0].country, zones: zs }))
+      .sort((a, b) => a.name.localeCompare(b.name, "tr"));
+    TZW.zones.forEach((r) => { r.multi = byCc[r.cc].length > 1; });
+    const n = TZW.zones.filter((r) => r.chg).length;
+    $("#tz-nchg").hidden = !n;
+    $("#tz-nchg").textContent = String(n);
+    $("#tz-sub").innerHTML = `<span class="tz-d">IANA tzdata</span><span class="tz-m">tzdata</span> <b class="ov">${esc(d.iana || "?")}</b><span class="tz-d"> · ${TZW.zones.length} bölge, ${TZW.countries.length} ülke · saatler şu an</span><span class="tz-m"> · ${TZW.zones.length} bölge · ${TZW.countries.length} ülke</span>`;
   }
-  function tzRow(r, ms) {
-    const cur = tzAt(r.t, ms), off = cur[1];
+
+  // "+5.5", "5:30", "utc+3", "gmt-4" → saniye; düz sayı ("3") metin olarak aranır
+  function tzOffsetQuery(tok) {
+    const m = tok.match(/^(utc|gmt)?([+\-−])?(\d{1,2})(?:([:.,])(\d{1,2}))?$/);
+    if (!m || (!m[1] && !m[2] && !m[4])) return null;
+    const h = +m[3];
+    const min = m[5] === undefined ? 0 : m[4] === ":" ? +m[5] : Math.round(parseFloat("0." + m[5]) * 60);
+    if (h > 14 || min >= 60) return null;
+    return { v: (h * 3600 + min * 60) * (m[2] === "-" || m[2] === "−" ? -1 : 1), signed: !!m[2] };
+  }
+  function tzMatcher() {
+    const toks = tzFold($("#tz-q").value).split(/\s+/).filter(Boolean);
+    const tests = toks.map((tok) => {
+      const o = tzOffsetQuery(tok);
+      if (!o) return (r) => r.text.includes(tok);
+      const eq = (x) => (o.signed ? x === o.v : Math.abs(x) === Math.abs(o.v));
+      return (r) => r.offs.some(eq) || (!!r.chg && r.chg.eski != null && eq(r.chg.eski));
+    });
+    const f = TZW.filter;
+    return { q: toks.length > 0, test: (r) => (f !== "dst" || r.dst) && (f !== "changed" || !!r.chg) && tests.every((t) => t(r)) };
+  }
+
+  function tzRow(r, ms, o) {
+    const cur = tzAt(r.t, ms), off = cur[1], c = r.chg;
+    const kind = c ? (c.eski == null ? " is-new" : " is-changed") : "";
+    const title = o.child ? r.city : r.multi ? r.city : r.country;
+    const meta = o.child ? r.zone : r.multi ? `${r.country} · ${r.zone}` : `${r.city} · ${r.zone}`;
+    const pin = tzPins().includes(r.zone);
+    const chgPill = c ? `<span class="tz-pill chg">${c.eski == null ? "Yeni bölge" : "Değişti"} · tzdata ${esc(c.iana)}</span>` : "";
+    const pill = c ? `<span class="tz-d">${chgPill}</span>` : r.dst ? '<span class="tz-pill dst">Yaz saati</span>' : "";
     const next = r.t.find((x) => Date.parse(x[0]) > ms);
-    const sub = next ? `${day(Date.parse(next[0]), next[1])} → ${utcLabel(next[1])}${next[2] ? " (yaz saati)" : ""}` : "Yaz saati yok, sabit";
-    const c = r.chg;
-    const chg = c ? `<div class="tz-chg"><span class="tz-pill">Değişti · tzdata ${esc(c.iana)}</span>
-        <span>${c.eski == null ? "Yeni bölge" : `Eski ${esc(utcLabel(c.eski))} → yeni <b>${esc(utcLabel(c.yeni))}</b>`}${c.tarih ? ` · ${esc(c.tarih)} itibarıyla` : ""}</span></div>` : "";
-    return `<li class="tz-row${c ? " is-chg" : ""}">
-      <div class="tz-main"><span class="tz-name">${esc(r.name)}</span><span class="tz-city">${esc(r.city)} · ${esc(r.zone)}</span></div>
-      <div class="tz-off"><span class="tz-utc">${esc(utcLabel(off))}</span><span class="tz-time">${clock(ms, off)}${cur[2] ? " · yaz saati" : ""}</span></div>
-      <div class="tz-next">${next ? "Sonraki geçiş: " : ""}${esc(sub)}</div>${chg}</li>`;
+    let detail = "";
+    if (c && c.eski == null) detail = "Bu sürümde veritabanına eklendi";
+    else if (!c) detail = next ? `${ICO.arr}<span>Sonraki geçiş <b class="ov">${dayStr(Date.parse(next[0]), next[1])}</b> → <b class="ov">${utcLabel(next[1])}</b>${next[2] ? " (yaz saati)" : ""}</span>` : "Yaz saati yok, sabit";
+    const diff = c && c.eski != null ? `<div class="tz-diff"><span class="tz-m">${chgPill}</span><span class="tz-diff-in">
+        <span class="l">Eski</span><span class="ov old">${utcLabel(c.eski)}</span>${ICO.arr}<span class="l">Yeni</span><span class="ov new">${utcLabel(c.yeni)}</span>
+        <span class="when"><span class="tz-d">· </span>${c.tarih ? `${esc(c.tarih)} itibarıyla` : "şimdiden geçerli"}</span></span></div>` : "";
+    return `<article class="tz-row${kind}${o.child ? " is-child" : ""}" data-z="${esc(r.zone)}">
+      <button type="button" class="tz-star" data-pin="${esc(r.zone)}" aria-pressed="${pin}" aria-label="${pin ? "Sabitlemeyi kaldır" : "Sabitle"}: ${esc(title)}">${ICO.star}</button>
+      <div class="tz-mid"><span class="tz-nl"><span class="tz-name">${esc(title)}</span>${pill}</span><span class="tz-meta">${esc(meta)}</span>${detail ? `<span class="tz-det">${detail}</span>` : ""}</div>
+      <div class="tz-r"><span class="tz-utc ov">${utcLabel(off)}</span><span class="tz-tm"><b class="ov">${clock(ms, off)}</b>${dayWord(off, ms)} · ${relTr(off, ms, r.zone)}</span></div>${diff}</article>`;
   }
+
+  function tzRange(zs, ms) {
+    const offs = zs.map((r) => tzAt(r.t, ms)[1]), lo = Math.min(...offs), hi = Math.max(...offs), tr = trOff(ms);
+    const utc = lo === hi ? utcLabel(lo) : `${utcLabel(lo)} … ${sgn(hi)}${hm(hi)}`;
+    const a = lo - tr, b = hi - tr;
+    let rel;
+    if (a === b) rel = a === 0 ? "Türkiye ile aynı" : `${dur(Math.abs(a))} ${a > 0 ? "ileri" : "geri"}`;
+    else if (b <= 0) rel = (a % 3600 || b % 3600) ? `${dur(-b)} – ${dur(-a)} geri` : `${-b / 3600}–${-a / 3600} sa geri`;
+    else if (a >= 0) rel = (a % 3600 || b % 3600) ? `${dur(a)} – ${dur(b)} ileri` : `${a / 3600}–${b / 3600} sa ileri`;
+    else rel = `${dur(-a)} geri – ${dur(b)} ileri`;
+    return { utc, rel };
+  }
+  function tzReps(zs, ms) {
+    const seen = new Set();
+    return zs.filter((r) => { const o = tzAt(r.t, ms)[1]; if (seen.has(o)) return false; seen.add(o); return true; });
+  }
+  function tzGroup(ctry, zs, ms, auto) {
+    const rg = tzRange(ctry.zones, ms), cc = esc(ctry.cc);
+    const open = auto || TZW.open.has(ctry.cc);
+    const head = (exp) => `<button type="button" class="tz-chev" data-grp="${cc}" aria-expanded="${exp}" aria-label="${esc(ctry.name)}, ${ctry.zones.length} bölgeyi ${exp ? "gizle" : "göster"}">${ICO.chev}</button>`;
+    const nl = (pillCls) => `<span class="tz-nl"><span class="tz-name">${esc(ctry.name)}</span><span class="tz-pill cnt ov${pillCls}">${ctry.zones.length} bölge</span></span>`;
+    if (!open) {
+      const reps = tzReps(ctry.zones, ms);
+      const sub = reps.slice(0, 4).map((r) => r.city).join(", ") + (ctry.zones.length > 4 ? "…" : "");
+      return `<article class="tz-row tz-group">${head(false)}<div class="tz-mid">${nl(" tz-d")}<span class="tz-meta tz-d">${esc(sub)}</span>
+        <span class="tz-meta tz-m"><b>${ctry.zones.length} bölge</b> · ${rg.rel}</span></div>
+        <div class="tz-r"><span class="tz-utc sm ov">${rg.utc}</span><span class="tz-tm tz-d">${rg.rel}</span></div></article>`;
+    }
+    const all = auto || TZW.more.has(ctry.cc);
+    const shown = all ? zs : tzReps(zs, ms);
+    const rest = zs.length - shown.length;
+    return `<div class="tz-gbox"><div class="tz-ghead">${head(true)}${nl("")}<span class="tz-tm">${rg.rel}</span></div>
+      ${shown.map((r) => tzRow(r, ms, { child: true })).join("")}
+      ${rest > 0 ? `<button type="button" class="tz-more" data-more="${cc}">${rest} bölge daha göster</button>` : ""}</div>`;
+  }
+
+  function tzEmpty(icon, title, text, act, label, primary) {
+    return `<div class="tz-empty">${icon}<b>${title}</b><span>${text}</span>${act ? `<button type="button" class="tz-ebtn${primary ? " pri" : ""}" data-tz-act="${act}">${label}</button>` : ""}</div>`;
+  }
+  function tzHistory() {
+    const t = (data_ && data_.saat_dilimi) || {}, cur = TZW.data.iana || t.iana;
+    const list = (t.degisiklikler || []).slice();
+    if (!list.length || list[0].iana !== cur) list.unshift({ iana: cur, farklar: [], none: true });
+    const items = list.map((c, i) => `<li><span class="tz-tl"><i class="${i === 0 ? "on" : ""}"></i><i class="ln"></i></span><div class="tz-tlb">
+        <span class="tz-tlh"><span class="ov">${esc(c.iana)}</span><span>${i === 0 ? "şu an izlenen" : esc(date(c.at))}</span></span>
+        ${c.none || !(c.farklar || []).length ? '<span class="tz-tls">Bu sürümde saat farkı değişen ülke yok</span>'
+          : c.farklar.map((f) => `<span class="tz-tls">${esc(ccName(f.cc, zoneCity(f.zone)))} · <span class="ov">${f.eski == null ? "yeni bölge, " + utcLabel(f.yeni) : `${utcLabel(f.eski)} → ${utcLabel(f.yeni)}`}</span></span>`).join("")}</div></li>`);
+    items.push('<li class="end"><span class="tz-tl"><i></i></span><span class="tz-tls">Yeni sürümler yayımlandıkça değişiklikleri burada birikir.</span></li>');
+    return `<h3 class="tz-sec">Sürüm geçmişi</h3><ol class="tz-hist">${items.join("")}</ol>
+      <div class="tz-foot"><span>Kaynak: IANA Time Zone Database</span>${link(t.kaynak || "https://data.iana.org/time-zones/tzdb/NEWS", `${cur} sürüm notlarını aç ↗`)}</div>`;
+  }
+
   function tzRender() {
-    const list = $("#tz-rows");
+    const box = $("#tz-rows"), st = $("#tz-status");
+    if (!TZW.data) {
+      if (TZW.failed) { st.textContent = ""; box.innerHTML = tzEmpty(ICO.globe, "Saat dilimi verisi henüz hazır değil", "İlk kontrol bitince ülkeler burada listelenir.", "retry", "Yeniden dene", true); return; }
+      st.textContent = "Saat dilimleri yükleniyor…";
+      box.innerHTML = `<div class="tz-skel" aria-hidden="true">${"<div><i></i><span><i></i><i></i></span><i></i></div>".repeat(3)}</div>`;
+      return;
+    }
+    const ms = Date.now(), m = tzMatcher(), pins = tzPins(), parts = [];
+    const hits = TZW.zones.filter(m.test);
+    const total = TZW.zones.length;
+    st.textContent = !m.q && TZW.filter === "all" ? `${TZW.countries.length} ülke · ${total} bölge` : `${total} bölgeden ${hits.length} gösteriliyor`;
+    const changed = hits.filter((r) => r.chg).sort((a, b) => a.country.localeCompare(b.country, "tr"));
+    const cur = TZW.data.iana;
+
+    if (TZW.filter === "changed") {
+      if (changed.length) parts.push(changed.map((r) => tzRow(r, ms, {})).join(""));
+      else parts.push(m.q ? tzEmpty(ICO.nores, `“${esc($("#tz-q").value.trim())}” için eşleşme yok`, "Türkçe ya da İngilizce ülke adı, şehir ya da UTC+3 gibi bir fark dene.", "clear", "Aramayı temizle")
+        : tzEmpty(ICO.ok, "Son IANA sürümlerinde saat farkı değişen ülke yok", "Yeni sürüm bir ülkenin saatini değiştirirse burada en üstte görünür.", "all", "Tüm ülkeleri gör"));
+      parts.push(tzHistory());
+      box.innerHTML = parts.join("");
+      return;
+    }
+    if (!hits.length) {
+      box.innerHTML = tzEmpty(ICO.nores, `“${esc($("#tz-q").value.trim())}” için eşleşme yok`, "Türkçe ya da İngilizce ülke adı, şehir ya da UTC+3 gibi bir fark dene.", "clear", "Aramayı temizle");
+      return;
+    }
+    const top = new Set();
+    if (changed.length) {
+      const allCur = changed.every((r) => r.chg.iana === cur);
+      parts.push(`<h3 class="tz-sec chg">${allCur ? "Bu sürümde değişti" : "Son sürümlerde değişti"}</h3>` + changed.map((r) => tzRow(r, ms, {})).join(""));
+      changed.forEach((r) => top.add(r.zone));
+    }
+    const pinned = pins.map((z) => TZW.byZone[z]).filter((r) => r && m.test(r) && !top.has(r.zone));
+    if (pinned.length) {
+      parts.push('<h3 class="tz-sec">Sabitlediklerin</h3>' + pinned.map((r) => tzRow(r, ms, {})).join(""));
+      pinned.forEach((r) => top.add(r.zone));
+    }
+    const rest = hits.filter((r) => !top.has(r.zone));
+    const label = TZW.filter === "dst" ? "Yaz saati uygulayanlar" : TZW.sort === "utc" ? "Tüm bölgeler" : "Tüm ülkeler";
+    if (rest.length) {
+      if (TZW.sort === "utc") {
+        rest.sort((a, b) => tzAt(a.t, ms)[1] - tzAt(b.t, ms)[1] || a.country.localeCompare(b.country, "tr") || a.i - b.i);
+        parts.push(`<h3 class="tz-sec">${label} · UTC'ye göre</h3>` + rest.map((r) => tzRow(r, ms, {})).join(""));
+      } else {
+        const restSet = new Set(rest.map((r) => r.zone));
+        parts.push(`<h3 class="tz-sec">${label} · A–Z</h3>` + TZW.countries.map((c) => {
+          const zs = c.zones.filter((r) => restSet.has(r.zone));
+          if (!zs.length) return "";
+          if (c.zones.length === 1) return tzRow(zs[0], ms, {});
+          return tzGroup(c, zs, ms, m.q);
+        }).join(""));
+      }
+    }
+    box.innerHTML = parts.join("");
+  }
+
+  // Saatler dakika başında yenilenir; satırlar yeniden çizilmez (odak kaybolmasın)
+  function tzTick() {
     if (!TZW.data) return;
     const ms = Date.now();
-    const toks = tzFold($("#tz-q").value).split(/\s+/).filter(Boolean);
-    const rows = TZW.rows.filter((r) => (TZW.filter !== "changed" || r.chg) && (TZW.filter !== "dst" || r.dst)
-      && toks.every((t) => r.key.includes(t)));
-    $("#tz-count").textContent = rows.length === TZW.rows.length ? `${rows.length} bölge` : `${TZW.rows.length} bölgeden ${rows.length} gösteriliyor`;
-    list.innerHTML = rows.length ? rows.map((r) => tzRow(r, ms)).join("")
-      : `<li class="tz-empty">${TZW.filter === "changed" && !toks.length ? "Son IANA sürümlerinde saat farkı değişen ülke yok." : "Eşleşen ülke ya da şehir yok."}</li>`;
+    document.querySelectorAll("#tz-rows .tz-row[data-z]").forEach((el) => {
+      const r = TZW.byZone[el.dataset.z];
+      if (!r) return;
+      const off = tzAt(r.t, ms)[1];
+      el.querySelector(".tz-utc").textContent = utcLabel(off);
+      el.querySelector(".tz-tm").innerHTML = `<b class="ov">${clock(ms, off)}</b>${dayWord(off, ms)} · ${relTr(off, ms, r.zone)}`;
+    });
   }
-  async function tzOpen() {
+  function tzStartClock() {
+    clearTimeout(TZW.tick); clearInterval(TZW.timer);
+    TZW.tick = setTimeout(() => { tzTick(); TZW.timer = setInterval(tzTick, 60000); }, 60000 - (Date.now() % 60000) + 50);
+  }
+  async function tzLoad() {
+    TZW.failed = false;
+    tzRender();
+    TZW.data = await fetchFirst(sample() ? [] : ["data/saat-dilimleri.json", "../data/saat-dilimleri.json"]);
+    if (!TZW.data || !TZW.data.zones) { TZW.data = null; TZW.failed = true; tzRender(); return; }
+    tzBuild();
+    tzRender();
+  }
+  function tzOpen() {
     const dlg = $("#tz-dialog");
     if (!dlg.open) dlg.showModal();
+    document.querySelectorAll(".tz-btn").forEach((b) => b.setAttribute("aria-expanded", "true"));
+    $("#tz-q").placeholder = matchMedia("(max-width: 600px)").matches ? "Ülke, şehir ya da UTC+3" : "Ülke, şehir ya da UTC+3 ara";
     $("#tz-q").focus();
-    if (!TZW.data) {
-      $("#tz-rows").innerHTML = `<li class="tz-empty">Yükleniyor…</li>`;
-      TZW.data = await fetchFirst(sample() ? [] : ["data/saat-dilimleri.json", "../data/saat-dilimleri.json"]);
-      if (!TZW.data) { $("#tz-rows").innerHTML = `<li class="tz-empty">Saat dilimi verisi henüz yok; radarın ilk turundan sonra görünür.</li>`; return; }
-      tzBuild();
-    }
+    const last = tzLatest();
+    if (last) { store(TZ_SEEN, last.at); tzSyncDot(); }
+    if (!TZW.data) tzLoad(); else tzRender();
+    tzStartClock();
+  }
+  function tzSetFilter(f) {
+    TZW.filter = f;
+    document.querySelectorAll("#tz-dialog [data-tzf]").forEach((x) => x.setAttribute("aria-checked", String(x.dataset.tzf === f)));
+    $("#tz-scroll").scrollTop = 0;
     tzRender();
-    clearInterval(TZW.timer);
-    TZW.timer = setInterval(tzRender, 30000);
+  }
+  function tzSetSort(s) {
+    TZW.sort = s;
+    document.querySelectorAll("#tz-dialog [data-tzs]").forEach((x) => x.setAttribute("aria-checked", String(x.dataset.tzs === s)));
+    const t = $("#tz-dialog [data-tzs-toggle]");
+    t.textContent = s === "utc" ? "UTC" : "A–Z";
+    t.setAttribute("aria-label", `Sıralama: ${s === "utc" ? "UTC farkı" : "A–Z"}`);
+    $("#tz-scroll").scrollTop = 0;
+    tzRender();
   }
   function bindTz() {
     const dlg = $("#tz-dialog");
     document.addEventListener("click", (e) => { if (e.target.closest("[data-tz-open]")) tzOpen(); });
-    dlg.addEventListener("click", (e) => { if (e.target === dlg || e.target.closest("[data-tz-close]")) dlg.close(); });
-    dlg.addEventListener("close", () => clearInterval(TZW.timer));
-    $("#tz-q").addEventListener("input", tzRender);
-    dlg.querySelectorAll("[data-tzf]").forEach((b) => b.addEventListener("click", () => {
-      TZW.filter = b.dataset.tzf;
-      dlg.querySelectorAll("[data-tzf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
-      tzRender();
-    }));
+    dlg.addEventListener("close", () => {
+      clearTimeout(TZW.tick); clearInterval(TZW.timer);
+      document.querySelectorAll(".tz-btn").forEach((b) => b.setAttribute("aria-expanded", "false"));
+    });
+    $("#tz-q").addEventListener("input", () => { $("#tz-scroll").scrollTop = 0; tzRender(); });
+    dlg.addEventListener("click", (e) => {
+      if (e.target === dlg || e.target.closest("[data-tz-close]")) { dlg.close(); return; }
+      const b = e.target.closest("button");
+      if (!b) return;
+      if (b.dataset.tzf) tzSetFilter(b.dataset.tzf);
+      else if (b.dataset.tzs) tzSetSort(b.dataset.tzs);
+      else if (b.hasAttribute("data-tzs-toggle")) tzSetSort(TZW.sort === "az" ? "utc" : "az");
+      else if (b.dataset.pin) {
+        const pins = tzPins(), z = b.dataset.pin, i = pins.indexOf(z);
+        if (i >= 0) pins.splice(i, 1); else pins.push(z);
+        store(TZ_PIN, JSON.stringify(pins));
+        tzRender();
+        const again = $(`#tz-rows [data-pin="${CSS.escape(z)}"]`);
+        if (again) again.focus();
+      } else if (b.dataset.grp) {
+        const cc = b.dataset.grp;
+        if (TZW.open.has(cc)) { TZW.open.delete(cc); TZW.more.delete(cc); } else TZW.open.add(cc);
+        tzRender();
+        const again = $(`#tz-rows [data-grp="${CSS.escape(cc)}"]`);
+        if (again) again.focus();
+      } else if (b.dataset.more) { TZW.more.add(b.dataset.more); tzRender(); }
+      else if (b.dataset.tzAct === "clear") { $("#tz-q").value = ""; tzRender(); $("#tz-q").focus(); }
+      else if (b.dataset.tzAct === "all") { $("#tz-q").value = ""; tzSetFilter("all"); }
+      else if (b.dataset.tzAct === "retry") tzLoad();
+    });
   }
+
 
   function renderSources(data, now) {
     const enabled = data.sources.filter((s) => s.enabled);
@@ -655,7 +897,7 @@
     renderFree(data);
     renderCalendar(data, now_);
     renderEvents(data, now_);
-    renderTz(data, now_);
+    renderTz(data);
     renderSources(data, now_);
     renderDocuments(data);
     $("#footer").textContent = `Kaynak: KGM resmî tarifeleri · ${data.run_interval_minutes || 30} dakikada bir kontrol edilir.`;
