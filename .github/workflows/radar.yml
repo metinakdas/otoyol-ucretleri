@@ -121,7 +121,7 @@ jobs:
           mkdir -p _site/data
           cp -r panel/. _site/
           rm -f _site/ornek-*.json
-          for f in panel.json ucret-tablosu.json; do
+          for f in panel.json ucret-tablosu.json saat-dilimleri.json; do
             if [ -f "data/$f" ]; then cp "data/$f" "_site/data/$f"; fi
           done
 

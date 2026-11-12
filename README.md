@@ -350,7 +350,9 @@ sürümle karşılaştırılır (`data/saat-dilimleri.json`). Farklılaşan ülk
 
 > Paraguay (America/Asuncion): Şu andan itibaren UTC-03:00; eski kurala göre UTC-04:00 olacaktı. Yaz saati yok, sabit.
 
-Değişiklikler panelde **Duyurular → Saat dilimleri** altında da görünür. İlk turda bir kez "izleme başladı"
+Üst çubuktaki **Saat dilimleri** düğmesi (telefonda Duyurular → Saat dilimleri → Tüm ülkeleri gör) bütün ülkeleri
+şu anki UTC farkı, yerel saati ve sonraki yaz saati geçişiyle listeler; Türkçe ülke adı, şehir ya da `UTC+3` ile
+aranır. Son sürümlerde değişen bölgeler en üstte "eski → yeni" farkıyla görünür. İlk turda bir kez "izleme başladı"
 mesajı gelir. Kapatmak için `config/settings.yaml` içinde `saat_dilimi_izle: false` yapın.
 
 ## Bildirimler

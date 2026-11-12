@@ -44,6 +44,7 @@ def test_snapshot(snap):
     assert [x[1:] for x in berlin[:3]] == [[3600, False], [7200, True], [3600, False]]
     assert berlin[1][0] == "2027-03-28T01:00+00:00"  # yaz saati dakikasına kadar doğru
     assert len(snap["zones"]) > 300
+    assert snap["ulkeler"]["TR"] == "Turkey" and snap["ulkeler"]["DE"] == "Germany"
 
 
 def test_first_run_sends_setup_once(ortam):
@@ -73,6 +74,8 @@ def test_offset_change_reported(ortam, snap):
     assert store.read(sd.DOSYA, None)["tzdata"] == sd.surum()[0]  # görüntü yeni sürümle yenilendi
     ozet = sd.panel_ozeti(state)
     assert any("Europe/Istanbul" in x for x in ozet["degisiklikler"][0]["lines"])
+    assert ozet["farklar"]["Europe/Istanbul"]["eski"] == 7200 and ozet["farklar"]["Europe/Istanbul"]["yeni"] == 10800
+    assert ozet["farklar"]["America/Asuncion"]["eski"] is None and ozet["farklar"]["America/Asuncion"]["yeni"] == -10800
     assert not any(x.startswith("Kaynak:") or x.startswith("[SAAT") for x in ozet["degisiklikler"][0]["lines"])
     # Gönderilemezse sonraki turda yeniden denenir; gönderilince bir daha gelmez
     assert [x.key for x in sd.kontrol(cfg, store, state, sent, NOW)[0]] == [m.key]

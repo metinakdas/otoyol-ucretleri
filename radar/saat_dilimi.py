@@ -135,7 +135,10 @@ def anlik_goruntu(now: datetime, paket: str, iana: str) -> dict:
             zones[name] = {"cc": cc, "t": gecisler(bolge(name), start, end)}
         except Exception:  # paket bozuksa tek bölge yüzünden durma
             continue
-    return {"tzdata": paket, "iana": iana, "start": _iso(start), "end": _iso(end), "zones": zones}
+    names = ulkeler()
+    return {"tzdata": paket, "iana": iana, "start": _iso(start), "end": _iso(end),
+            "ulkeler": {cc: names[cc] for cc in sorted({z["cc"] for z in zones.values()}) if cc in names},
+            "zones": zones}
 
 
 # ---------------------------------------------------------------------------- karşılaştırma
@@ -208,9 +211,14 @@ def satirlar(farklar: list[dict]) -> list[str]:
 # ---------------------------------------------------------------------------- radar turu
 
 def _bildirim(key: str, subject: str, lines: list[str], at: datetime, channels: tuple[str, ...], kind: str,
-              iana: str) -> dict:
-    return {"key": key, "kind": kind, "at": to_iso(at), "iana": iana, "subject": subject, "lines": lines,
-            "channels": list(channels)}
+              iana: str, farklar: list[dict] | None = None) -> dict:
+    out = {"key": key, "kind": kind, "at": to_iso(at), "iana": iana, "subject": subject, "lines": lines,
+           "channels": list(channels)}
+    if farklar:  # panelde "eski → yeni" gösterimi için
+        out["farklar"] = [{"zone": f["zone"], "eski": None if f["yeni_bolge"] else f["eski"],
+                           "yeni": f["simdi"] if f["yeni_bolge"] else f["yeni"], "tarih": f.get("tarih")}
+                          for f in farklar]
+    return out
 
 
 def _mesaj(b: dict) -> Message:
@@ -249,12 +257,13 @@ def kontrol(cfg: Config, store: Store, state: dict, sent: dict, now: datetime) -
             body = ls[:EN_FAZLA_SATIR] + ([f"…ve {len(ls) - EN_FAZLA_SATIR} bölge daha (panelde)"] if len(ls) > EN_FAZLA_SATIR else [])
             lines = [f"[SAAT DİLİMİ DEĞİŞTİ] {ulke_sayisi} ülke · IANA tzdata {iana}", *body, f"Kaynak: {NEWS_URL}"]
             gecmis.append(_bildirim(f"saatdilimi:{iana or paket}", f"[Saat dilimi] {ulke_sayisi} ülkede değişiklik",
-                                    lines, now, ("telegram", "email"), "degisim", iana))
+                                    lines, now, ("telegram", "email"), "degisim", iana, farklar))
             notes.append(f"Saat dilimi: tzdata {iana}, {len(farklar)} bölgede değişiklik")
         else:
             notes.append(f"Saat dilimi: tzdata {iana} geldi; gelecekteki saat farklarında değişiklik yok")
         yazildi = store.write(DOSYA, anlik_goruntu(now, paket, iana))
-    elif _vkey(paket) == _vkey(eski.get("tzdata")) and _dt(eski["end"]) - now < timedelta(days=YENILE_GUN):
+    elif _vkey(paket) == _vkey(eski.get("tzdata")) and (
+            _dt(eski["end"]) - now < timedelta(days=YENILE_GUN) or "ulkeler" not in eski):
         yazildi = store.write(DOSYA, anlik_goruntu(now, paket, iana))
 
     if _vkey(paket) >= _vkey(info.get("tzdata")):
@@ -266,12 +275,18 @@ def kontrol(cfg: Config, store: Store, state: dict, sent: dict, now: datetime) -
 
 
 def panel_ozeti(state: dict) -> dict | None:
+    """Panel özeti. Bölgelerin tam listesi data/saat-dilimleri.json'dadır (pencere açılınca yüklenir)."""
     info = state.get(STATE_KEY)
     if not info:
         return None
+    son = [b for b in reversed(info.get("bildirimler") or []) if b["kind"] == "degisim"][:6]
+    farklar: dict[str, dict] = {}
+    for b in reversed(son):  # en yeni değişiklik kazanır
+        for f in b.get("farklar") or []:
+            farklar[f["zone"]] = {**f, "iana": b["iana"], "at": b["at"]}
     return {
         "iana": info.get("iana"),
         "kaynak": NEWS_URL,
-        "degisiklikler": [{"at": b["at"], "iana": b["iana"], "lines": b["lines"][1:-1]}
-                          for b in reversed(info.get("bildirimler") or []) if b["kind"] == "degisim"][:6],
+        "degisiklikler": [{"at": b["at"], "iana": b["iana"], "lines": b["lines"][1:-1]} for b in son],
+        "farklar": farklar,
     }

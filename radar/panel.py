@@ -156,7 +156,7 @@ def build(cfg: Config, *, events: dict, rules: dict, crossings_data: dict, state
 
 # Yerel sunucunun verebileceği dosyalar: panel klasörü ve iki veri dosyası. Proje kökündeki
 # .env (anahtarlar) ya da data/ altındaki diğer kayıtlar hiçbir koşulda sunulmaz.
-_SERVE_DATA = {"/data/panel.json", "/data/ucret-tablosu.json"}
+_SERVE_DATA = {"/data/panel.json", "/data/ucret-tablosu.json", "/data/saat-dilimleri.json"}
 _LOCAL_HOSTS = {"localhost", "127.0.0.1", "[::1]"}
 
 
