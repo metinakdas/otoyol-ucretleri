@@ -68,6 +68,7 @@ class Settings:
     heartbeat_minutes: int = 180
     run_interval_minutes: int = 30
     unusual_increase_pct: float = 100
+    tz_watch: bool = True
     # .env'den gelenler
     telegram_token: str = ""
     telegram_chat_id: str = ""
@@ -259,6 +260,7 @@ def load_config(root: Path | None = None, data_dir: Path | None = None) -> Confi
         heartbeat_minutes=int(raw_settings.get("heartbeat_dakika", 180)),
         run_interval_minutes=int(raw_settings.get("calisma_araligi_dakika", 30)),
         unusual_increase_pct=float(raw_settings.get("olagan_disi_artis_yuzde", 100)),
+        tz_watch=bool(raw_settings.get("saat_dilimi_izle", True)),
         telegram_token=os.environ.get("TELEGRAM_BOT_TOKEN", "").strip(),
         telegram_chat_id=os.environ.get("TELEGRAM_CHAT_ID", "").strip(),
         telegram_tech_chat_id=os.environ.get("TELEGRAM_TECH_CHAT_ID", "").strip(),

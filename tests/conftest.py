@@ -78,6 +78,7 @@ def cfg(tmp_path):
     s.smtp_host = ""
     s.email_to = []
     s.request_delay = 0
+    s.tz_watch = False  # saat dilimi izleme kendi testlerinde açılır
     s.panel_url = "https://ornek.github.io/otoyol/"
     return c
 

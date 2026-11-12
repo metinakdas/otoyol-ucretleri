@@ -43,6 +43,11 @@ olmayacak, amacımız bilgimizin olması"). Taksimetre güncellemesini insan yap
    **bölgelere ayırma** eklendi.
 7. Son olarak **GitHub'da herkese açık depo** olarak yayınlama istendi; güvenlik en üst düzeyde olmalı:
    anahtarlar gizli kalmalı, kimse Telegram üzerinden sahibine ulaşamamalı.
+8. **Saat dilimi izleme** (Kasım 2026): Bir ülkenin saat farkı değişince bildirim istendi. Windows'un kendi
+   verisi GitHub'ın Linux sunucusundan okunamadığı için tüm işletim sistemlerinin kaynağı olan IANA tz veritabanı
+   (`tzdata` paketi) izleniyor. Paket her turda yükseltiliyor (sürüm sabitleme kuralının tek istisnası; yalnızca
+   veri). Sürüm yükselince aynı 400 günlük pencere yeni kurallarla hesaplanıp eski görüntüyle karşılaştırılıyor;
+   paket eskiyse (yerel bilgisayar) hiçbir şey yapılmıyor. Ülke adları IANA'nın İngilizce listesinden.
 
 ---
 

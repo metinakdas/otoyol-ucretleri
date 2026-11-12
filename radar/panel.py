@@ -11,7 +11,7 @@ import webbrowser
 from datetime import datetime, timedelta
 from pathlib import Path
 
-from . import bolgeler
+from . import bolgeler, saat_dilimi
 from . import calendar as cal
 from . import prices as ledger
 from .config import Config
@@ -150,6 +150,7 @@ def build(cfg: Config, *, events: dict, rules: dict, crossings_data: dict, state
         "sources": sources,
         "calendar": periods,
         "bolgeler": bolgeler.panel_listesi(),
+        "saat_dilimi": saat_dilimi.panel_ozeti(state),
     }
 
 

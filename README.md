@@ -341,6 +341,18 @@ verir; `.env` ve diğer kayıtlar sunulmaz.
 "Keep my email addresses private" ve "Block command line pushes that expose my email" seçeneklerini
 işaretleyin.
 
+## Saat dilimi izleme
+
+Radar, dünya saat dilimlerini de izler. Kaynak, Windows, Android, iOS ve Linux'un da güncellendiği resmî
+**IANA saat dilimi veritabanı**dır (Python'da `tzdata` paketi). GitHub Actions her turda paketi en son sürüme
+yükseltir. Yeni sürüm geldiğinde her bölgenin önümüzdeki 400 gündeki UTC farkı ve yaz saati geçişleri önceki
+sürümle karşılaştırılır (`data/saat-dilimleri.json`). Farklılaşan ülkeler tek mesajla bildirilir, örneğin:
+
+> Paraguay (America/Asuncion): Şu andan itibaren UTC-03:00; eski kurala göre UTC-04:00 olacaktı. Yaz saati yok, sabit.
+
+Değişiklikler panelde **Duyurular → Saat dilimleri** altında da görünür. İlk turda bir kez "izleme başladı"
+mesajı gelir. Kapatmak için `config/settings.yaml` içinde `saat_dilimi_izle: false` yapın.
+
 ## Bildirimler
 
 | Ne zaman | Kanal | Başlık |
@@ -353,6 +365,7 @@ işaretleyin.
 | Açıklanan tarih değiştiğinde | Telegram + e-posta | `[TARİH DEĞİŞTİ]` |
 | Karar geri çekildiğinde | Telegram + e-posta | `[İPTAL / ERTELENDİ]` |
 | Bayram/yılbaşı izleme penceresi açıldığında | Telegram | `[İZLEME BAŞLADI]` |
+| Bir ülkenin saat farkı ya da yaz saati değiştiğinde | Telegram + e-posta | `[SAAT DİLİMİ DEĞİŞTİ]` |
 | Bir kaynak 24 saatten uzun okunamadığında | Teknik grup | `[KAYNAK HATASI]` |
 | Her sabah 08:00'den sonra (anlatacak bir şey varsa) | E-posta | Günlük özet |
 | Pazartesi | E-posta | Haftalık özet |

@@ -30,3 +30,7 @@ calisma_araligi_dakika: 30
 
 # Olağan dışı ücret değişimi eşiği (yüzde). Bu oranın üstündeki artışlar ve tüm düşüşler "kontrol et" etiketi alır.
 olagan_disi_artis_yuzde: 100
+
+# Dünya saat dilimi değişikliklerini izle (IANA tz veritabanı). Bir ülkenin saat farkı ya da yaz saati
+# değişince Telegram/WhatsApp/e-postayla bildirilir, panelde Duyurular > Saat dilimleri altında görünür.
+saat_dilimi_izle: true

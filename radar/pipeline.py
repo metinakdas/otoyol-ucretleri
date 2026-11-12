@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import httpx
 
 from . import calendar as cal
-from . import lifecycle, notify, ucret_tablosu
+from . import lifecycle, notify, saat_dilimi, ucret_tablosu
 from . import panel as panel_mod
 from . import prices as ledger
 from .collectors import Context, collect
@@ -131,6 +131,18 @@ def run_once(
             if note.startswith("Ücret tablosu:") and "güncellendi" in note:
                 report.written.append(ucret_tablosu.DOSYA)
 
+    # 1c) Dünya saat dilimleri (tzdata sürümü yükselince). Hata radarın asıl işini etkilemez.
+    tz_messages: list = []
+    if not dry_run:
+        try:
+            tz_messages, tz_notes, tz_written = saat_dilimi.kontrol(cfg, store, state, sent, now)
+            report.notes.extend(tz_notes)
+            if tz_written:
+                report.written.append(saat_dilimi.DOSYA)
+        except Exception as exc:
+            log.debug("Saat dilimi hatası", exc_info=True)
+            report.notes.append(f"Saat dilimi kontrolü yapılamadı: {redact(exc, cfg.settings)[:200]}")
+
     # 2) Takvim ve kayıtlar
     created_watch = cal.ensure_watch_events(events, cfg, now)
     for cand in candidates:
@@ -164,7 +176,7 @@ def run_once(
     kayitsiz = (state.get(ucret_tablosu.STATE_KEY) or {}).get("kayitsiz") or []
     messages = notify.plan(cfg, events, transitions, created_watch, health, sent, now,
                            first_run=report.first_run, n_prices=n_prices, notes=report.notes,
-                           kayitsiz_giseler=kayitsiz)
+                           kayitsiz_giseler=kayitsiz) + tz_messages
     if send or dry_run:
         report.messages = notify.deliver(cfg, messages, sent, now, dry_run=dry_run, client=notify_client)
     else:

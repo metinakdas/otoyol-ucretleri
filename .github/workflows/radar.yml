@@ -53,7 +53,11 @@ jobs:
 
       - name: Bağımlılıkları kur
         if: steps.ayar.outputs.hazir == 'true'
-        run: pip install -r requirements.txt
+        # tzdata bilerek en son sürüme yükseltilir: saat dilimi izleme yeni IANA sürümünü buradan görür.
+        # Paket yalnızca veri içerir ve Python çekirdek ekibince yayımlanır.
+        run: |
+          pip install -r requirements.txt
+          pip install --upgrade tzdata
 
       - name: Radar turu
         if: steps.ayar.outputs.hazir == 'true'

@@ -252,6 +252,18 @@
     }).join("");
   }
 
+  function renderTz(data, now) {
+    const t = data.saat_dilimi;
+    $("#tz-fold").hidden = !t;
+    if (!t) return;
+    const list = t.degisiklikler || [];
+    $("#tz-v").textContent = list.length ? `${list.length} değişiklik` : "Değişiklik yok";
+    $("#tz-list").innerHTML = (list.length ? list.map((c) => `<li><div class="top"><span class="title">IANA tzdata ${esc(c.iana)}</span><span class="when">${esc(ago(c.at, now))}</span></div>
+        ${c.lines.map((l) => `<div class="sub">${esc(l)}</div>`).join("")}</li>`).join("")
+      : `<li class="empty">Son sürümde gelecekteki saat farklarında değişiklik yok.</li>`)
+      + `<li class="empty">IANA tzdata ${esc(t.iana || "?")} izleniyor · ${link(t.kaynak, "IANA duyuruları")}</li>`;
+  }
+
   function renderSources(data, now) {
     const enabled = data.sources.filter((s) => s.enabled);
     const failing = enabled.filter((s) => s.ok === false).length;
@@ -551,6 +563,7 @@
     renderFree(data);
     renderCalendar(data, now_);
     renderEvents(data, now_);
+    renderTz(data, now_);
     renderSources(data, now_);
     renderDocuments(data);
     $("#footer").textContent = `Kaynak: KGM resmî tarifeleri · ${data.run_interval_minutes || 30} dakikada bir kontrol edilir.`;
