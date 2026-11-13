@@ -905,15 +905,19 @@ details[open] > summary .chev { transform: rotate(180deg); }
   .panel {
     position: fixed; z-index: 25; top: auto; left: 0; right: 0; bottom: var(--tabbar-h); width: auto;
     max-height: 56dvh; border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -8px 24px rgba(14, 31, 26, 0.1);
-    transition: max-height 220ms ease-out, transform 220ms ease-out;
   }
   .panel.is-expanded { max-height: calc(100dvh - 96px); }
   .panel:has(#trip .combo-list:not([hidden])) { min-height: 0; }
   .panel.is-collapsed { max-height: 74px; }
   .panel.is-collapsed .tab-panel { overflow: hidden; }
-  .panel.is-collapsed .tab-panel > :not(.m-head, .k-head):not(:has(.m-head)), .panel.is-collapsed .tarif-chip,
-  .panel.is-collapsed .m-head ~ * { visibility: hidden; }
-  .panel.is-dragging { transition: none; }
+  .panel.is-collapsed:not(.is-dragging, .is-snapping) .tab-panel > :not(.m-head, .k-head):not(:has(.m-head)),
+  .panel.is-collapsed:not(.is-dragging, .is-snapping) .tarif-chip,
+  .panel.is-collapsed:not(.is-dragging, .is-snapping) .m-head ~ * { visibility: hidden; }
+  /* Sürükleme ve yerine oturma JS'teki yükseklikle; geçiş yalnızca yükseklikte */
+  .panel.is-dragging, .panel.is-snapping { max-height: none; }
+  .panel.is-snapping { transition: height 280ms cubic-bezier(0.22, 0.9, 0.3, 1); }
+  .panel.is-dragging, .panel.is-measuring { transition: none; }
+  .panel.is-dragging .tab-panel { overflow: hidden; }
   .sheet-handle, .m-head, .k-head { touch-action: none; }
   .sheet-handle { display: flex; justify-content: center; flex: none; width: 100%; height: 26px; padding: 10px 0 0; border: 0; background: transparent; cursor: grab; }
   .sheet-handle span { width: 40px; height: 5px; border-radius: 3px; background: var(--line-2); }
@@ -952,7 +956,7 @@ details[open] > summary .chev { transform: rotate(180deg); }
   .xbox:not(.is-open) { display: none; }
 
   /* Gişe arama: tam ekran sayfa */
-  .panel.is-search { top: 24px; bottom: 0; max-height: none; z-index: 40; border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
+  .panel.is-search { top: 24px; bottom: 0; max-height: none; height: auto !important; z-index: 40; border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
   .panel.is-search .m-head, .panel.is-search .opt-chips, .panel.is-search #veh-block, .panel.is-search .xbox,
   .panel.is-search #trip-result, .panel.is-search .quick, .panel.is-search .official, .panel.is-search .osm-credit,
   .panel.is-search .route-fields .swap, .panel.is-search .sample-note { display: none !important; }

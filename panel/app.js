@@ -106,67 +106,171 @@
       const b = e.target.closest("[data-tab]");
       if (!b) return;
       selectTab(b.dataset.tab);
-      $("#panel").classList.remove("is-expanded", "is-collapsed");
+      if (window.RadarSheet) window.RadarSheet.set(1);
     });
     bindSheet();
   }
 
-  // Telefonda alt panel üç konumda durur: kapalı (yalnızca başlık), orta, tam. Tutamaçtan ya da başlıktan
-  // sürüklenir; tutamağa dokunmak bir üst konuma geçirir.
+  // Telefonda alt panel üç konumda durur: kapalı (yalnızca başlık), orta, tam. Panel parmağı iki yönde de
+  // izler; bırakınca hıza ya da en yakın konuma göre yerine oturur. Tutamaç ve başlıktan her zaman, içerikten
+  // ise en üstteyken aşağı çekerek (ya da sığmıyorsa yukarı iterek) sürüklenir. Animasyon gerçek yükseklik
+  // üzerindendir; max-height geçişindeki "boşta bekleme" yoktur.
   function bindSheet() {
     const p = $("#panel"), h = $("#sheet-handle");
+    const mobile = window.matchMedia("(max-width: 900px)");
+    const CLS = ["is-collapsed", "", "is-expanded"];
     const cur = () => (p.classList.contains("is-expanded") ? 2 : p.classList.contains("is-collapsed") ? 0 : 1);
-    const set = (n) => {
+    const classes = (n) => {
       p.classList.toggle("is-expanded", n === 2);
       p.classList.toggle("is-collapsed", n === 0);
+    };
+    // Her konumun CSS'teki gerçek yüksekliği (içerik kısaysa orta ile tam aynı olabilir)
+    const heights = () => {
+      const n = cur(), inline = p.style.height;
+      const had = ["is-measuring", "is-dragging", "is-snapping"].filter((c) => p.classList.contains(c));
+      p.classList.remove("is-dragging", "is-snapping");
+      p.classList.add("is-measuring");
+      p.style.height = "";
+      const out = [0, 1, 2].map((i) => { classes(i); return p.offsetHeight; });
+      classes(n);
+      p.style.height = inline;
+      p.classList.remove("is-measuring");
+      p.classList.add(...had);
+      return out;
+    };
+    let anim = 0;
+    const set = (n, fromH) => {
+      n = Math.max(0, Math.min(2, n));
+      if (!mobile.matches || p.classList.contains("is-search")) { classes(n); return; }
+      const hs = heights();
+      const start = fromH != null ? fromH : p.offsetHeight;
+      clearTimeout(anim);
+      p.classList.add("is-measuring");      // geçişsiz: başlangıç yüksekliğine sabitle
+      p.style.height = start + "px";
+      classes(n);
       h.setAttribute("aria-expanded", String(n > 0));
-      setTimeout(() => window.RadarMap && window.RadarMap.invalidate(), 240);
+      void p.offsetHeight;
+      p.classList.remove("is-measuring");
+      p.classList.add("is-snapping");
+      p.style.height = hs[n] + "px";
+      const done = () => {
+        clearTimeout(anim);
+        p.removeEventListener("transitionend", onEnd);
+        p.classList.remove("is-snapping");
+        p.style.height = "";
+        if (window.RadarMap) window.RadarMap.invalidate();
+      };
+      const onEnd = (e) => { if (e.target === p && e.propertyName === "height") done(); };
+      p.addEventListener("transitionend", onEnd);
+      anim = setTimeout(done, Math.abs(hs[n] - start) < 2 ? 0 : 400);
     };
-    let drag = null, moved = false;
-    const down = (e) => {
-      if (e.pointerType === "mouse" && e.button !== 0) return;
-      if (e.target.closest("button:not(.sheet-handle), input, select, a")) return;
-      drag = { y: e.clientY, id: e.pointerId, el: e.currentTarget, dy: 0 };
-      moved = false;
+    // Dokunma: tutamak bir üst konuma (en üstteyse ortaya); kapalıyken başlık açar
+    const tapHandle = () => {
+      const n = cur(), hs = heights();
+      if (n === 0) set(1);
+      else if (n === 1) set(hs[2] > hs[1] + 8 ? 2 : 0);
+      else set(1);
     };
-    const move = (e) => {
-      if (!drag || e.pointerId !== drag.id) return;
-      drag.dy = e.clientY - drag.y;
-      if (!moved && Math.abs(drag.dy) < 6) return;
-      if (!moved) { moved = true; p.classList.add("is-dragging"); try { drag.el.setPointerCapture(drag.id); } catch (_) {} }
-      e.preventDefault();
-      p.style.transform = drag.dy > 0 ? `translateY(${Math.min(drag.dy, p.offsetHeight - 40)}px)` : "";
+
+    let g = null, swallow = 0;
+    const tabPanel = () => p.querySelector(".tab-panel:not([hidden])");
+    const begin = (y, target, kind) => {
+      if (!mobile.matches || p.classList.contains("is-search")) return;
+      const onHead = !!target.closest(".sheet-handle, .m-head, .k-head");
+      const onCtl = !!target.closest("button:not(.sheet-handle), input, select, textarea, a, label");
+      g = { y, kind, onHead, onCtl, handle: !!target.closest(".sheet-handle"), live: false, done: false, pts: [[y, performance.now()]] };
     };
-    const up = (e) => {
-      if (!drag || e.pointerId !== drag.id) return;
-      const { dy, el } = drag;
-      drag = null;
-      p.classList.remove("is-dragging");
-      p.style.transform = "";
-      if (e.type === "pointercancel") return;
-      if (!moved) {  // dokunma: tutamak bir üst konuma, kapalı başlık ortaya
-        if (el === h) set(cur() === 2 ? 1 : cur() + 1);
-        else if (cur() === 0) set(1);
+    const shouldGrab = (dy) => {
+      if (g.onHead) return true;
+      const n = cur(), tp = tabPanel();
+      if (n === 0) return true;
+      if (dy > 0) return !tp || tp.scrollTop <= 0;                 // içerik en üstte: aşağı çek = paneli indir
+      if (n === 1) { const hs = heights(); return hs[2] > hs[1] + 8; } // ortada ve sığmıyor: yukarı it = büyüt
+      return false;
+    };
+    const moveTo = (y, ev) => {
+      if (!g || g.done) return;
+      const dy = y - g.y;
+      if (!g.live) {
+        if (Math.abs(dy) < 6) return;
+        if (!shouldGrab(dy)) { g.done = true; return; }  // içerik kaydırması; bu harekette karışma
+        g.live = true;
+        g.hs = heights();
+        clearTimeout(anim);
+        p.classList.remove("is-snapping");
+        g.h0 = p.offsetHeight;
+        g.n0 = cur();
+        g.pts = [[y, performance.now()]];
+        p.classList.add("is-dragging");
+        if (document.activeElement && p.contains(document.activeElement) && document.activeElement.blur) document.activeElement.blur();
+      }
+      if (ev && ev.cancelable) ev.preventDefault();
+      const max = g.hs[2], min = g.hs[0];
+      let nh = g.h0 - (y - g.y);
+      if (nh > max) nh = max + (nh - max) * 0.25;   // uçlarda lastik etkisi
+      if (nh < min) nh = min - (min - nh) * 0.25;
+      p.style.height = Math.round(nh) + "px";
+      g.pts.push([y, performance.now()]);
+      if (g.pts.length > 5) g.pts.shift();
+    };
+    const end = (cancel) => {
+      if (!g) return;
+      const s = g; g = null;
+      if (!s.live) {
+        if (cancel || s.done) return;
+        if (s.handle) { tapHandle(); swallow = Date.now(); }
+        else if (s.onHead && !s.onCtl && cur() === 0) { set(1); swallow = Date.now(); }
         return;
       }
-      if (dy > 40) set(Math.max(0, cur() - (dy > 260 ? 2 : 1)));
-      else if (dy < -40) set(Math.min(2, cur() + 1));
+      swallow = Date.now();
+      const nowH = p.offsetHeight;            // sürükleme sınıfı kalkmadan (max-height devreye girmeden) ölç
+      p.classList.remove("is-dragging");
+      // Son ~100 ms'deki hız (px/ms, + aşağı)
+      const t1 = s.pts[s.pts.length - 1];
+      const t0 = s.pts.find((q) => t1[1] - q[1] <= 100) || s.pts[0];
+      const v = t1[1] - t0[1] > 0 ? (t1[0] - t0[0]) / (t1[1] - t0[1]) : 0;
+      const hs = s.hs, moved = nowH - s.h0;     // + yukarı (büyüdü)
+      const dir = Math.abs(v) > 0.3 ? -Math.sign(v) : Math.abs(moved) > 48 ? Math.sign(moved) : 0;
+      let n = s.n0;
+      if (dir) {
+        // O yöndeki konumlardan bırakılan yüksekliğe en yakını (en az bir adım ilerler)
+        const ahead = [0, 1, 2].filter((i) => (dir > 0 ? hs[i] > s.h0 + 4 : hs[i] < s.h0 - 4));
+        if (ahead.length) {
+          n = ahead.reduce((b2, i) => (Math.abs(hs[i] - nowH) < Math.abs(hs[b2] - nowH) ? i : b2));
+          if (dir < 0 && v > 1.5) n = 0;        // çok hızlı aşağı: doğrudan kapat
+        }
+      }
+      if (n === 2 && hs[2] <= hs[1] + 8) n = 1;
+      set(n, nowH);
     };
-    for (const el of [h, ...document.querySelectorAll("#panel .m-head, #panel .k-head")]) {
-      el.addEventListener("pointerdown", down);
-      el.addEventListener("pointermove", move);
-      el.addEventListener("pointerup", up);
-      el.addEventListener("pointercancel", up);
-    }
-    // Fare/dokunma pointerup'ta işlenir; click yalnızca klavye (Enter/Boşluk) içindir
-    h.addEventListener("click", (e) => { if (e.detail === 0) set(cur() === 2 ? 1 : cur() + 1); });
-    // Kapalıyken gizli içeriğe tıklanmasın, panel açılsın
+
+    // Dokunmatik (touchmove pasif değil: sürüklerken sayfa/içerik kaymasın)
+    p.addEventListener("touchstart", (e) => { if (e.touches.length === 1) begin(e.touches[0].clientY, e.target, "touch"); else end(true); }, { passive: true });
+    p.addEventListener("touchmove", (e) => { if (g && g.kind === "touch") moveTo(e.touches[0].clientY, e); }, { passive: false });
+    p.addEventListener("touchend", () => { if (g && g.kind === "touch") end(false); });
+    p.addEventListener("touchcancel", () => { if (g && g.kind === "touch") end(true); });
+    // Fare (masaüstü tarayıcı dar pencerede): yalnızca tutamak ve başlıktan
+    p.addEventListener("pointerdown", (e) => {
+      if (e.pointerType !== "mouse" || e.button !== 0 || !e.target.closest(".sheet-handle, .m-head, .k-head")) return;
+      begin(e.clientY, e.target, "mouse");
+      const mv = (ev) => moveTo(ev.clientY, ev);
+      const up = () => { window.removeEventListener("pointermove", mv); window.removeEventListener("pointerup", up); end(false); };
+      window.addEventListener("pointermove", mv);
+      window.addEventListener("pointerup", up);
+    });
+    // Klavye: Enter/Boşluk tutamağı bir konum ilerletir (dokunma/fare yukarıda işlendi)
+    h.addEventListener("click", (e) => { if (e.detail === 0) tapHandle(); });
+    // Sürükleme ya da açma dokunuşunun ardından gelen tıklamayı yut; kapalıyken gizli içerik tıklanmasın
     p.addEventListener("click", (e) => {
-      if (!p.classList.contains("is-collapsed") || e.target.closest(".sheet-handle")) return;
-      e.preventDefault(); e.stopPropagation();
-      set(1);
+      if (Date.now() - swallow < 450) { e.preventDefault(); e.stopPropagation(); return; }
+      if (p.classList.contains("is-collapsed") && !e.target.closest(".sheet-handle")) {
+        e.preventDefault(); e.stopPropagation();
+        set(1);
+      }
     }, true);
-    window.RadarSheet = { open: () => { if (cur() === 0) set(1); } };
+    // open: içerik (ör. yeni hesap sonucu) çizildikten sonra ölçülsün diye bir kare sonra
+    window.RadarSheet = { open: () => { if (cur() === 0) requestAnimationFrame(() => { if (cur() === 0) set(1); }); },
+      set, state: () => CLS[cur()] };
   }
 
   // Sınıf seçimi hesap, köprü listesi ve harita arasında ortaktır.
@@ -747,7 +851,7 @@
       if (f) {
         e.preventDefault();
         if (window.RadarMap) window.RadarMap.focusCrossing(f.dataset.mapFocus);
-        $("#panel").classList.remove("is-expanded");
+        if (window.RadarSheet && window.RadarSheet.state() === "is-expanded") window.RadarSheet.set(1);
         return;
       }
       const a = e.target.closest("[data-add-extra]");
