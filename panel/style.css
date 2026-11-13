@@ -906,7 +906,12 @@ details[open] > summary .chev { transform: rotate(180deg); }
     position: fixed; z-index: 25; top: auto; left: 0; right: 0; bottom: var(--tabbar-h); width: auto;
     max-height: 56dvh; border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -8px 24px rgba(14, 31, 26, 0.1);
   }
-  .panel.is-expanded { max-height: calc(100dvh - 96px); }
+  /* Tam: içerik kısa olsa da ekranı kaplar (sekme çubuğu altta kalır; çentik/saat için üst boşluk) */
+  .panel.is-expanded {
+    max-height: none; height: calc(100dvh - var(--tabbar-h)); border-radius: 0;
+    padding-top: env(safe-area-inset-top, 0px); box-shadow: none;
+  }
+  .panel.is-expanded.is-dragging { border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
   .panel:has(#trip .combo-list:not([hidden])) { min-height: 0; }
   .panel.is-collapsed { max-height: 74px; }
   .panel.is-collapsed .tab-panel { overflow: hidden; }
@@ -915,7 +920,7 @@ details[open] > summary .chev { transform: rotate(180deg); }
   .panel.is-collapsed:not(.is-dragging, .is-snapping) .m-head ~ * { visibility: hidden; }
   /* Sürükleme ve yerine oturma JS'teki yükseklikle; geçiş yalnızca yükseklikte */
   .panel.is-dragging, .panel.is-snapping { max-height: none; }
-  .panel.is-snapping { transition: height 280ms cubic-bezier(0.22, 0.9, 0.3, 1); }
+  .panel.is-snapping { transition: height 280ms cubic-bezier(0.22, 0.9, 0.3, 1), border-radius 280ms ease-out; }
   .panel.is-dragging, .panel.is-measuring { transition: none; }
   .panel.is-dragging .tab-panel { overflow: hidden; }
   .sheet-handle, .m-head, .k-head { touch-action: none; }

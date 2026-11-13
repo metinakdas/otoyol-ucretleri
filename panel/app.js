@@ -106,7 +106,7 @@
       const b = e.target.closest("[data-tab]");
       if (!b) return;
       selectTab(b.dataset.tab);
-      if (window.RadarSheet) window.RadarSheet.set(1);
+      if (window.RadarSheet && window.RadarSheet.state() === "is-collapsed") window.RadarSheet.set(1);
     });
     bindSheet();
   }
