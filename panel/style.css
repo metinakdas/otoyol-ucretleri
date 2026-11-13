@@ -904,13 +904,16 @@ details[open] > summary .chev { transform: rotate(180deg); }
 
   .panel {
     position: fixed; z-index: 25; top: auto; left: 0; right: 0; bottom: var(--tabbar-h); width: auto;
-    max-height: 56dvh; border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -8px 24px rgba(14, 31, 26, 0.1);
+    max-height: 56vh; max-height: 56dvh; border-radius: var(--r-sheet) var(--r-sheet) 0 0; box-shadow: 0 -8px 24px rgba(14, 31, 26, 0.1);
   }
   /* Tam: içerik kısa olsa da ekranı kaplar (sekme çubuğu altta kalır; çentik/saat için üst boşluk) */
+  /* dvh'ye güvenmeden: üstten sabitlenir (WhatsApp/Instagram içi tarayıcı, eski iOS, açılıp kapanan adres çubuğu) */
   .panel.is-expanded {
-    max-height: none; height: calc(100dvh - var(--tabbar-h)); border-radius: 0;
+    top: 0; height: auto; max-height: none; border-radius: 0;
     padding-top: env(safe-area-inset-top, 0px); box-shadow: none;
   }
+  /* Sürüklerken ve yerine otururken yüksekliği JS verir; alttan sabit kalsın */
+  .panel.is-dragging, .panel.is-snapping { top: auto !important; }
   .panel.is-expanded.is-dragging { border-radius: var(--r-sheet) var(--r-sheet) 0 0; }
   .panel:has(#trip .combo-list:not([hidden])) { min-height: 0; }
   .panel.is-collapsed { max-height: 74px; }
