@@ -805,7 +805,8 @@ window.RadarHesap = (function () {
     setTimeout(() => { label.textContent = back; }, 1600);
   }
   async function copyLink(btn) {
-    try { await navigator.clipboard.writeText(location.href); flash(btn, "Kopyalandı", "Bağlantı"); }
+    const url = location.origin + location.pathname + location.search + shareHash();
+    try { await navigator.clipboard.writeText(url); flash(btn, "Kopyalandı", "Bağlantı"); }
     catch (e) { flash(btn, "Kopyalanamadı", "Bağlantı"); }
   }
 
@@ -852,7 +853,7 @@ window.RadarHesap = (function () {
     document.body.classList.toggle("has-route", hasResult);
     renderQuick();
     drawRoute(keepView);
-    writeHash();
+    clearHash();
     if (hasResult) remember(false);
     if (S.onChange) S.onChange({ hasResult, hasAny: !!(S.entry || S.exit || S.extra.size) });
   }
@@ -927,13 +928,19 @@ window.RadarHesap = (function () {
 
   // ------------------------------------------------------------ adres çubuğu
 
-  function writeHash() {
+  // Rota adres çubuğunda tutulmaz (sayfa açılınca alanlar boş gelsin); paylaşım bağlantısı kopyalanırken üretilir.
+  function shareHash() {
+    // Biçim: #hesap=<giriş otoyolu>/<giriş sırası>/<çıkış otoyolu>/<çıkış sırası>/<sınıf>[/<köprü,tünel>]
+    const a = S.entry, b = S.exit, x = picked().map((c) => encodeURIComponent(c.id)).join(",");
+    const end = (s) => (s ? `${encodeURIComponent(s.road.id || "")}/${s.i}` : "/");
+    return a || b || x ? `#hesap=${end(a)}/${end(b)}/${S.cls}${x ? "/" + x : ""}` : "";
+  }
+  // Paylaşılan bağlantıyla gelindiyse rota okunduktan sonra adres temizlenir; yenileyince boş açılır.
+  function clearHash() {
     try {
-      // Biçim: #hesap=<giriş otoyolu>/<giriş sırası>/<çıkış otoyolu>/<çıkış sırası>/<sınıf>[/<köprü,tünel>]
-      const a = S.entry, b = S.exit, x = picked().map((c) => encodeURIComponent(c.id)).join(",");
-      const end = (s) => (s ? `${encodeURIComponent(s.road.id || "")}/${s.i}` : "/");
-      const hash = a || b || x ? `#hesap=${end(a)}/${end(b)}/${S.cls}${x ? "/" + x : ""}` : "";
-      if (location.hash !== hash) history.replaceState(null, "", location.pathname + location.search + hash);
+      if (!/(?:^#|&)hesap=/.test(location.hash || "")) return;
+      const rest = location.hash.slice(1).split("&").filter((p) => !p.startsWith("hesap=")).join("&");
+      history.replaceState(null, "", location.pathname + location.search + (rest ? "#" + rest : ""));
     } catch (e) { /* önemli değil */ }
   }
   function readHash() {
