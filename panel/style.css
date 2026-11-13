@@ -275,6 +275,20 @@ svg { flex: none; }
 }
 .field input::placeholder { color: var(--muted); font-weight: 400; }
 .f-dot, .f-road { display: none; }
+/* × temizle: alan doluyken görünür */
+.f-clear {
+  position: absolute; top: 50%; right: 10px; transform: translateY(-50%); display: none; place-items: center; flex: none;
+  width: 28px; height: 28px; padding: 0; border: 0; border-radius: 50%; cursor: pointer;
+  background: var(--surface-2); color: var(--muted); transition: background var(--ease), color var(--ease);
+}
+.f-clear:not([hidden]) { display: grid; }
+.f-clear:hover { background: var(--line-2); color: var(--text); }
+.f-clear:focus-visible { outline: 2px solid var(--brand); outline-offset: 1px; }
+.f-clear svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.field:has(.f-clear:not([hidden])) input { padding-right: 34px; }
+/* Satır düzeninde (sonuç varken ve telefonda) akışın içinde, yol adının sağında */
+.route-fields.is-compact .f-clear { position: static; transform: none; margin-right: -4px; }
+.route-fields.is-compact .field:has(.f-clear:not([hidden])) input { padding-right: 0; }
 
 /* Sonuç varken giriş/çıkış tek kutuda özetlenir (aynı alanlar, sıkışık görünüm) */
 .route-fields.is-compact { grid-template-columns: minmax(0, 1fr) 44px; row-gap: 0; }
@@ -945,6 +959,8 @@ details[open] > summary .chev { transform: rotate(180deg); }
   .route-fields .swap { grid-column: 2; }
   .route-fields .field { flex-direction: row; align-items: center; gap: 10px; height: 48px; padding: 0 12px; }
   .route-fields .field:focus-within { padding: 0 11px; }
+  .route-fields .f-clear { position: static; transform: none; width: 32px; height: 32px; margin-right: -6px; }
+  .route-fields .field:has(.f-clear:not([hidden])) input { padding-right: 0; }
   .route-fields #combo-giris .field { border-radius: 12px 12px 0 0; border-bottom-color: transparent; }
   .route-fields #combo-cikis .field { border-radius: 0 0 12px 12px; }
   .route-fields #combo-cikis .field::before { content: ""; position: absolute; top: -1px; left: 42px; right: 0; height: 1px; background: var(--line); }

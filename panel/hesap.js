@@ -427,8 +427,23 @@ window.RadarHesap = (function () {
     const choose = (key) => { close(); input.blur(); pick(role, key); };
     const chooseRecent = (n) => { close(); input.blur(); applyRecent(recents()[n]); };
 
+    // ×: bu noktayı temizler. Masaüstünde yeni seçim için liste açılır; telefonda tam ekran arama açılmaz.
+    const clr = $(`#${role}-clear`);
+    clr.addEventListener("mousedown", (e) => e.preventDefault());   // yazarken odak kaçmasın
+    clr.addEventListener("click", (e) => {
+      e.preventDefault(); e.stopPropagation();
+      const typing = document.activeElement === input;
+      if (role === "giris") S.entry = null; else S.exit = null;
+      S.alt = 0; S.more = ""; S.view = "main";
+      input.value = "";
+      update();
+      if (typing) open(true);
+      else if (!narrow()) input.focus();
+      else { close(); clr.hidden = true; }
+    });
+
     input.addEventListener("focus", () => { input.select(); open(true); });
-    input.addEventListener("input", () => open(false));
+    input.addEventListener("input", () => { clr.hidden = !input.value && !(role === "giris" ? S.entry : S.exit); open(false); });
     input.addEventListener("blur", () => setTimeout(() => { if (document.activeElement !== input) { close(); syncInputs(); } }, 150));
     input.addEventListener("keydown", (e) => {
       const n = picks().length;
@@ -458,6 +473,8 @@ window.RadarHesap = (function () {
     const tiny = (s) => roadShort(s.road).replace(/\s+Otoyolu$/, "");
     $("#giris-road").textContent = S.entry ? tiny(S.entry) : "";
     $("#cikis-road").textContent = S.exit ? tiny(S.exit) : "";
+    $("#giris-clear").hidden = !S.entry && !gi.value;
+    $("#cikis-clear").hidden = !S.exit && !ci.value;
   }
 
   // ------------------------------------------------------------ seçim
