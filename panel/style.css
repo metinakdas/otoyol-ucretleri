@@ -677,13 +677,13 @@ details[open] > summary .chev { transform: rotate(180deg); }
 }
 .layer-chip[aria-pressed="true"] { background: var(--chip-on); color: var(--chip-on-ink); }
 .layer-chip .n { font-family: var(--ov); opacity: 0.7; font-variant-numeric: tabular-nums; }
-.layer-chip svg, .tool-btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.layer-chip svg, .fp-chip svg, .tool-btn svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .tool-btn.icon-only { width: 44px; padding: 0; justify-content: center; }
 .tool-btn.icon-only svg { width: 20px; height: 20px; }
 .sw-gate { width: 12px; height: 12px; border-radius: 50%; background: #fff; border: 2px solid #6fd4b4; flex: none; }
-.layer-chip[aria-pressed="false"] .sw-gate { border-color: var(--brand); }
+.layer-chip[aria-pressed="false"] .sw-gate, .fp-chip[aria-pressed="false"] .sw-gate { border-color: var(--brand); }
 .sw-sgs { width: 8px; height: 8px; transform: rotate(45deg); background: #a78bfa; flex: none; margin: 0 2px; }
-.layer-chip[aria-pressed="false"] .sw-sgs { background: var(--free); }
+.layer-chip[aria-pressed="false"] .sw-sgs, .fp-chip[aria-pressed="false"] .sw-sgs { background: var(--free); }
 .filter-btn.is-on { box-shadow: var(--sh-2), inset 0 0 0 2px var(--brand); color: var(--brand-ink); }
 .active-filters { display: inline-flex; gap: 6px; flex-wrap: wrap; flex-basis: 100%; justify-content: flex-end; }
 .active-filters:empty { display: none; }
