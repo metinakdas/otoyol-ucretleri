@@ -798,6 +798,7 @@ window.RadarHesap = (function () {
     syncInputs();
     const hasResult = !!(S.entry && S.exit);
     const panel = $("#panel");
+    if (hasResult && !keepView && window.RadarSheet) window.RadarSheet.open();  // kapatılmışsa sonucu göster
     $("#route-fields").classList.toggle("is-compact", hasResult);
     $("#opt-chips").hidden = !hasResult;
     const veh = $("#veh-block");

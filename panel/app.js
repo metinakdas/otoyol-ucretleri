@@ -106,13 +106,67 @@
       const b = e.target.closest("[data-tab]");
       if (!b) return;
       selectTab(b.dataset.tab);
-      $("#panel").classList.remove("is-expanded");
+      $("#panel").classList.remove("is-expanded", "is-collapsed");
     });
-    $("#sheet-handle").addEventListener("click", () => {
-      const p = $("#panel");
-      p.classList.toggle("is-expanded");
+    bindSheet();
+  }
+
+  // Telefonda alt panel üç konumda durur: kapalı (yalnızca başlık), orta, tam. Tutamaçtan ya da başlıktan
+  // sürüklenir; tutamağa dokunmak bir üst konuma geçirir.
+  function bindSheet() {
+    const p = $("#panel"), h = $("#sheet-handle");
+    const cur = () => (p.classList.contains("is-expanded") ? 2 : p.classList.contains("is-collapsed") ? 0 : 1);
+    const set = (n) => {
+      p.classList.toggle("is-expanded", n === 2);
+      p.classList.toggle("is-collapsed", n === 0);
+      h.setAttribute("aria-expanded", String(n > 0));
       setTimeout(() => window.RadarMap && window.RadarMap.invalidate(), 240);
-    });
+    };
+    let drag = null, moved = false;
+    const down = (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      if (e.target.closest("button:not(.sheet-handle), input, select, a")) return;
+      drag = { y: e.clientY, id: e.pointerId, el: e.currentTarget, dy: 0 };
+      moved = false;
+    };
+    const move = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      drag.dy = e.clientY - drag.y;
+      if (!moved && Math.abs(drag.dy) < 6) return;
+      if (!moved) { moved = true; p.classList.add("is-dragging"); try { drag.el.setPointerCapture(drag.id); } catch (_) {} }
+      e.preventDefault();
+      p.style.transform = drag.dy > 0 ? `translateY(${Math.min(drag.dy, p.offsetHeight - 40)}px)` : "";
+    };
+    const up = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const { dy, el } = drag;
+      drag = null;
+      p.classList.remove("is-dragging");
+      p.style.transform = "";
+      if (e.type === "pointercancel") return;
+      if (!moved) {  // dokunma: tutamak bir üst konuma, kapalı başlık ortaya
+        if (el === h) set(cur() === 2 ? 1 : cur() + 1);
+        else if (cur() === 0) set(1);
+        return;
+      }
+      if (dy > 40) set(Math.max(0, cur() - (dy > 260 ? 2 : 1)));
+      else if (dy < -40) set(Math.min(2, cur() + 1));
+    };
+    for (const el of [h, ...document.querySelectorAll("#panel .m-head, #panel .k-head")]) {
+      el.addEventListener("pointerdown", down);
+      el.addEventListener("pointermove", move);
+      el.addEventListener("pointerup", up);
+      el.addEventListener("pointercancel", up);
+    }
+    // Fare/dokunma pointerup'ta işlenir; click yalnızca klavye (Enter/Boşluk) içindir
+    h.addEventListener("click", (e) => { if (e.detail === 0) set(cur() === 2 ? 1 : cur() + 1); });
+    // Kapalıyken gizli içeriğe tıklanmasın, panel açılsın
+    p.addEventListener("click", (e) => {
+      if (!p.classList.contains("is-collapsed") || e.target.closest(".sheet-handle")) return;
+      e.preventDefault(); e.stopPropagation();
+      set(1);
+    }, true);
+    window.RadarSheet = { open: () => { if (cur() === 0) set(1); } };
   }
 
   // Sınıf seçimi hesap, köprü listesi ve harita arasında ortaktır.
