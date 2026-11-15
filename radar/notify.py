@@ -6,6 +6,7 @@ data/notifications.json'da tutulur; aynı bildirim iki kez gitmez.
 
 from __future__ import annotations
 
+import html
 import logging
 import re
 import smtplib
@@ -28,6 +29,13 @@ log = logging.getLogger(__name__)
 TELEGRAM_LIMIT = 4000
 META_PARAM_LIMIT = 900   # şablon gövdesi en fazla 1024 karakter (şablonun kendi metniyle birlikte)
 META_API = "https://graph.facebook.com/v25.0"
+
+# E-posta arızası: hesap kilitlenmesin diye bir mesaj için en fazla bu kadar denenir; uyarı en sık bu aralıkla tekrarlanır.
+EMAIL_GIVE_UP = timedelta(days=3)
+EMAIL_ALERT_EVERY = timedelta(hours=24)
+EMAIL_FAIL_KEY = "eposta-hata:baslangic"   # e-postanın ilk hata verdiği an
+EMAIL_ALERT_KEY = "eposta-hata:uyari"      # son uyarının Telegram'a gittiği an
+CHANNEL_SUFFIXES = ("#telegram", "#tech", "#email", "#email-hata", "#email-birakildi")
 
 
 @dataclass
@@ -268,8 +276,24 @@ def send_email(cfg: Config, subject: str, plain: str, html_body: str | None = No
         if not s.smtp_ssl:
             server.starttls(context=context)  # şifreli bağlantı kurulamazsa gönderim durur
         if s.smtp_user:
-            server.login(s.smtp_user, s.smtp_password)
+            server.login(s.smtp_user, smtp_password(s))
         server.send_message(m)
+
+
+def smtp_password(s) -> str:
+    """Gmail uygulama şifresi "abcd efgh ijkl mnop" biçiminde gösterilir; boşluklar şifreye dahil değildir."""
+    password = (s.smtp_password or "").strip()
+    if "gmail" in (s.smtp_host or "").lower():
+        password = "".join(password.split())
+    return password
+
+
+def _email_alert(error: str) -> str:
+    return ("<b>[Tarife Radarı] E-posta gönderilemiyor</b>\n"
+            "Gönderici hesabın uygulama şifresi iptal edilmiş ya da değişmiş olabilir.\n"
+            f"Hata: <code>{html.escape(error)}</code>\n"
+            "Düzeltmek için .env'yi güncelleyip "
+            "<code>python -m radar yayinla --yalnizca-ayarlar</code> çalıştırın.")
 
 
 def deliver(
@@ -281,13 +305,23 @@ def deliver(
     dry_run: bool = False,
     client: httpx.Client | None = None,
 ) -> list[str]:
-    """Mesajları gönderir; başarılı olanları sent sözlüğüne işler. Günlük satırları döndürür."""
+    """Mesajları gönderir; başarılı olanları sent sözlüğüne işler. Günlük satırları döndürür.
+
+    Her kanal ayrı işaretlenir ("<anahtar>#telegram", "#tech", "#email"): bir kanal hata verirse bir sonraki
+    turda yalnızca o kanal yeniden denenir. Tüm kanallar tamamlanınca "<anahtar>" yazılır ve kanal
+    işaretleri silinir. "<anahtar>" zaten varsa mesaj tamamlanmış sayılır.
+    """
     log_lines: list[str] = []
     s = cfg.settings
+    stamp = to_iso(now)
+    email_error: str | None = None   # bu turdaki ilk e-posta hatası
+    email_ok = False
     for m in messages:
         if dry_run:
             if m.channels:
                 log_lines.append(f"[gönderilmedi, deneme] {m.subject}\n{m.plain}")
+            continue
+        if m.key in sent:
             continue
         ok = True
         # WhatsApp, Telegram'a giden ana bildirimlerin kopyasını alır (teknik uyarılar ve özetler hariç).
@@ -305,6 +339,9 @@ def deliver(
                 except Exception as exc:
                     log_lines.append(f"WhatsApp'a gönderilemedi ({n}. alıcı): {m.subject}: {redact(exc, s)}")
         for ch in m.channels:
+            ckey = f"{m.key}#{ch}"
+            if ckey in sent:
+                continue  # bu kanala daha önceki bir turda gitti
             try:
                 if ch in ("telegram", "tech"):
                     if not s.telegram_ready:
@@ -312,22 +349,68 @@ def deliver(
                         continue
                     chat = s.telegram_tech_chat_id if ch == "tech" and s.telegram_tech_chat_id else s.telegram_chat_id
                     send_telegram(cfg, chat, m.html, client)
+                    sent[ckey] = stamp
                     log_lines.append(f"Telegram'a gönderildi: {m.subject}")
                 elif ch == "email":
                     if not s.email_ready:
                         log_lines.append(f"E-posta ayarlı değil, atlandı: {m.subject}")
                         continue
+                    first_fail = from_iso(sent.get(f"{m.key}#email-hata"))
+                    if first_fail and now - first_fail > EMAIL_GIVE_UP:
+                        sent[f"{m.key}#email-birakildi"] = stamp
+                        log_lines.append(f"E-posta {EMAIL_GIVE_UP.days} günden uzun süredir gönderilemiyor, "
+                                         f"bu mesaj için bırakıldı: {m.subject}")
+                        continue
+                    if email_error is not None:
+                        # Aynı turda hata veren hesapla yeniden giriş denenmez (Gmail art arda hatalı girişte kilitler)
+                        raise RuntimeError("bu turda e-posta zaten hata verdi, denenmedi")
                     send_email(cfg, m.subject, m.plain, m.email_html or m.html.replace("\n", "<br>"))
+                    sent[ckey] = stamp
+                    sent.pop(f"{m.key}#email-hata", None)
+                    email_ok = True
                     log_lines.append(f"E-posta gönderildi: {m.subject}")
-            except Exception as exc:  # bir sonraki çalışmada yeniden denenir
+            except Exception as exc:  # bir sonraki çalışmada yalnızca bu kanal yeniden denenir
                 ok = False
-                log_lines.append(f"Gönderilemedi ({ch}): {m.subject}: {redact(exc, s)}")
+                err = redact(exc, s)
+                log_lines.append(f"Gönderilemedi ({ch}): {m.subject}: {err}")
+                if ch == "email":
+                    sent.setdefault(f"{m.key}#email-hata", stamp)
+                    if email_error is None:
+                        email_error = err
         if ok:
-            sent[m.key] = to_iso(now)
+            sent[m.key] = stamp
             for k in m.extra_keys:
-                sent.setdefault(k, to_iso(now))
+                sent.setdefault(k, stamp)
+            for suffix in CHANNEL_SUFFIXES:
+                sent.pop(m.key + suffix, None)
+    log_lines += _email_health(cfg, sent, now, email_error, email_ok, client)
     # 180 günden eski anahtarları temizle
     cutoff = now - timedelta(days=180)
     for k in [k for k, v in sent.items() if from_iso(v) and from_iso(v) < cutoff]:
         del sent[k]
     return log_lines
+
+
+def _email_health(cfg: Config, sent: dict, now: datetime, error: str | None, ok: bool,
+                  client: httpx.Client | None) -> list[str]:
+    """E-posta hata vermeye başlayınca Telegram'a uyarır (en sık 24 saatte bir); düzelince durumu sıfırlar."""
+    s = cfg.settings
+    if error is None:
+        if ok and (EMAIL_FAIL_KEY in sent or EMAIL_ALERT_KEY in sent):
+            sent.pop(EMAIL_FAIL_KEY, None)
+            sent.pop(EMAIL_ALERT_KEY, None)
+            return ["E-posta yeniden çalışıyor; hata durumu sıfırlandı."]
+        return []
+    sent.setdefault(EMAIL_FAIL_KEY, to_iso(now))
+    last = from_iso(sent.get(EMAIL_ALERT_KEY))
+    if last and now - last < EMAIL_ALERT_EVERY:
+        return []
+    if not s.telegram_ready:
+        return ["E-posta hatası Telegram'a bildirilemedi: Telegram ayarlı değil."]
+    chat = s.telegram_tech_chat_id or s.telegram_chat_id
+    try:
+        send_telegram(cfg, chat, _email_alert(error[:200]), client)
+    except Exception as exc:
+        return [f"E-posta hatası Telegram'a bildirilemedi: {redact(exc, s)}"]
+    sent[EMAIL_ALERT_KEY] = to_iso(now)
+    return ["E-posta hatası Telegram'a bildirildi."]
