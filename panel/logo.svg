@@ -1,12 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
-  <!-- Otoyol Ücretleri logosu: tabela yeşili plaka, beyaz iç çerçeve, ufka uzanan yol ve ufukta saat.
-       Sembol (id="sembol") index.html'deki .plate-logo içinde de aynen kullanılır; değiştirirseniz orayı da güncelleyin. -->
-  <rect width="32" height="32" rx="8" fill="#0d5546"/>
-  <rect x="3.5" y="3.5" width="25" height="25" rx="5.5" fill="none" stroke="#fff" stroke-width="2"/>
-  <g id="sembol" fill="none" stroke="#fff" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M8.6 26.5 L13.2 18 M23.4 26.5 L18.8 18" stroke-width="2.8"/>
-    <path d="M16 21.6 V25.6" stroke-width="2.4"/>
-    <circle cx="16" cy="11" r="4.3" stroke-width="2.2"/>
-    <path d="M16 8.9 V11 H17.9" stroke-width="1.5"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Otoyol Ücretleri logosu ("Ufuk"): tabela yeşili kare, ufka uzanan şeritli yol ve ufukta saat.
+       Aynı çizim index.html'deki .plate-logo içinde de kullanılır; değiştirirseniz orayı da güncelleyin. -->
+  <rect width="100" height="100" rx="22" fill="#0d5546"/>
+  <path d="M29 100 L47 58 H53 L71 100 Z" fill="#fff"/>
+  <path d="M49.3 64 H50.7 L51.1 71 H48.9 Z M48.6 77 H51.4 L52 87 H48 Z M47.7 93 H52.3 L52.8 100 H47.2 Z" fill="#0d5546"/>
+  <circle cx="50" cy="35" r="14.5" fill="none" stroke="#fff" stroke-width="5"/>
+  <path d="M50 27 V35 H57" fill="none" stroke="#fff" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

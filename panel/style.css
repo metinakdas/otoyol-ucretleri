@@ -148,15 +148,13 @@ svg { flex: none; }
 
 /* ------------------------------------------------------------------ ortak parçalar */
 
-.plate-logo { display: inline-flex; padding: 3px; border-radius: 8px; background: var(--sign); }
-.plate-logo > span {
-  display: flex; align-items: center; justify-content: center; width: 26px; height: 26px; border: 1.5px solid #fff; border-radius: 6px;
-  color: #fff; font-weight: 900; font-size: 16px; line-height: 1;
-}
-.plate-logo.sm { border-radius: 9px; }
-.plate-logo.sm > span { width: 28px; height: 28px; border-radius: 7px; }
-/* Sembol (yol ve ufukta saat) logo.svg'deki #sembol ile aynıdır; viewBox iç çerçevenin içini gösterir */
-.plate-logo svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+/* Logo ("Ufuk"): logo.svg ile aynı çizim; zemin rengi temaya göre --sign'dan gelir */
+.plate-logo { display: inline-flex; flex: none; width: 32px; height: 32px; }
+.plate-logo.sm { width: 34px; height: 34px; }
+.plate-logo svg { display: block; width: 100%; height: 100%; }
+.plate-logo .lg-bg { fill: var(--sign); }
+.plate-logo .lg-fg { fill: #fff; }
+.plate-logo .lg-ln { fill: none; stroke: #fff; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Otoyol kalkanı: plakanın küçük kardeşi, yalnızca otoyol numarası */
 .shield { display: inline-flex; flex: none; padding: 2px; border-radius: 5px; background: var(--sign); }
