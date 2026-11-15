@@ -98,21 +98,26 @@ için genel bir desen yoktur (radar satırlarında böyle bir veri geçmez).
 
 ## Alarm kuralları (Grafana)
 
+Grup `otoyol`, klasör Otoyol İzleme, 10 dakikada bir değerlendirilir. Her
+kural `app=tarife-radari` etiketlidir ve `otoyol-alarm` kanalına gider.
+Sorgular satır süzgeci kullanır: `T` = `` {app="tarife-radari", ortam="github"} |= `"olay": "tur"` ``.
 Tur sayan kurallar **yalnızca `ortam="github"`** satırlarına bakar: yerel
 çalıştırmalar GitHub'ın durduğunu gizlememeli.
 
-| Alarm                   | Sorgu (LogQL) ve koşul                                                                                         | Anlamı                                   |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------- |
-| Radar turu yok          | `sum(count_over_time({app="tarife-radari", ortam="github"} \| json \| olay="tur" [90m]))` < 1; **No data → Alerting** | Zamanlayıcı durdu / iş akışı bozuldu / GitHub kesintisi |
-| Tur çöktü               | `sum(count_over_time({app="tarife-radari", ortam="github"} \| json \| olay="tur" \| durum="coktu" [30m]))` > 0 | Radar istisnayla yarıda kesildi |
-| Kaynak okunamıyor       | `olay="kaynak" durum="HATA"`, aynı kaynak için art arda                                                         | KGM/UAB sitesi değişti ya da erişilemiyor |
-| Bildirim gönderilemiyor | `olay="bildirim" durum="hata"` görüldü                                                                          | Telegram/WhatsApp/e-posta anahtarı bozuldu |
-| Hata yoğunluğu          | Son 24 saatte `level="error"` sayısı eşiği aştı                                                                 | Genel sağlık bozuluyor                   |
-| Tur anormal yavaş       | `olay="tur"` satırlarında `sure_sn` eşiği aştı                                                                  | Kaynak siteler yavaş / askıda            |
+| Grafana'daki ad           | Sorgu (LogQL)                                                                  | Koşul  | Veri yoksa | Anlamı |
+| ------------------------- | ------------------------------------------------------------------------------ | ------ | ---------- | ------ |
+| Radar turu yok (90 dk)    | `sum(count_over_time(T [90m]))`                                                | < 1    | **Alerting** | Zamanlayıcı durdu / iş akışı bozuldu / GitHub kesintisi |
+| Tur çöktü                 | `` sum(count_over_time(T \|= `"durum": "coktu"` [30m])) ``                       | > 0    | OK | Radar istisnayla yarıda kesildi (`hata` alanında ayrıntı) |
+| Tur anormal yavaş (5 dk)  | `max(max_over_time(T \| json \| unwrap sure_sn [2h]))`                         | > 300  | OK | Olağan tur 30-60 sn; kaynak siteler yavaş / askıda |
+| Kaynak okunamıyor         | `` sum(count_over_time({app="tarife-radari", level="error"} \|= `"olay": "kaynak"` [3h])) `` | > 3 | OK | KGM/UAB sitesi değişti ya da erişilemiyor (30 dk düzende ~6 turun 4'ü) |
+| Bildirim gönderilemedi    | `` sum(count_over_time({app="tarife-radari", level="error"} \|= `"olay": "bildirim"` [1h])) `` | > 0 | OK | Telegram/WhatsApp/e-posta anahtarı bozuldu |
+| Hata yoğunluğu (24s)      | `sum(count_over_time({app="tarife-radari", level="error"} [24h]))`             | > 10   | OK | Genel sağlık bozuluyor |
 
-"Radar turu yok" kuralında **No data → Alerting** zaten ayarlıdır. Eşik
-(90 dk) dış zamanlayıcı kurulduktan sonra bir gün izlenip doğrulanır:
-30 dakikalık düzende iki tur kaçırılırsa alarm verir.
+"Radar turu yok" eşiği (90 dk) dış zamanlayıcı kurulduktan sonra bir gün
+izlenip doğrulanır: 30 dakikalık düzende iki tur kaçırılırsa alarm verir.
+Kurallardaki satır süzgeçleri `json.dumps` biçimine (`"olay": "tur"`, iki
+noktadan sonra boşluk) dayanır; `radar/izleme.py`'deki JSON biçimi
+değiştirilirse kurallar da güncellenmelidir.
 
 Alarm bildirimi: Telegram teknik grubu + e-posta. (Grafana'nın kendisi
 ulaşamazsa bile radarın iç uyarıları çalışmaya devam eder.)
@@ -181,8 +186,9 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 - [x] Alarm tatbikatı: sahte bir bildirim hatası kaydı gönderildi, "Bildirim gönderilemedi" alarmı tetiklendi (15 Kasım 2026)
 - [x] Kurulum için açılan geçici Admin servis hesabı (`otoyol-kurulum`) silindi; kalıcı anahtar yalnızca `logs:write`
 - [x] İzleme düzeltmeleri: çökme kaydı, kanal ayrıştırma, tur durumu, CPU/bellek, deneme turlarının dışlanması, https zorunluluğu
-- [ ] Dış zamanlayıcı: `tetikleyici/KURULUM.md` adımları (GitHub anahtarı + Cloudflare)
-- [ ] Grafana kuralları: "Radar turu yok" sorgusuna `ortam="github"` süzgeci; "Tur çöktü" kuralı; kural listesinin bu belgeyle eşitlenmesi
+- [x] Dış zamanlayıcı: Cloudflare Workers'a yüklendi (`5,35 * * * *`), `GH_TOKEN` secret olarak kayıtlı (15 Kasım 2026)
+- [x] Grafana kuralları: "Radar turu yok" yalnızca `ortam="github"`; "Tur çöktü" ve "Tur anormal yavaş (5 dk)" eklendi;
+      liste bu belgeyle eşit (6 kural). Değişiklik geçici, yalnızca Editor yetkili bir servis hesabıyla yapıldı.
 - [ ] Zamanlayıcı kurulduktan 24 saat sonra: ~48 tur/gün ve 90 dk eşiğinin doğrulanması
 
 ## Grafana tarafındaki nesneler
@@ -191,7 +197,7 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 | ------------------ | ----------------------------------- | ------------------------------------------ |
 | Klasör             | Otoyol İzleme (`otoyol-izleme`)     | pano ve alarm kuralları burada             |
 | Pano               | İzleme Paneli (`otoyol-izleme-paneli`) | 24 saat görünüm, 5 dk'da bir yenilenir  |
-| Kural grubu        | `otoyol` (10 dk aralık)             | kurulumda 4 kural; "Tur çöktü" eklenecek ve liste alarm tablosuyla eşitlenecek; hepsi `app=tarife-radari` etiketli |
+| Kural grubu        | `otoyol` (10 dk aralık)             | 6 kural (yukarıdaki alarm tablosu), hepsi `app=tarife-radari` etiketli |
 | Alarm kanalı       | `otoyol-alarm`                      | Telegram teknik grubu + e-posta            |
 | Bildirim yönlendirme | `app=tarife-radari` → `otoyol-alarm` | 4 saatte bir tekrar hatırlatır            |
 | Erişim ilkesi      | `otoyol-radar-yaz` (yalnızca logs:write) | radarın kalıcı log gönderim anahtarı   |
