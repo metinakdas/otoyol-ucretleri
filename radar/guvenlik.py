@@ -19,6 +19,7 @@ SECRET_ENV_KEYS = (
     "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_TECH_CHAT_ID",
     "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_TO",
     "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO",
+    "LOKI_USER", "LOKI_TOKEN",
 )
 
 # Depoya hiçbir zaman girmemesi gereken anahtar biçimleri

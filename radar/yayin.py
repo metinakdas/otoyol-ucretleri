@@ -32,11 +32,12 @@ SECRET_KEYS = (
     "TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_TECH_CHAT_ID",
     "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_TO", "WHATSAPP_TEMPLATE", "WHATSAPP_TEMPLATE_LANG",
     "SMTP_HOST", "SMTP_PORT", "SMTP_SSL", "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO",
+    "LOKI_URL", "LOKI_USER", "LOKI_TOKEN",
 )
 # Depoda aranacak değerler (bunlar asla dosyalarda geçmemeli)
 SCAN_KEYS = ("TELEGRAM_BOT_TOKEN", "TELEGRAM_CHAT_ID", "TELEGRAM_TECH_CHAT_ID",
              "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_TO",
-             "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO")
+             "SMTP_USER", "SMTP_PASSWORD", "SMTP_FROM", "EMAIL_TO", "LOKI_USER", "LOKI_TOKEN")
 # İş akışı dosyaları ve güncel sürümde bulunması gereken ifade
 WORKFLOWS = {
     ".github/workflows/radar.yml": "Bildirim ayarlarını denetle",

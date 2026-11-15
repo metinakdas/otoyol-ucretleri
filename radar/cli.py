@@ -40,8 +40,12 @@ def _parse_time(value: str | None) -> datetime | None:
 # ---------------------------------------------------------------------------
 
 def cmd_calistir(args, cfg) -> int:
+    import time as _time
+
+    from . import izleme
     from .pipeline import run_once
 
+    _bas = _time.monotonic()
     report = run_once(cfg, now=_parse_time(args.zaman), send=not args.bildirim_yok, dry_run=args.deneme)
     print(f"Tarife Radarı {__version__} · {fmt_datetime(_parse_time(args.zaman) or tz_now())}")
     if report.first_run:
@@ -60,6 +64,9 @@ def cmd_calistir(args, cfg) -> int:
         print("Deneme modu: hiçbir dosya yazılmadı.")
     elif report.written:
         print("Yazılan: " + ", ".join(report.written))
+    izleme_notu = izleme.gonder(cfg, report, _time.monotonic() - _bas)
+    if izleme_notu:
+        print(f"  · {izleme_notu}")
     failed = [s for s in report.sources if s[1] != "tamam"]
     return 0 if not failed or len(failed) < len(report.sources) else 1
 
