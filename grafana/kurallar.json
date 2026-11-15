@@ -1,0 +1,478 @@
+{
+  "_aciklama": "Otoyol İzleme kural grubu: sorgular ve eşikler. Türkçe açıklamalar aciklamalar.json dosyasından eklenir.",
+  "klasor_uid": "otoyol-izleme",
+  "grup": {
+    "name": "otoyol",
+    "interval": "10m",
+    "rules": [
+      {
+        "for": "0s",
+        "labels": {
+          "app": "tarife-radari"
+        },
+        "grafana_alert": {
+          "title": "Radar turu yok (90 dk)",
+          "uid": "otoyol-tur-yok",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "queryType": "instant",
+              "relativeTimeRange": {
+                "from": 86400,
+                "to": 0
+              },
+              "datasourceUid": "grafanacloud-logs",
+              "model": {
+                "expr": "sum(count_over_time({app=\"tarife-radari\", ortam=\"github\"} |= `\"olay\": \"tur\"` [90m]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "queryType": "instant",
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "type": "reduce"
+              }
+            },
+            {
+              "refId": "C",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        1
+                      ],
+                      "type": "lt"
+                    }
+                  }
+                ],
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+              }
+            }
+          ],
+          "no_data_state": "Alerting",
+          "exec_err_state": "Error",
+          "is_paused": false
+        }
+      },
+      {
+        "for": "0s",
+        "labels": {
+          "app": "tarife-radari"
+        },
+        "grafana_alert": {
+          "title": "Kaynak okunamıyor",
+          "uid": "otoyol-kaynak-hata",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "queryType": "instant",
+              "relativeTimeRange": {
+                "from": 86400,
+                "to": 0
+              },
+              "datasourceUid": "grafanacloud-logs",
+              "model": {
+                "expr": "sum(count_over_time({app=\"tarife-radari\", level=\"error\"} |= `\"olay\": \"kaynak\"` [3h]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "queryType": "instant",
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "type": "reduce"
+              }
+            },
+            {
+              "refId": "C",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        3
+                      ],
+                      "type": "gt"
+                    }
+                  }
+                ],
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+              }
+            }
+          ],
+          "no_data_state": "OK",
+          "exec_err_state": "Error",
+          "is_paused": false
+        }
+      },
+      {
+        "for": "0s",
+        "labels": {
+          "app": "tarife-radari"
+        },
+        "grafana_alert": {
+          "title": "Bildirim gönderilemedi",
+          "uid": "otoyol-bildirim-hata",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "queryType": "instant",
+              "relativeTimeRange": {
+                "from": 86400,
+                "to": 0
+              },
+              "datasourceUid": "grafanacloud-logs",
+              "model": {
+                "expr": "sum(count_over_time({app=\"tarife-radari\", level=\"error\"} |= `\"olay\": \"bildirim\"` [1h]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "queryType": "instant",
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "type": "reduce"
+              }
+            },
+            {
+              "refId": "C",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    }
+                  }
+                ],
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+              }
+            }
+          ],
+          "no_data_state": "OK",
+          "exec_err_state": "Error",
+          "is_paused": false
+        }
+      },
+      {
+        "for": "0s",
+        "labels": {
+          "app": "tarife-radari"
+        },
+        "grafana_alert": {
+          "title": "Hata yoğunluğu (24s)",
+          "uid": "otoyol-hata-yogun",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "queryType": "instant",
+              "relativeTimeRange": {
+                "from": 86400,
+                "to": 0
+              },
+              "datasourceUid": "grafanacloud-logs",
+              "model": {
+                "expr": "sum(count_over_time({app=\"tarife-radari\", level=\"error\"} [24h]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "queryType": "instant",
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "type": "reduce"
+              }
+            },
+            {
+              "refId": "C",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        10
+                      ],
+                      "type": "gt"
+                    }
+                  }
+                ],
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+              }
+            }
+          ],
+          "no_data_state": "OK",
+          "exec_err_state": "Error",
+          "is_paused": false
+        }
+      },
+      {
+        "for": "0s",
+        "labels": {
+          "app": "tarife-radari"
+        },
+        "grafana_alert": {
+          "title": "Tur çöktü",
+          "uid": "fg4edhf6stts0e",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "queryType": "instant",
+              "relativeTimeRange": {
+                "from": 86400,
+                "to": 0
+              },
+              "datasourceUid": "grafanacloud-logs",
+              "model": {
+                "expr": "sum(count_over_time({app=\"tarife-radari\", ortam=\"github\"} |= `\"olay\": \"tur\"` |= `\"durum\": \"coktu\"` [30m]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "queryType": "instant",
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "type": "reduce"
+              }
+            },
+            {
+              "refId": "C",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        0
+                      ],
+                      "type": "gt"
+                    }
+                  }
+                ],
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+              }
+            }
+          ],
+          "no_data_state": "OK",
+          "exec_err_state": "Error",
+          "is_paused": false
+        }
+      },
+      {
+        "for": "0s",
+        "labels": {
+          "app": "tarife-radari"
+        },
+        "grafana_alert": {
+          "title": "Tur anormal yavaş (5 dk)",
+          "uid": "cg4edhf72tf5sc",
+          "condition": "C",
+          "data": [
+            {
+              "refId": "A",
+              "queryType": "instant",
+              "relativeTimeRange": {
+                "from": 86400,
+                "to": 0
+              },
+              "datasourceUid": "grafanacloud-logs",
+              "model": {
+                "expr": "max(max_over_time({app=\"tarife-radari\", ortam=\"github\"} |= `\"olay\": \"tur\"` | json | unwrap sure_sn [2h]))",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "queryType": "instant",
+                "refId": "A"
+              }
+            },
+            {
+              "refId": "B",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "expression": "A",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "reducer": "last",
+                "refId": "B",
+                "settings": {
+                  "mode": "dropNN"
+                },
+                "type": "reduce"
+              }
+            },
+            {
+              "refId": "C",
+              "queryType": "",
+              "relativeTimeRange": {
+                "from": 0,
+                "to": 0
+              },
+              "datasourceUid": "__expr__",
+              "model": {
+                "conditions": [
+                  {
+                    "evaluator": {
+                      "params": [
+                        300
+                      ],
+                      "type": "gt"
+                    }
+                  }
+                ],
+                "expression": "B",
+                "intervalMs": 1000,
+                "maxDataPoints": 43200,
+                "refId": "C",
+                "type": "threshold"
+              }
+            }
+          ],
+          "no_data_state": "OK",
+          "exec_err_state": "Error",
+          "is_paused": false
+        }
+      }
+    ]
+  }
+}

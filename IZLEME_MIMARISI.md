@@ -122,6 +122,32 @@ değiştirilirse kurallar da güncellenmelidir.
 Alarm bildirimi: Telegram teknik grubu + e-posta. (Grafana'nın kendisi
 ulaşamazsa bile radarın iç uyarıları çalışmaya devam eder.)
 
+### Bildirimlerin içeriği
+
+Bildirimler Türkçedir ve "ne yapmalıyım" sorusunu yanıtlar. Kaynak dosyalar
+depoda `grafana/` klasöründedir; Grafana'ya `python grafana/uygula.py` ile
+uygulanır (geçici, Editor yetkili bir servis hesabı gerekir).
+
+| Dosya | İçerik |
+| --- | --- |
+| `grafana/aciklamalar.json` | Her kuralın `ozet`, `aciklama`, `ne_yapmali` açıklamaları ve `onem` etiketi (kritik / uyari) |
+| `grafana/kurallar.json` | Kuralların sorguları ve eşikleri (grup baştan kurulabilsin diye) |
+| `grafana/sablonlar/otoyol-alarm.tmpl` | Bildirim şablonları: e-posta konusu, Telegram mesajı, e-posta gövdesi |
+| `grafana/uygula.py` | `durum`, `sablon`, `kanal`, `kurallar`, `tatbikat-kur`, `tatbikat-sil` komutları |
+
+- **Önem:** "Radar turu yok", "Tur çöktü" ve "Bildirim gönderilemedi" kritik; diğer üçü uyarı.
+- **E-posta konusu:** `[Otoyol İzleme] 🔴 <özet>`; çözülünce `[Otoyol İzleme] ✅ Çözüldü: <özet>`.
+  Birden çok alarm gruplanırsa sayı yazılır.
+- **Telegram:** durum, özet, başlangıç (Türkiye saati), olası sebep, "Ne yapmalı?" adımları ve
+  İzleme Paneli / GitHub Actions / Cloudflare bağlantıları. Çözüldü mesajı kısadır.
+- **E-posta gövdesi düz metindir.** Grafana, kanalın mesaj alanını kendi e-posta kalıbına
+  yerleştirirken HTML'i kaçışlar; tablo tabanlı tasarım gelen kutusunda ham kod olarak görünür
+  (16 Kasım 2026'da Outlook'ta denendi). Kırmızı tasarım şablonda `otoyol.eposta` adıyla durur ama
+  kullanılmaz; kullanılan `otoyol.eposta_duz`'dür.
+- Açıklama metinlerinde `<`, `>`, `&` kullanılmaz (Telegram HTML biçimi bozulmasın).
+- Tatbikat: `tatbikat-kur` geçici bir kural açar; Loki'ye `tatbikat-sablon` içeren bilgi seviyesinde bir
+  kayıt gönderilince alarm, 3 dakika sonra çözüldü bildirimi gelir. İş bitince `tatbikat-sil`.
+
 ## Gereksinim karşılama tablosu
 
 | Gereksinim                                   | Durum | Nasıl                                                   |
@@ -189,6 +215,7 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 - [x] Dış zamanlayıcı: Cloudflare Workers'a yüklendi (`5,35 * * * *`), `GH_TOKEN` secret olarak kayıtlı (15 Kasım 2026)
 - [x] Grafana kuralları: "Radar turu yok" yalnızca `ortam="github"`; "Tur çöktü" ve "Tur anormal yavaş (5 dk)" eklendi;
       liste bu belgeyle eşit (6 kural). Değişiklik geçici, yalnızca Editor yetkili bir servis hesabıyla yapıldı.
+- [x] Alarm bildirimleri Türkçe şablona geçti; alarm ve çözüldü iki kanalda tatbikatla doğrulandı (16 Kasım 2026)
 - [ ] Zamanlayıcı kurulduktan 24 saat sonra: ~48 tur/gün ve 90 dk eşiğinin doğrulanması
 
 ## Grafana tarafındaki nesneler
@@ -197,7 +224,8 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 | ------------------ | ----------------------------------- | ------------------------------------------ |
 | Klasör             | Otoyol İzleme (`otoyol-izleme`)     | pano ve alarm kuralları burada             |
 | Pano               | İzleme Paneli (`otoyol-izleme-paneli`) | 24 saat görünüm, 5 dk'da bir yenilenir  |
-| Kural grubu        | `otoyol` (10 dk aralık)             | 6 kural (yukarıdaki alarm tablosu), hepsi `app=tarife-radari` etiketli |
+| Kural grubu        | `otoyol` (10 dk aralık)             | 6 kural (yukarıdaki alarm tablosu), hepsi `app=tarife-radari` ve `onem` etiketli |
+| Bildirim şablonu   | `otoyol-alarm`                      | kaynak: `grafana/sablonlar/otoyol-alarm.tmpl` |
 | Alarm kanalı       | `otoyol-alarm`                      | Telegram teknik grubu + e-posta            |
 | Bildirim yönlendirme | `app=tarife-radari` → `otoyol-alarm` | 4 saatte bir tekrar hatırlatır            |
 | Erişim ilkesi      | `otoyol-radar-yaz` (yalnızca logs:write) | radarın kalıcı log gönderim anahtarı   |

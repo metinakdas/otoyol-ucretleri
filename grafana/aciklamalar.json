@@ -1,0 +1,66 @@
+{
+  "_aciklama": "Alarm kurallarının Türkçe açıklamaları. Anahtar: kuralın Grafana'daki adı. 'onem' etiket, diğerleri annotation olarak yazılır. ne_yapmali satırları yeni satırla ayrılır; metinlerde < > & kullanılmaz (Telegram HTML).",
+  "Radar turu yok (90 dk)": {
+    "onem": "kritik",
+    "ozet": "Radar 90 dakikadır çalışmıyor.",
+    "aciklama": "Son 90 dakikada GitHub'dan hiç tur kaydı gelmedi. Dış zamanlayıcı durmuş, GitHub anahtarının süresi dolmuş, iş akışı bozulmuş ya da GitHub'da kesinti olabilir.",
+    "ne_yapmali": [
+      "1. GitHub Actions sayfasında son Tarife Radarı turuna bak: hiç tur yok mu, yoksa turlar hata mı veriyor?",
+      "2. Tur hiç başlamıyorsa Cloudflare'de tarife-radari-zamanlayici kayıtlarına bak. GitHub 401 ya da 403 görünüyorsa anahtarı yenile (tetikleyici/KURULUM.md).",
+      "3. Actions sayfasında Run workflow ile turu elle başlat. Çalışıyorsa sorun zamanlayıcıdadır.",
+      "4. Her şey normal görünüyorsa githubstatus.com adresinden GitHub kesintisi olup olmadığına bak."
+    ]
+  },
+  "Tur çöktü": {
+    "onem": "kritik",
+    "ozet": "Radar turu hata verip yarıda kesildi.",
+    "aciklama": "Tur beklenmeyen bir hatayla durdu. Çoğunlukla kaynak sitedeki bir biçim değişikliği ya da bozuk bir veri dosyası sebep olur.",
+    "ne_yapmali": [
+      "1. GitHub Actions'ta başarısız turu aç ve Radar turu adımındaki hata satırını oku.",
+      "2. İzleme Paneli'ndeki hata akışında durumu coktu olan kaydın hata alanına bak.",
+      "3. Bir sonraki tur (30 dakika sonra) kendiliğinden düzelirse sorun geçicidir. Yinelenirse hatayı düzelt, testleri çalıştır ve gönder."
+    ]
+  },
+  "Bildirim gönderilemedi": {
+    "onem": "kritik",
+    "ozet": "Bir bildirim kanalı mesaj gönderemedi.",
+    "aciklama": "Son 1 saatte Telegram, WhatsApp ya da e-posta gönderimi hata verdi. Anahtar ya da şifre geçersiz olmuş, kota dolmuş ya da servis geçici olarak erişilemez olabilir.",
+    "ne_yapmali": [
+      "1. İzleme Paneli'ndeki hata akışında hangi kanalın (telegram, whatsapp, email) hata verdiğine ve hata metnine bak.",
+      "2. Anahtar ya da şifre sorunuysa .env dosyasında güncelle, sonra çalıştır: python -m radar yayinla --yalnizca-ayarlar",
+      "3. Üç kanalı dene: python -m radar test-bildirim",
+      "4. Radar gönderemediği mesajı sonraki turda kendiliğinden yeniden dener; mesaj için ayrıca işlem gerekmez."
+    ]
+  },
+  "Kaynak okunamıyor": {
+    "onem": "uyari",
+    "ozet": "Resmî kaynak sayfalarından biri okunamıyor.",
+    "aciklama": "Son 3 saatte kaynak okuma hataları birikti. Site kapalı ya da yavaş olabilir, sayfa yapısı değişmiş olabilir. Panelde ücretler son doğrulanan tarifeden gösterilmeye devam eder.",
+    "ne_yapmali": [
+      "1. İzleme Paneli'ndeki kaynak tablosunda hangi kaynağın HATA verdiğine bak.",
+      "2. O sayfayı tarayıcıda aç. Site kapalıysa beklemek yeterli; açılınca alarm kendiliğinden kapanır.",
+      "3. Site açık ama hata sürüyorsa ayrıntıyı gör: python -m radar kaynak-testi",
+      "4. Sayfa yapısı değiştiyse o kaynağın okuyucusu güncellenmeli."
+    ]
+  },
+  "Tur anormal yavaş (5 dk)": {
+    "onem": "uyari",
+    "ozet": "Radar turu 5 dakikadan uzun sürdü.",
+    "aciklama": "Olağan bir tur 30-60 saniye sürer. Kaynak siteler çok yavaş yanıt veriyor ya da bir istek askıda kalıyor olabilir.",
+    "ne_yapmali": [
+      "1. GitHub Actions'ta son turun süresine ve hangi adımın uzadığına bak.",
+      "2. İzleme Paneli'ndeki tur süresi grafiğine bak. Tek seferlikse işlem gerekmez.",
+      "3. Yavaşlık sürüyorsa kaynak sitelerin tarayıcıdan açılıp açılmadığını kontrol et."
+    ]
+  },
+  "Hata yoğunluğu (24s)": {
+    "onem": "uyari",
+    "ozet": "Son 24 saatte 10'dan fazla hata kaydı birikti.",
+    "aciklama": "Tek başına alarm üretmeyen küçük hatalar birikiyor: ara ara okunamayan kaynaklar, indirilemeyen belgeler ya da gönderilemeyen bildirimler.",
+    "ne_yapmali": [
+      "1. İzleme Paneli'ndeki hata akışında hataların hangi olayda (kaynak, bildirim, not) toplandığına bak.",
+      "2. Aynı kaynak ya da kanal yineleniyorsa ilgili alarmın adımlarını uygula.",
+      "3. Hatalar dağınık ve geçiciyse izlemeye devam et; sayı 24 saat içinde kendiliğinden düşer."
+    ]
+  }
+}
