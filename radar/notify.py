@@ -282,8 +282,9 @@ def send_whatsapp(cfg: Config, text: str, client: httpx.Client | None = None, to
 
 IMZA_LOGO = Path(__file__).parent / "assets" / "imza-logo.png"
 IMZA_CID = "imza-logo"
-# cid → dosya. imza-logo: koyu yeşil antet için beyaz zeminli logo; logo-yesil: sarı antet (saat dilimi) için yeşil logo
-EMAIL_IMAGES = {IMZA_CID: IMZA_LOGO, "logo-yesil": IMZA_LOGO.parent / "logo-yesil.png"}
+# cid → dosya. imza-logo: yeşil antet için beyaz zeminli logo; logo-turuncu: turuncu antet (zaman dilimi) için
+EMAIL_IMAGES = {IMZA_CID: IMZA_LOGO,
+                "logo-turuncu": IMZA_LOGO.parent / "logo-turuncu.png"}
 
 
 SERVIS = "Otoyol Ücretleri"

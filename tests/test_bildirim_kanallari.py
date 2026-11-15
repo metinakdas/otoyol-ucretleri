@@ -284,7 +284,7 @@ def test_time_zone_email_embeds_green_logo(cfg, monkeypatch):
     from radar import eposta
     t = eposta.sablon("07")
     antet = t[t.index("<!-- ▼ BİLEŞEN: antet -->"):t.index("<!-- ▲ BİLEŞEN: antet -->")]
-    assert 'src="cid:logo-yesil"' in antet and "Zaman Dilimi" in antet and "Otoyol Ücretleri" not in antet
+    assert 'src="cid:logo-turuncu"' in antet and "Zaman Dilimi" in antet and "Otoyol Ücretleri" not in antet
     assert "#ff9500" in t and "#34c759" in t
     captured = {}
 
@@ -301,4 +301,4 @@ def test_time_zone_email_embeds_green_logo(cfg, monkeypatch):
     s.smtp_host, s.smtp_user, s.smtp_password, s.email_to, s.smtp_ssl = "smtp.ornek.com", "u", "p", ["a@ornek.com"], False
     notify.send_email(cfg, "[Tarife Radarı] SAAT DİLİMİ DEĞİŞTİ", "metin", t)
     cids = [p["Content-ID"] for p in captured["m"].walk() if p.get_content_type() == "image/png"]
-    assert cids == ["<logo-yesil>"]
+    assert cids == ["<logo-turuncu>"]
