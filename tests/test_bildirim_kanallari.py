@@ -276,3 +276,26 @@ def test_email_layout_without_panel_url(cfg):
     cfg.settings.panel_url = ""
     plain, body = notify.email_layout(cfg, "konu", "metin", None)
     assert "Web:" not in plain and "<a href" not in body and "Otoyol Ücretleri" in body
+
+
+def test_time_zone_email_embeds_green_logo(cfg, monkeypatch):
+    """Saat dilimi e-postası sarı antetli; antette yeşil logo gömülü gider, kullanılmayan logo eklenmez."""
+    from radar import eposta
+    t = eposta.sablon("07")
+    assert 'src="cid:logo-yesil"' in t and "#fcb514" in t and "Saat Dilimi Uyarısı" in t
+    captured = {}
+
+    class FakeSMTP:
+        def __init__(self, *a, **k): pass
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def starttls(self, **k): pass
+        def login(self, *a): pass
+        def send_message(self, m): captured["m"] = m
+
+    monkeypatch.setattr(notify.smtplib, "SMTP", FakeSMTP)
+    s = cfg.settings
+    s.smtp_host, s.smtp_user, s.smtp_password, s.email_to, s.smtp_ssl = "smtp.ornek.com", "u", "p", ["a@ornek.com"], False
+    notify.send_email(cfg, "[Tarife Radarı] SAAT DİLİMİ DEĞİŞTİ", "metin", t)
+    cids = [p["Content-ID"] for p in captured["m"].walk() if p.get_content_type() == "image/png"]
+    assert cids == ["<logo-yesil>"]

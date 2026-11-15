@@ -282,6 +282,8 @@ def send_whatsapp(cfg: Config, text: str, client: httpx.Client | None = None, to
 
 IMZA_LOGO = Path(__file__).parent / "assets" / "imza-logo.png"
 IMZA_CID = "imza-logo"
+# cid → dosya. imza-logo: koyu yeşil antet için beyaz zeminli logo; logo-yesil: sarı antet (saat dilimi) için yeşil logo
+EMAIL_IMAGES = {IMZA_CID: IMZA_LOGO, "logo-yesil": IMZA_LOGO.parent / "logo-yesil.png"}
 
 
 SERVIS = "Otoyol Ücretleri"
@@ -347,9 +349,11 @@ def send_email(cfg: Config, subject: str, plain: str, html_body: str | None = No
     plain_out, html_out = email_layout(cfg, subject, plain, html_body, when=when, ref=ref)
     m.set_content(plain_out)
     m.add_alternative(html_out, subtype="html")
-    if IMZA_LOGO.exists():  # logo maile gömülür; Outlook "resimleri indir" diye sormaz
-        m.get_payload()[1].add_related(IMZA_LOGO.read_bytes(), maintype="image", subtype="png",
-                                        cid=f"<{IMZA_CID}>", disposition="inline")
+    # Logolar maile gömülür (Outlook "resimleri indir" diye sormaz); yalnızca gövdede kullanılanlar eklenir
+    for cid, path in EMAIL_IMAGES.items():
+        if f"cid:{cid}" in html_out and path.exists():
+            m.get_payload()[1].add_related(path.read_bytes(), maintype="image", subtype="png",
+                                            cid=f"<{cid}>", disposition="inline")
     # Sunucu sertifikası her zaman doğrulanır; araya giren biri şifreyi ele geçiremez.
     context = ssl.create_default_context()
     if s.smtp_ssl:
