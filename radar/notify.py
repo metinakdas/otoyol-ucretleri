@@ -14,15 +14,18 @@ import ssl
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from email.message import EmailMessage
+from pathlib import Path
 
 import httpx
 
+from . import eposta
 from . import messages as msg
 from .config import Config
 from .guvenlik import redact
 from .lifecycle import DECIDED
 from .textutil import slugify
-from .timeutil import fmt_date, from_iso, hours_since, to_iso
+from .timeutil import fmt_date, fmt_datetime, from_iso, hours_since, to_iso
+from .timeutil import now as tr_now
 
 log = logging.getLogger(__name__)
 
@@ -36,6 +39,7 @@ EMAIL_ALERT_EVERY = timedelta(hours=24)
 EMAIL_FAIL_KEY = "eposta-hata:baslangic"   # e-postanın ilk hata verdiği an
 EMAIL_ALERT_KEY = "eposta-hata:uyari"      # son uyarının Telegram'a gittiği an
 CHANNEL_SUFFIXES = ("#telegram", "#tech", "#email", "#email-hata", "#email-birakildi")
+SAYI_KEY = "sayi:"  # e-posta sayı sayaçları; 180 gün temizliğine girmez
 
 
 @dataclass
@@ -47,13 +51,19 @@ class Message:
     plain: str = ""
     email_html: str | None = None
     extra_keys: list[str] = field(default_factory=list)
+    ref_tur: str = ""  # e-postadaki "Sayı" dizisi: TB (tarife bildirimi), SD (saat dilimi), HO/GO (haftalık/günlük özet)
 
 
 def _m(key: str, channels: tuple[str, ...], parts: tuple[str, str, str], extra: list[str] | None = None,
-       email_html: str | None = None) -> Message:
+       email_html: str | None = None, ref_tur: str = "") -> Message:
     subject, h, p = parts
     return Message(key=key, channels=channels, subject=subject, html=h, plain=p,
-                   email_html=email_html, extra_keys=extra or [])
+                   email_html=email_html, extra_keys=extra or [], ref_tur=ref_tur)
+
+
+def _tb(key: str, parts: tuple[str, str, str], email_html: str, extra: list[str] | None = None) -> Message:
+    """Telegram + e-posta tarife bildirimi (e-posta tasarım şablonuyla)."""
+    return _m(key, ("telegram", "email"), parts, extra=extra, email_html=email_html, ref_tur="TB")
 
 
 def plan(
@@ -69,10 +79,11 @@ def plan(
     n_prices: int = 0,
     notes: list[str] | None = None,
     kayitsiz_giseler: list[dict] | None = None,
+    izleme=None,
 ) -> list[Message]:
+    """izleme: özet e-postası için eposta.izleme_ozeti() sonucunu veren fonksiyon (yalnızca özet gidecekse çağrılır)."""
     out: list[Message] = []
     s = cfg.settings
-    both = ("telegram", "email")
 
     def todo(key: str) -> bool:
         return key not in sent and all(m.key != key for m in out)
@@ -87,15 +98,17 @@ def plan(
 
     for ev in sorted(events.values(), key=lambda e: e["updated_at"]):
         eid = ev["id"]
+        bildirim = from_iso(sent.get(f"{eid}:karar"))  # e-postalarda "… tarihli bildirimimizde" için
         if ev["status"] in DECIDED:
             if todo(f"{eid}:karar"):
                 # Karar ile yürürlük aynı turda geldiyse tek mesaj yeter
-                out.append(_m(f"{eid}:karar", both, msg.decision(cfg, ev, now),
-                              extra=[f"{eid}:t0"] if ev["status"] == "yururlukte" else []))
+                out.append(_tb(f"{eid}:karar", msg.decision(cfg, ev, now), eposta.karar(cfg, ev, now),
+                               extra=[f"{eid}:t0"] if ev["status"] == "yururlukte" else []))
                 continue
             eff = from_iso(ev.get("effective_from"))
             if "tarih_degisti" in ev["flags"] and eff and todo(f"{eid}:tarih:{to_iso(eff)}"):
-                out.append(_m(f"{eid}:tarih:{to_iso(eff)}", both, msg.date_changed(cfg, ev, now)))
+                out.append(_tb(f"{eid}:tarih:{to_iso(eff)}", msg.date_changed(cfg, ev, now),
+                               eposta.tarih_degisti(cfg, ev, now)))
             if ev["status"] == "karar_cikti" and eff:
                 created = from_iso(ev["created_at"])
                 for days in sorted(s.reminder_days):
@@ -104,15 +117,16 @@ def plan(
                         break
                     if eff - now <= timedelta(days=days) and eff - created > timedelta(days=days):
                         larger = [f"{eid}:t{d}" for d in s.reminder_days if d > days]
-                        out.append(_m(key, both, msg.reminder(cfg, ev, days, now), extra=larger))
+                        out.append(_tb(key, msg.reminder(cfg, ev, days, now),
+                                       eposta.hatirlatma(cfg, ev, days, now, bildirim), extra=larger))
                         break
             if (eid, "yururlukte") in transitioned and todo(f"{eid}:t0"):
-                out.append(_m(f"{eid}:t0", both, msg.in_force(cfg, ev, now)))
+                out.append(_tb(f"{eid}:t0", msg.in_force(cfg, ev, now), eposta.yururluk(cfg, ev, now, bildirim)))
             if (eid, "sona_erdi") in transitioned and todo(f"{eid}:bitti"):
-                out.append(_m(f"{eid}:bitti", both, msg.ended(cfg, ev, now)))
+                out.append(_tb(f"{eid}:bitti", msg.ended(cfg, ev, now), eposta.sona_erdi(cfg, ev, now, bildirim)))
         elif ev["status"] == "iptal_ertelendi" and todo(f"{eid}:iptal"):
             if f"{eid}:karar" in sent:  # karar bildirilmişse iptal de bildirilir
-                out.append(_m(f"{eid}:iptal", both, msg.cancelled(cfg, ev, now)))
+                out.append(_tb(f"{eid}:iptal", msg.cancelled(cfg, ev, now), eposta.iptal(cfg, ev, now, bildirim)))
 
     for ev in created_watch:
         key = f"takvim:{ev['period_id']}"
@@ -140,13 +154,13 @@ def plan(
     # Günlük özet (e-posta)
     if now.hour >= s.digest_hour:
         key = f"ozet:{now.date().isoformat()}"
+        iso = now.isocalendar()
+        wkey = f"haftalik:{iso[0]}-{iso[1]:02d}"
+        ek = (izleme() if izleme else None) if todo(key) or (now.weekday() == 0 and todo(wkey)) else None
         if todo(key):
-            out.append(_daily_digest(cfg, events, health, now, key))
-        if now.weekday() == 0:
-            iso = now.isocalendar()
-            wkey = f"haftalik:{iso[0]}-{iso[1]:02d}"
-            if todo(wkey):
-                out.append(_weekly_digest(cfg, events, health, now, wkey))
+            out.append(_daily_digest(cfg, events, health, now, key, ek))
+        if now.weekday() == 0 and todo(wkey):
+            out.append(_weekly_digest(cfg, events, health, now, wkey, ek))
     return out
 
 
@@ -164,7 +178,7 @@ def _problems(cfg: Config, health: dict, now: datetime) -> list[str]:
     return out
 
 
-def _daily_digest(cfg: Config, events: dict, health: dict, now: datetime, key: str) -> Message:
+def _daily_digest(cfg: Config, events: dict, health: dict, now: datetime, key: str, izleme: dict | None = None) -> Message:
     upcoming = sorted(
         (e for e in events.values() if e["status"] == "karar_cikti"),
         key=lambda e: e.get("effective_from") or "9999",
@@ -176,14 +190,15 @@ def _daily_digest(cfg: Config, events: dict, health: dict, now: datetime, key: s
     problems = _problems(cfg, health, now)
     if not (upcoming or open_items or problems):
         return Message(key=key, channels=())  # anlatacak bir şey yok; yalnızca işaretle
-    title = f"Günlük özet · {fmt_date(now)}: {len(upcoming)} karar, {len(open_items)} sinyal"
+    title = f"Günlük tarife özeti · {fmt_date(now)}: {len(upcoming)} karar, {len(open_items)} sinyal"
     return _m(key, ("email",), msg.digest(cfg, title, [
         ("Yaklaşan değişiklikler", upcoming),
         ("Gündemde ve sinyaller", open_items),
-    ], problems, now))
+    ], problems, now), email_html=eposta.ozet(cfg, events, _problems_short(cfg, health, now), now, haftalik=False,
+                                              izleme=izleme), ref_tur="GO")
 
 
-def _weekly_digest(cfg: Config, events: dict, health: dict, now: datetime, key: str) -> Message:
+def _weekly_digest(cfg: Config, events: dict, health: dict, now: datetime, key: str, izleme: dict | None = None) -> Message:
     horizon = now + timedelta(days=30)
     upcoming = sorted(
         (e for e in events.values() if e["status"] in ("karar_cikti", "yururlukte")
@@ -191,11 +206,19 @@ def _weekly_digest(cfg: Config, events: dict, health: dict, now: datetime, key: 
         key=lambda e: e["effective_from"],
     )
     watching = [e for e in events.values() if e["status"] in ("sinyal", "gundemde")]
-    title = f"Haftalık takvim · {fmt_date(now)}: önümüzdeki 30 gün"
+    title = f"Haftalık tarife özeti · {eposta.haftalik_donem(now)}"
     return _m(key, ("email",), msg.digest(cfg, title, [
         ("Önümüzdeki 30 gün", upcoming),
         ("İzlenenler", watching),
-    ], _problems(cfg, health, now), now))
+    ], _problems(cfg, health, now), now),
+        email_html=eposta.ozet(cfg, events, _problems_short(cfg, health, now), now, haftalik=True, izleme=izleme),
+        ref_tur="HO")
+
+
+def _problems_short(cfg: Config, health: dict, now: datetime) -> list[str]:
+    """E-posta özetindeki "Kaynak durumu" satırı için kısa biçim (hata ayrıntısı Telegram'daki teknik uyarıda)."""
+    return [f"{src.name} ({int(hours_since((health.get(src.id) or {}).get('failing_since'), now))} saattir)"
+            for src in cfg.sources if src.enabled and not (health.get(src.id) or {}).get("ok", True)]
 
 
 # ---------------------------------------------------------------------------
@@ -257,15 +280,76 @@ def send_whatsapp(cfg: Config, text: str, client: httpx.Client | None = None, to
             client.close()
 
 
-def send_email(cfg: Config, subject: str, plain: str, html_body: str | None = None) -> None:
+IMZA_LOGO = Path(__file__).parent / "assets" / "imza-logo.png"
+IMZA_CID = "imza-logo"
+
+
+SERVIS = "Otoyol Ücretleri"
+SERVIS_ALT = "Tarife Bildirim Servisi"
+UYARI = ("Bu e-posta, {servis} {alt} tarafından otomatik olarak oluşturulmuştur; lütfen bu adrese yanıt vermeyiniz. "
+         "Bildirimdeki bilgiler kamuya açık kaynaklardan derlenmiş olup bağlayıcı nitelik taşımaz; "
+         "kesin ücretler için ilgili işletmecinin resmî duyuruları esas alınmalıdır.").format(servis=SERVIS, alt=SERVIS_ALT)
+
+
+def email_subject(subject: str) -> str:
+    """"[Tarife Radarı] KARAR ÇIKTI: …" → "Otoyol Ücretleri | KARAR ÇIKTI: …"."""
+    return f"{SERVIS} | {re.sub(r'^\[[^\]]*\]\s*', '', subject)}"
+
+
+def email_layout(cfg: Config, subject: str, plain: str, html_body: str | None,
+                 when: datetime | None = None, ref: str = "—") -> tuple[str, str]:
+    """Bildirimi resmî yazışma düzenine sokar (selamlama, gövde, kapanış, kurumsal imza): (düz metin, HTML).
+
+    HTML, radar/eposta_sablon/ içindeki tasarımdır. html_body tam bir şablon belgesiyse (eposta.py üretir)
+    olduğu gibi kullanılır; değilse (ör. deneme e-postası) gövde, tasarımın sade hâline yerleştirilir.
+    """
+    title = re.sub(r"^\[[^\]]*\]\s*", "", subject)
+    when = when or tr_now()
+    tarih = fmt_datetime(when)
+    url = cfg.settings.panel_url
+    if html_body is not None and html_body.lstrip().lower().startswith("<!doctype"):
+        tasarim = html_body
+        html_body = None
+    else:
+        tasarim = None
+    # Telegram metninin ilk satırı ("[KARAR ÇIKTI] …") e-postada başlık olarak gösterildiği için tekrarlanmaz
+    plain_lines = plain.split("\n")
+    if plain_lines and plain_lines[0].startswith("["):
+        plain_lines = plain_lines[1:]
+    body_plain = "\n".join(plain_lines).strip()
+    body_html = html_body if html_body is not None else html.escape(plain).replace("\n", "<br>")
+    parts = body_html.split("<br>")
+    if parts and re.sub(r"<[^>]+>", "", parts[0]).startswith("["):
+        parts = parts[1:]
+    body_html = "<br>".join(parts).strip()
+    while body_html.startswith("<br>"):
+        body_html = body_html[4:]
+    body_html = body_html.replace("<a href=", '<a style="color:#0f5e4e" href=')
+
+    giris = f"{SERVIS} {SERVIS_ALT} tarafından tespit edilen gelişme aşağıda bilgilerinize sunulmuştur."
+    plain_out = "\n".join([
+        f"Sayı: {ref}", f"Konu: {title}", f"Tarih: {tarih}", "", "Sayın İlgili,", "", giris, "", body_plain, "",
+        "Bilgilerinize sunarız.", "", "Saygılarımızla,", "", SERVIS, SERVIS_ALT,
+        *( [f"Web: {url}"] if url else [] ), "", UYARI])
+
+    if tasarim is None:
+        tasarim = eposta.genel(title, f"{html.escape(giris)}<br><br>{body_html}")
+    return plain_out, eposta.bitir(tasarim, ref=ref, tarih=when, panel_url=url)
+
+
+def send_email(cfg: Config, subject: str, plain: str, html_body: str | None = None, *,
+               ref: str = "—", when: datetime | None = None) -> None:
     s = cfg.settings
     m = EmailMessage()
-    m["Subject"] = subject
+    m["Subject"] = email_subject(subject)
     m["From"] = s.smtp_from or s.smtp_user
     m["To"] = ", ".join(s.email_to)
-    m.set_content(plain)
-    if html_body:
-        m.add_alternative(html_body, subtype="html")
+    plain_out, html_out = email_layout(cfg, subject, plain, html_body, when=when, ref=ref)
+    m.set_content(plain_out)
+    m.add_alternative(html_out, subtype="html")
+    if IMZA_LOGO.exists():  # logo maile gömülür; Outlook "resimleri indir" diye sormaz
+        m.get_payload()[1].add_related(IMZA_LOGO.read_bytes(), maintype="image", subtype="png",
+                                        cid=f"<{IMZA_CID}>", disposition="inline")
     # Sunucu sertifikası her zaman doğrulanır; araya giren biri şifreyi ele geçiremez.
     context = ssl.create_default_context()
     if s.smtp_ssl:
@@ -364,7 +448,12 @@ def deliver(
                     if email_error is not None:
                         # Aynı turda hata veren hesapla yeniden giriş denenmez (Gmail art arda hatalı girişte kilitler)
                         raise RuntimeError("bu turda e-posta zaten hata verdi, denenmedi")
-                    send_email(cfg, m.subject, m.plain, m.email_html or m.html.replace("\n", "<br>"))
+                    ref, ref_key = referans(m, sent, now)
+                    send_email(cfg, m.subject, m.plain, m.email_html or m.html.replace("\n", "<br>"), ref=ref, when=now)
+                    if ref_key:  # numara yalnızca e-posta gidince kesinleşir; yeniden denemede aynı numara kullanılır
+                        for k in [k for k in sent if k.startswith(ref_key.rsplit(":", 1)[0] + ":")]:
+                            del sent[k]
+                        sent[ref_key] = stamp
                     sent[ckey] = stamp
                     sent.pop(f"{m.key}#email-hata", None)
                     email_ok = True
@@ -386,9 +475,25 @@ def deliver(
     log_lines += _email_health(cfg, sent, now, email_error, email_ok, client)
     # 180 günden eski anahtarları temizle
     cutoff = now - timedelta(days=180)
-    for k in [k for k, v in sent.items() if from_iso(v) and from_iso(v) < cutoff]:
+    for k in [k for k, v in sent.items() if not k.startswith(SAYI_KEY) and from_iso(v) and from_iso(v) < cutoff]:
         del sent[k]
     return log_lines
+
+
+def referans(m: Message, sent: dict, now: datetime) -> tuple[str, str | None]:
+    """E-postadaki "Sayı": OÜ-TB-2026/147. TB ve SD yıl içinde sıra numarasıdır (sayaç data/notifications.json'da
+    "sayi:TB:2026:147" anahtarıyla, yalnızca sonuncusu tutulur); özetlerde hafta ya da yılın günü."""
+    yil = now.year
+    if m.ref_tur == "HO":
+        onceki = (now - timedelta(days=7)).isocalendar()  # haftalık özet bir önceki haftayı anlatır
+        return f"OÜ-HO-{onceki[0]}/{onceki[1]}", None
+    if m.ref_tur == "GO":
+        return f"OÜ-GO-{yil}/{now.timetuple().tm_yday:03d}", None
+    if m.ref_tur in ("TB", "SD"):
+        on = f"{SAYI_KEY}{m.ref_tur}:{yil}:"
+        son = max((int(k[len(on):]) for k in sent if k.startswith(on) and k[len(on):].isdigit()), default=0)
+        return f"OÜ-{m.ref_tur}-{yil}/{son + 1:03d}", f"{on}{son + 1}"
+    return "—", None
 
 
 def _email_health(cfg: Config, sent: dict, now: datetime, error: str | None, ok: bool,

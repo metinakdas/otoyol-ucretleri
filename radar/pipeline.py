@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 import httpx
 
 from . import calendar as cal
-from . import lifecycle, notify, saat_dilimi, ucret_tablosu
+from . import eposta, lifecycle, notify, saat_dilimi, ucret_tablosu
 from . import panel as panel_mod
 from . import prices as ledger
 from .collectors import Context, collect
@@ -174,9 +174,13 @@ def run_once(
     # 3) Bildirimler
     n_prices = sum(1 for c in cfg.crossings if ledger.entries(crossings_data, c.id))
     kayitsiz = (state.get(ucret_tablosu.STATE_KEY) or {}).get("kayitsiz") or []
+    def izleme() -> dict:  # özet e-postasındaki "İzlenenler" ve yaklaşan saat dilimi değişiklikleri
+        return eposta.izleme_ozeti(cfg, store.read(ucret_tablosu.DOSYA, None), store.read(saat_dilimi.DOSYA, None),
+                                   saat_dilimi.panel_ozeti(state), now)
+
     messages = notify.plan(cfg, events, transitions, created_watch, health, sent, now,
                            first_run=report.first_run, n_prices=n_prices, notes=report.notes,
-                           kayitsiz_giseler=kayitsiz) + tz_messages
+                           kayitsiz_giseler=kayitsiz, izleme=izleme) + tz_messages
     if send or dry_run:
         report.messages = notify.deliver(cfg, messages, sent, now, dry_run=dry_run, client=notify_client)
     else:

@@ -223,9 +223,15 @@ def _bildirim(key: str, subject: str, lines: list[str], at: datetime, channels: 
 
 
 def _mesaj(b: dict) -> Message:
+    from . import eposta
+
     head, body = b["lines"][0], b["lines"][1:]
     h = "\n".join([f"<b>{html.escape(head)}</b>", *(html.escape(x) for x in body)])
-    return Message(key=b["key"], channels=tuple(b["channels"]), subject=b["subject"], html=h, plain="\n".join(b["lines"]))
+    tasarim = None
+    if b["kind"] == "degisim" and b.get("farklar") and "email" in b["channels"]:
+        tasarim = eposta.saat_dilimi(b, ulkeler(), NEWS_URL)
+    return Message(key=b["key"], channels=tuple(b["channels"]), subject=b["subject"], html=h, plain="\n".join(b["lines"]),
+                   email_html=tasarim, ref_tur="SD")
 
 
 def kontrol(cfg: Config, store: Store, state: dict, sent: dict, now: datetime) -> tuple[list[Message], list[str], bool]:

@@ -46,8 +46,9 @@ class Mail:
         self.subjects: list[str] = []
         self.fail = False
 
-    def __call__(self, cfg, subject, plain, html_body=None):
+    def __call__(self, cfg, subject, plain, html_body=None, **kwargs):
         self.subjects.append(subject)
+        self.kwargs = kwargs
         if self.fail:
             raise RuntimeError(f"(535, b'5.7.8 Username and Password not accepted {PASSWORD}')")
 
@@ -235,3 +236,43 @@ def test_gmail_app_password_spaces_removed(ecfg):
     assert smtp_password(s) == "abcdefghijklmnop"
     s.smtp_host = "smtp.ornek.com"
     assert smtp_password(s) == "abcd efgh ijkl mnop"  # başka sunucularda iç boşluklar korunur
+
+
+# ------------------------------------------------------------------ e-posta imzası
+
+def test_email_signature_embeds_logo(cfg, monkeypatch):
+    captured = {}
+
+    class FakeSMTP:
+        def __init__(self, *a, **k): pass
+        def __enter__(self): return self
+        def __exit__(self, *a): return False
+        def starttls(self, **k): pass
+        def login(self, *a): pass
+        def send_message(self, m): captured["m"] = m
+
+    monkeypatch.setattr(notify.smtplib, "SMTP", FakeSMTP)
+    s = cfg.settings
+    s.smtp_host, s.smtp_user, s.smtp_password, s.email_to, s.smtp_ssl = "smtp.ornek.com", "u", "p", ["a@ornek.com"], False
+    s.panel_url = "https://ornek.github.io/panel/"
+    notify.send_email(cfg, "[Tarife Radarı] KARAR ÇIKTI: Köprü", "[KARAR ÇIKTI] Köprü\nSatır 1\n<b>kaçış</b>")
+    m = captured["m"]
+    assert m["Subject"] == "Otoyol Ücretleri | KARAR ÇIKTI: Köprü"
+    types = [p.get_content_type() for p in m.walk()]
+    assert types == ["multipart/alternative", "text/plain", "multipart/related", "text/html", "image/png"]
+    plain = m.get_body(("plain",)).get_content()
+    html_part = m.get_body(("html",)).get_content()
+    assert "Sayın İlgili," in plain and "Saygılarımızla," in plain and "Web: https://ornek.github.io/panel/" in plain
+    assert "[KARAR ÇIKTI]" not in plain                                   # ilk satır başlıkta, tekrarlanmaz
+    assert "Satır 1<br>&lt;b&gt;kaçış&lt;/b&gt;" in html_part           # düz metin HTML'e güvenli çevrilir
+    assert "Sayın İlgili," in html_part and "Bilgilerinize sunarız." in html_part and "bağlayıcı nitelik" in html_part
+    assert 'src="cid:imza-logo"' in html_part and 'href="https://ornek.github.io/panel/"' in html_part
+    img = [p for p in m.walk() if p.get_content_type() == "image/png"][0]
+    assert img["Content-ID"] == "<imza-logo>" and img.get_content_disposition() == "inline"
+    assert "seyir" not in m.as_string().lower()
+
+
+def test_email_layout_without_panel_url(cfg):
+    cfg.settings.panel_url = ""
+    plain, body = notify.email_layout(cfg, "konu", "metin", None)
+    assert "Web:" not in plain and "<a href" not in body and "Otoyol Ücretleri" in body

@@ -144,6 +144,7 @@ def merge(ev: dict, cand: Candidate, now: datetime) -> bool:
     if cand.effective_from and (old_from is None or (cand.tier == "resmi" and not observed)):
         if old_from and abs(old_from - cand.effective_from) > timedelta(minutes=1) and ev["status"] in DECIDED:
             _add_flag(ev, "tarih_degisti")
+            ev["onceki_yururluk"] = to_iso(old_from)  # e-postada "Önceki yürürlük tarihi"
             _history(ev, now, f"Yürürlük tarihi güncellendi: {to_iso(cand.effective_from)}")
             ev["applied"] = False  # yeni tarihle yeniden uygulanacak
         ev["effective_from"] = to_iso(cand.effective_from)
