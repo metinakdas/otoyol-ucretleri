@@ -155,6 +155,8 @@ svg { flex: none; }
 }
 .plate-logo.sm { border-radius: 9px; }
 .plate-logo.sm > span { width: 28px; height: 28px; border-radius: 7px; }
+/* Sembol (yol ve ufukta saat) logo.svg'deki #sembol ile aynıdır; viewBox iç çerçevenin içini gösterir */
+.plate-logo svg { display: block; width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
 
 /* Otoyol kalkanı: plakanın küçük kardeşi, yalnızca otoyol numarası */
 .shield { display: inline-flex; flex: none; padding: 2px; border-radius: 5px; background: var(--sign); }
