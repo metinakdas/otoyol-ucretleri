@@ -1,0 +1,15 @@
+# Tarife Radarı dış zamanlayıcısı. Kurulum: tetikleyici/KURULUM.md
+name = "tarife-radari-zamanlayici"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# Herkese açık *.workers.dev adresi ve rota yok: worker yalnızca zamanlayıcıyla çalışır
+workers_dev = false
+preview_urls = false
+
+[triggers]
+# Saat başı ve buçuk yoğun dakikalardır; 5 dakika kaydırılır (UTC)
+crons = ["5,35 * * * *"]
+
+[observability]
+enabled = true

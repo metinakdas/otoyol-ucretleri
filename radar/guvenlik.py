@@ -31,6 +31,7 @@ SECRET_PATTERNS: list[tuple[str, re.Pattern]] = [
     ("AWS erişim anahtarı", re.compile(r"\b(?:AKIA|ASIA)[0-9A-Z]{16}\b")),
     ("Slack anahtarı", re.compile(r"\bxox[abprs]-[A-Za-z0-9-]{10,}\b")),
     ("Google API anahtarı", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
+    ("Grafana anahtarı", re.compile(r"\bgl(?:c|sa)_[A-Za-z0-9+/=_-]{32,}")),
 ]
 
 

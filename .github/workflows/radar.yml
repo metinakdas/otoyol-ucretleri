@@ -2,8 +2,16 @@ name: Tarife Radarı
 
 on:
   schedule:
-    - cron: "*/30 * * * *"   # 30 dakikada bir (GitHub yoğunlukta birkaç dakika geciktirebilir)
-  workflow_dispatch: {}      # Actions sekmesinden elle çalıştırmak için
+    # Yedek zamanlama. GitHub bunu yoğunlukta seyreltir (gerçekte günde 3-4 tur); asıl 30 dakikalık
+    # tetikleme dış zamanlayıcıdan (tetikleyici/, Cloudflare Workers) workflow_dispatch ile gelir.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:         # Actions sekmesinden elle ya da dış zamanlayıcıdan çalıştırmak için
+    inputs:
+      tetik:
+        description: "Turu başlatan (elle çalıştırmada değiştirmeyin)"
+        type: choice
+        options: [elle, zamanlayici]
+        default: elle
 
 # Güvenlik: varsayılan olarak hiçbir yetki verilmez; her iş yalnızca ihtiyacı olanı alır.
 permissions: {}
@@ -81,6 +89,7 @@ jobs:
           LOKI_URL: ${{ secrets.LOKI_URL }}
           LOKI_USER: ${{ secrets.LOKI_USER }}
           LOKI_TOKEN: ${{ secrets.LOKI_TOKEN }}
+          RADAR_TETIK: ${{ inputs.tetik || github.event_name }}
         run: python -m radar calistir
 
       - name: Değişiklikleri kaydet
@@ -102,9 +111,12 @@ jobs:
           fi
 
   # Paneli GitHub Pages'e yayımlar. Yalnızca panel dosyaları ile panel.json ve ucret-tablosu.json yayımlanır.
+  # Veri değişmediyse yalnızca elle çalıştırmada yayımlanır; dış zamanlayıcı her turda yayın açmaz.
   panel:
     needs: radar
-    if: needs.radar.outputs.changed == 'true' || (github.event_name == 'workflow_dispatch' && needs.radar.outputs.hazir == 'true')
+    if: >-
+      needs.radar.outputs.changed == 'true' ||
+      (github.event_name == 'workflow_dispatch' && inputs.tetik != 'zamanlayici' && needs.radar.outputs.hazir == 'true')
     runs-on: ubuntu-latest
     permissions:
       contents: read

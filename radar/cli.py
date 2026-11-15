@@ -46,7 +46,14 @@ def cmd_calistir(args, cfg) -> int:
     from .pipeline import run_once
 
     _bas = _time.monotonic()
-    report = run_once(cfg, now=_parse_time(args.zaman), send=not args.bildirim_yok, dry_run=args.deneme)
+    try:
+        report = run_once(cfg, now=_parse_time(args.zaman), send=not args.bildirim_yok, dry_run=args.deneme)
+    except Exception as exc:
+        if not args.deneme:  # çökme Grafana'ya hemen bildirilir; hata yine de yukarı iletilir
+            izleme_notu = izleme.cokme(cfg, exc, _time.monotonic() - _bas)
+            if izleme_notu:
+                print(f"  · {izleme_notu}")
+        raise
     print(f"Tarife Radarı {__version__} · {fmt_datetime(_parse_time(args.zaman) or tz_now())}")
     if report.first_run:
         print("İlk çalıştırma: kaynaklar başlangıç olarak kaydedildi, değişiklik bildirimi gönderilmedi.")
@@ -64,7 +71,8 @@ def cmd_calistir(args, cfg) -> int:
         print("Deneme modu: hiçbir dosya yazılmadı.")
     elif report.written:
         print("Yazılan: " + ", ".join(report.written))
-    izleme_notu = izleme.gonder(cfg, report, _time.monotonic() - _bas)
+    # Deneme turları Grafana'ya yazılmaz: gerçek bir tur gibi görünüp "tur yok" alarmını susturmasın
+    izleme_notu = None if args.deneme else izleme.gonder(cfg, report, _time.monotonic() - _bas)
     if izleme_notu:
         print(f"  · {izleme_notu}")
     failed = [s for s in report.sources if s[1] != "tamam"]

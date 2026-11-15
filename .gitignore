@@ -15,6 +15,11 @@ venv/
 # Leaflet'in varsayılan işaret ve katman görselleri: panel bunları kullanmaz (kendi işaretlerini çizer)
 panel/vendor/leaflet/images/
 
+# Dış zamanlayıcı (Cloudflare Workers) yerel dosyaları; .dev.vars yerel secret içerebilir
+tetikleyici/.wrangler/
+tetikleyici/.dev.vars
+node_modules/
+
 # Yerel çalışma dosyaları
 _site/
 cache/
