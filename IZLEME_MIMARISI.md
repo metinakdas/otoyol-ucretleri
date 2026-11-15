@@ -132,10 +132,10 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 - [x] İlk kayıtlar Loki'de (yerelden ve GitHub turundan)
 - [x] "İzleme Paneli" dashboard'u: `/d/otoyol-izleme-paneli` (klasör: Otoyol İzleme)
 - [x] Alarm kuralları (grup `otoyol`, 10 dk'da bir) + Telegram teknik grubu bağlantısı
-- [ ] E-posta alarm kanalı: Grafana yalnızca kuruluş üyesi adreslere alarm e-postası gönderir;
-      alıcı adres Grafana'ya **Viewer** olarak davet edilip daveti kabul ettikten sonra eklenecek
+- [x] E-posta alarm kanalı: alıcı adres Grafana'ya **Viewer** olarak eklendi (Grafana yalnızca kuruluş
+      üyesi adreslere alarm e-postası gönderir); `otoyol-alarm` artık Telegram + e-posta
 - [x] Alarm tatbikatı: sahte bir bildirim hatası kaydı gönderildi, "Bildirim gönderilemedi" alarmı tetiklendi (15 Kasım 2026)
-- [ ] Kurulum için açılan geçici Admin servis hesabının (`otoyol-kurulum`) silinmesi
+- [x] Kurulum için açılan geçici Admin servis hesabı (`otoyol-kurulum`) silindi; kalıcı anahtar yalnızca `logs:write`
 
 ## Grafana tarafındaki nesneler
 
@@ -144,6 +144,6 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 | Klasör             | Otoyol İzleme (`otoyol-izleme`)     | pano ve alarm kuralları burada             |
 | Pano               | İzleme Paneli (`otoyol-izleme-paneli`) | 24 saat görünüm, 5 dk'da bir yenilenir  |
 | Kural grubu        | `otoyol` (10 dk aralık)             | 4 kural, hepsi `app=tarife-radari` etiketli |
-| Alarm kanalı       | `otoyol-alarm`                      | Telegram teknik grubu (+ e-posta, üyelik sonrası) |
+| Alarm kanalı       | `otoyol-alarm`                      | Telegram teknik grubu + e-posta            |
 | Bildirim yönlendirme | `app=tarife-radari` → `otoyol-alarm` | 4 saatte bir tekrar hatırlatır            |
 | Erişim ilkesi      | `otoyol-radar-yaz` (yalnızca logs:write) | radarın kalıcı log gönderim anahtarı   |
