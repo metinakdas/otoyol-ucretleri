@@ -279,10 +279,13 @@ def test_email_layout_without_panel_url(cfg):
 
 
 def test_time_zone_email_embeds_green_logo(cfg, monkeypatch):
-    """Saat dilimi e-postası sarı antetli; antette yeşil logo gömülü gider, kullanılmayan logo eklenmez."""
+    """Saat dilimi e-postası kendi temasında ("Zaman Dilimi" antetli, iOS renkleri); antetteki yeşil logo gömülü
+    gider, kullanılmayan logo eklenmez."""
     from radar import eposta
     t = eposta.sablon("07")
-    assert 'src="cid:logo-yesil"' in t and "#fcb514" in t and "Saat Dilimi Uyarısı" in t
+    antet = t[t.index("<!-- ▼ BİLEŞEN: antet -->"):t.index("<!-- ▲ BİLEŞEN: antet -->")]
+    assert 'src="cid:logo-yesil"' in antet and "Zaman Dilimi" in antet and "Otoyol Ücretleri" not in antet
+    assert "#ff9500" in t and "#34c759" in t
     captured = {}
 
     class FakeSMTP:
