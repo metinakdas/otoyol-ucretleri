@@ -289,8 +289,11 @@
     const failing = enabled.filter((s) => s.ok === false);
     const stale = data.last_run && now - new Date(data.last_run) > 6 * 3600 * 1000;
     const cls = failing.length ? "bad" : stale ? "warn" : "good";
-    const text = failing.length ? `${failing.length} kaynak okunamıyor` : `Güncel · ${ago(data.last_run, now)}`;
-    const title = `Son kontrol ${ago(data.last_run, now)} · ${failing.length ? failing.length + " kaynak okunamıyor; ücretler son doğrulanan tarifeden" : "tüm kaynaklar çalışıyor"}`;
+    const text = failing.length ? `${failing.length} kaynak okunamıyor` : `Kontrol · ${ago(data.last_run, now)}`;
+    // last_run, panel verisinin son yazıldığı turdur: değişiklik yokken en fazla saatte bir yazılır
+    const title = `Son kayıt: ${data.last_run ? dateTime(data.last_run) : "—"} · `
+      + `Radar ${data.run_interval_minutes || 30} dakikada bir kontrol eder · `
+      + (failing.length ? failing.length + " kaynak okunamıyor; ücretler son doğrulanan tarifeden" : "tüm kaynaklar çalışıyor");
     const el = $("#status");
     el.title = title;
     el.innerHTML = `<span class="dot ${cls}" aria-hidden="true"></span>${esc(text)}`;
@@ -1049,6 +1052,8 @@
     cls_ = CLASSES.includes(saved) ? saved : "1";
     $("#sample-note").hidden = !data.ornek;
     renderStatus(data, now_);
+    // "X önce" sayfa açık kaldıkça donmasın: her dakika yeniden hesaplanır
+    setInterval(() => renderStatus(data, new Date()), 60000);
     renderCountdown(data, now_);
     renderAnnouncements(data, now_);
     renderPlate(data, now_);

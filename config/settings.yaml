@@ -22,8 +22,9 @@ ozet_saati: 8
 kaynak_hata_saat: 24
 
 # Değişiklik yokken panel ve sağlık kaydı en fazla bu sıklıkla yazılır (dakika).
-# Böylece her 30 dakikalık çalışma Git'e yeni kayıt (commit) üretmez.
-heartbeat_dakika: 180
+# Paneldeki "Kontrol · X önce" yazısı en fazla bu kadar geride kalır; her 30 dakikalık
+# çalışma Git'e yeni kayıt (commit) üretmez (günde ~24 kayıt).
+heartbeat_dakika: 60
 
 # Radarın çalışma aralığı (yalnızca panelde bilgi olarak gösterilir; asıl aralık GitHub Actions'ta).
 calisma_araligi_dakika: 30
