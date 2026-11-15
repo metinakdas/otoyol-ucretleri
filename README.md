@@ -335,7 +335,7 @@ verir; `.env` ve diğer kayıtlar sunulmaz.
 
 **E-posta:** Sunucu sertifikası her zaman doğrulanır; şifreli bağlantı kurulamazsa gönderim yapılmaz.
 
-**Bağımlılıklar:** Sürümler `requirements.txt` içinde sabittir; yalnızca test edilmiş sürümler kurulur.
+**Bağımlılıklar:** Doğrudan paketler `requirements.in` dosyasındadır; `requirements.txt` bundan üretilir ve alt bağımlılıklar dahil her paketi sürüm ve SHA-256 hash ile sabitler. GitHub turu `pip install --require-hashes` ile kurar: hash tutmayan dosya kurulmaz. Tek istisna `tzdata`dır (saat dilimi izleme için her turda en son sürüme yükseltilir). GitHub Actions adımları da etiketle değil, commit SHA ile sabitlenmiştir.
 
 **GitHub hesabınız için öneriler:** İki adımlı doğrulamayı açın. Settings → Emails bölümünde
 "Keep my email addresses private" ve "Block command line pushes that expose my email" seçeneklerini

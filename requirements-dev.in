@@ -1,0 +1,4 @@
+# Test ortamı: radarın paketleri (aynı sürümler) + pytest. requirements-dev.txt bu dosyadan üretilir.
+-c requirements.txt
+-r requirements.in
+pytest==9.1.1

@@ -1,0 +1,18 @@
+# Radarın doğrudan kullandığı paketler. Elle düzenlenen dosya budur.
+# requirements.txt bu dosyadan üretilir: tüm alt bağımlılıklar sürüm ve hash ile sabitlenir
+# (tedarik zinciri güvenliği; pip, hash'i tutmayan dosyayı kurmaz).
+#
+# Güncellemek için sürümü burada değiştir, ardından:
+#   pip-compile --generate-hashes --allow-unsafe requirements.in -o requirements.txt
+#   pip-compile --generate-hashes --allow-unsafe requirements-dev.in -o requirements-dev.txt
+#   python -m pytest
+httpx==0.28.1
+beautifulsoup4==4.15.0
+feedparser==6.0.14
+pdfplumber==0.11.10
+# pdfplumber'ın alt bağımlılığı; açıkça sabitlenir (5.15.1 PyPI'de geri çekildi)
+pypdfium2==5.14.0
+PyYAML==6.0.3
+# Windows'ta saat dilimi verisi için gerekli (Linux'ta zararsız). GitHub turunda ayrıca en son sürüme
+# yükseltilir (saat dilimi izleme yeni IANA sürümünü buradan görür); bu bilinçli bir istisnadır.
+tzdata==2026.5
