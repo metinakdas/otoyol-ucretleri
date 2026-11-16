@@ -254,7 +254,7 @@ Komutun yaptıkları:
 `python -m radar yayinla` gönderir (her seferinde önce tarama yapılır).
 
 Bundan sonra radar 30 dakikada bir kendiliğinden çalışır ve her değişikliği `data/` klasörüne commit olarak
-kaydeder; geçmişin tamamı Git'te durur. Değişiklik yokken de en fazla 3 saatte bir panel kaydı yazılır.
+kaydeder; geçmişin tamamı Git'te durur. Değişiklik yokken de en fazla saatte bir panel kaydı yazılır.
 Bu kayıtlar deponun "etkin" kalmasını sağlar (GitHub 60 gün hareketsiz kalan depolarda zamanlayıcıyı durdurur).
 Bildirim kanalı (Telegram ya da e-posta) tanımlanmadıysa radar çalışmaz ve Actions'ta uyarı verir; böylece
 hiçbir bildirim "gönderildi" sayılıp kaybolmaz.
