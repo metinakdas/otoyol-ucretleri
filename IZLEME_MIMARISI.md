@@ -216,7 +216,8 @@ Telegram/WhatsApp/Gmail mevcut kurulum.
 - [x] Grafana kuralları: "Radar turu yok" yalnızca `ortam="github"`; "Tur çöktü" ve "Tur anormal yavaş (5 dk)" eklendi;
       liste bu belgeyle eşit (6 kural). Değişiklik geçici, yalnızca Editor yetkili bir servis hesabıyla yapıldı.
 - [x] Alarm bildirimleri Türkçe şablona geçti; alarm ve çözüldü iki kanalda tatbikatla doğrulandı (16 Kasım 2026)
-- [ ] Zamanlayıcı kurulduktan 24 saat sonra: ~48 tur/gün ve 90 dk eşiğinin doğrulanması
+- [x] Zamanlayıcı doğrulandı (16 Kasım 2026): ilk 22 saatte beklenen 45 tetiklemenin 45'i geldi, hepsi başarılı;
+      turlar arası en büyük boşluk 30 dk. 90 dk eşiği uygun (iki tur kaçırılırsa alarm).
 
 ## Grafana tarafındaki nesneler
 
